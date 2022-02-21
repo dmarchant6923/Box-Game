@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Target
+  - Ice
+  - Effect
+  - Hazard
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Platforms
+  - Water
+  - UI
+  - Obstacles
+  - Blast Zone
+  - Targets
+  - Box
+  - Hazards
+  - Enemies
+  - Projectiles
+  - Explosions
+  - Enemy Device
+  - Pulse
+  - Windbox
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Items
+    uniqueID: 711242377
+    locked: 0
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Environment
+    uniqueID: 1300571465
+    locked: 0
+  - name: Effects
+    uniqueID: 3016379937
+    locked: 0
+  - name: Dead Enemy
+    uniqueID: 2872374167
+    locked: 0
+  - name: Above All
+    uniqueID: 3084064471
+    locked: 0

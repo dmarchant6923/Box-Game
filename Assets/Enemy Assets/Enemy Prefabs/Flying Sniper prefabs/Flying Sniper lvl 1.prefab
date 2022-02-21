@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &8997175396295160043
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: debugLines
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: bulletSpeed
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: bulletDamage
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: shootBoxRadius
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: moveToBoxRadius
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: delayBeforeShooting
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: regularAngularVelocity
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 29.43151
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 36.23053
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538536876540115421, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_Name
+      value: Flying Sniper lvl 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7521825340537276037, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}

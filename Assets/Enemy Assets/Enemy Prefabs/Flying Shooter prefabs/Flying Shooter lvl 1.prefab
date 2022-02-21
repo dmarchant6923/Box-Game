@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &6963702889444219595
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 38.91
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 37.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528489, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: restTime
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: debugLines
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: bulletSpeed
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: bulletDamage
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: bulletRecoil
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: bulletSpreadMax
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: bulletsPerAttack
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: moveFromBoxRadius
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: shootTimeInterval
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: delayBeforeShooting
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: shootAngularVelocity
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528493, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: truePositionVelocity
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528494, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528494, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528494, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528498, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: canBeShocked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3665763997060528499, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}
+      propertyPath: m_Name
+      value: Flying Shooter lvl 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b883dbc514a90d9408af7fa415287e5a, type: 3}

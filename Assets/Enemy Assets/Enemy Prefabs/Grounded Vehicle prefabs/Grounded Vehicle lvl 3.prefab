@@ -1,0 +1,179 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &8464858536868613060
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: moveForce
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: bulletSpeed
+      value: 22
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: bulletDamage
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: maxHorizSpeed
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: shootCoolDown
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: explosionTimer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: attackBoxRadius
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: dashAttackSpeed
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: enemyDifficulty
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: explosionRadius
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: moveToBoxRadius
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: bulletsPerVolley
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: maxDashAttackTime
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: moveFromBoxRadius
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: shootTimeInterval
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: dashAttackDistance
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: placeProximityMines
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: regularAngularVelocity
+      value: 600
+      objectReference: {fileID: 0}
+    - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: shootingAngularVelocity
+      value: 250
+      objectReference: {fileID: 0}
+    - target: {fileID: 2202810358511914362, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.b
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2202810358511914362, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2202810358511914362, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.r
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 28.104
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 35.396
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3019338301777428054, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3590269498819361621, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: enemyHealth
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3590269498819361621, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: canBeShocked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3892859905175130680, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.b
+      value: 0.24313727
+      objectReference: {fileID: 0}
+    - target: {fileID: 3892859905175130680, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.g
+      value: 0.24313727
+      objectReference: {fileID: 0}
+    - target: {fileID: 3892859905175130680, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.r
+      value: 0.24313727
+      objectReference: {fileID: 0}
+    - target: {fileID: 6158783703932519870, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Name
+      value: Grounded Vehicle lvl 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8964139006703017589, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.b
+      value: 0.2264151
+      objectReference: {fileID: 0}
+    - target: {fileID: 8964139006703017589, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.g
+      value: 0.2264151
+      objectReference: {fileID: 0}
+    - target: {fileID: 8964139006703017589, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
+      propertyPath: m_Color.r
+      value: 0.2264151
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}

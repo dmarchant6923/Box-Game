@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &8078822964406894208
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2361387401203103681, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_Color.b
+      value: 0.20000002
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103681, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103681, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_Color.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: restTime
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: debugLines
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: bulletSpeed
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: volleyDelay
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: bulletDamage
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: bulletRecoil
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: shootBoxRadius
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: bulletSpreadMax
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: enemyDifficulty
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: numberOfVolleys
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: bulletsPerAttack
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: shootAngularVelocity
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: truePositionVelocity
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: regularAngularVelocity
+      value: 1000
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 12.41
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 10.64
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103708, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: m_Name
+      value: Flying Shotgun lvl 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103709, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: enemyHealth
+      value: 2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b53d418e0d922244b9df336709c25f54, type: 3}

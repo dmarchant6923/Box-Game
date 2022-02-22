@@ -31,6 +31,8 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public bool enemyWasDamaged = false;
     [HideInInspector] public bool enemyWasKilled = false;
 
+    [HideInInspector] public bool instantKill = false;
+
     [HideInInspector] public bool hitstopImpactActive = false;
     bool damageFlashCRActive = false;
     float hitstopTime = 0;
@@ -144,12 +146,12 @@ public class EnemyManager : MonoBehaviour
             pulseActive = false;
         }
 
-        if (enemyWasDamaged == true && shieldCurrentlyActive == false)
+        if ((enemyWasDamaged == true && shieldCurrentlyActive == false) || instantKill)
         {
-            if (enemyIsInvulnerable == false)
+            if (enemyIsInvulnerable == false || instantKill)
             {
                 enemyHealth -= 1;
-                if (enemyHealth <= 0)
+                if (enemyHealth <= 0 || instantKill)
                 {
                     enemyWasKilled = true;
                     if (normalDeath == true)
@@ -161,6 +163,7 @@ public class EnemyManager : MonoBehaviour
                 enemyIsInvulnerable = true;
             }
             enemyWasDamaged = false;
+            instantKill = false;
         }
         if (hitstopImpactActive == true)
         {

@@ -30,7 +30,7 @@ public class MovingObjects : MonoBehaviour
     float type1MoveTime1;
     float type1MoveTime2;
 
-    //movementType2: sine wave type movement in one axis. Will move between distance and -distance. Choose horizontal or vertical.
+    //movementType2: sine wave type movement in one axis. Will move between distance / 2 and -distance / 2. Choose horizontal or vertical.
     //starting position is at the center of the wave.
     public bool movementType2 = false;
     public bool type2Horizontal = true;
@@ -41,6 +41,13 @@ public class MovingObjects : MonoBehaviour
     [HideInInspector] public bool isMoving = false;
 
     public bool startReverse = false;
+
+    public bool activateBySwitch = false;
+    public bool startActive = false;
+    public bool stayActive = false;
+    [HideInInspector] public bool active = true;
+    public bool pauseOnDeactivate = false;
+    float storedVelocity;
 
     void Awake()
     {
@@ -53,8 +60,6 @@ public class MovingObjects : MonoBehaviour
         platformLM = LayerMask.GetMask("Platforms");
         obstacleLM = LayerMask.GetMask("Obstacles");
         hazardLM = LayerMask.GetMask("Hazards");
-
-        BoxVelocity.velocitiesX[1] = 0;
 
         type1MoveTime1 = type1Distance / type1Velocity1;
         type1MoveTime2 = type1Distance / type1Velocity2;
@@ -74,7 +79,12 @@ public class MovingObjects : MonoBehaviour
         if (startReverse)
         {
             type2Distance *= -1;
-            type1Distance *= -1;
+        }
+
+        active = true;
+        if (activateBySwitch && startActive == false)
+        {
+            active = false;
         }
     }
 
@@ -89,48 +99,8 @@ public class MovingObjects : MonoBehaviour
             isMoving = true;
         }
 
-        if (initialDelayPassed == true)
+        if (initialDelayPassed == true && active)
         {
-            if (movementType1 == true)
-            {
-                movementType2 = false;
-
-                if (type1Horizontal == true)
-                {
-                    if (rb.position.x > InitialPosition.x + type1Distance + 0.05f)
-                    {
-                        rb.position = new Vector2(InitialPosition.x + type1Distance, InitialPosition.y);
-                        rb.velocity = Vector2.zero;
-                    }
-                    else if (rb.position.x < InitialPosition.x - 0.05f)
-                    {
-                        rb.position = new Vector2(InitialPosition.x, InitialPosition.y);
-                        rb.velocity = Vector2.zero;
-                    }
-                    else
-                    {
-                        rb.velocity = new Vector2(type1Velocity, 0);
-                    }
-                }
-                else
-                {
-                    if (rb.position.y > InitialPosition.y + type1Distance + 0.05f)
-                    {
-                        rb.position = new Vector2(InitialPosition.x, InitialPosition.y + type1Distance);
-                        rb.velocity = Vector2.zero;
-                    }
-                    else if (rb.position.y < InitialPosition.y - 0.05f)
-                    {
-                        rb.position = new Vector2(InitialPosition.x, InitialPosition.y);
-                        rb.velocity = Vector2.zero;
-                    }
-                    else
-                    {
-                        rb.velocity = new Vector2(0, type1Velocity);
-                    }
-                }
-            }
-
             if (movementType2 == true)
             {
                 movementType1 = false;
@@ -150,6 +120,30 @@ public class MovingObjects : MonoBehaviour
                     type2Time -= type2Period;
                 }
             }
+        }
+        if (activateBySwitch && active == false)
+        {
+            rb.velocity = Vector2.zero;
+        }
+
+        if (activateBySwitch)
+        {
+            Debug.Log(type1Velocity);
+        }
+    }
+    public void Trigger()
+    {
+        if (((stayActive && active == false) || stayActive == false) && activateBySwitch)
+        {
+            if (active && movementType1)
+            {
+                storedVelocity = type1Velocity;
+            }
+            if (active == false && movementType1)
+            {
+                type1Velocity = storedVelocity;
+            }
+            active = !active;
         }
     }
     private void OnCollisionStay2D(Collision2D collision)
@@ -192,22 +186,98 @@ public class MovingObjects : MonoBehaviour
             BoxVelocity.velocitiesX[1] = 0;
         }
     }
+
     IEnumerator MovementType1()
     {
         while (initialDelayPassed == false)
         {
             yield return null;
         }
-        yield return new WaitForSeconds(type1StayTime2);
-        type1Velocity = type1Velocity1;
-        yield return new WaitForSeconds(type1MoveTime1);
-        type1Velocity = 0;
-        yield return new WaitForSeconds(type1StayTime1);
-        type1Velocity = -type1Velocity2;
-        yield return new WaitForSeconds(type1MoveTime2);
-        type1Velocity = 0;
-        transform.position = InitialPosition;
-        StartCoroutine(MovementType1());
+        float directionMult = 1;
+        if (startReverse)
+        {
+            directionMult = -1;
+        }
+
+        float velocity = 0;
+        float window = 0;
+        float timer = 0;
+        bool reachedEnd = false;
+        while (true)
+        {
+            velocity = type1Velocity1 * directionMult;
+            if (type1Horizontal)
+            {
+                rb.velocity = new Vector2(velocity, 0);
+            }
+            else
+            {
+                rb.velocity = new Vector2(0, velocity);
+            }
+            while (reachedEnd == false)
+            {
+                yield return new WaitForFixedUpdate();
+                if (type1Horizontal && Mathf.Abs(rb.position.x - InitialPosition.x) >= type1Distance - Mathf.Abs(velocity) * Time.fixedDeltaTime)
+                {
+                    reachedEnd = true;
+                }
+                else if (type1Horizontal == false && Mathf.Abs(rb.position.y - InitialPosition.y) >= type1Distance - Mathf.Abs(velocity) * Time.fixedDeltaTime)
+                {
+                    reachedEnd = true;
+                }
+            }
+            reachedEnd = false;
+
+            rb.velocity = Vector2.zero;
+            if (type1Horizontal)
+            {
+                rb.position = new Vector2(InitialPosition.x + type1Distance * directionMult, InitialPosition.y);
+            }
+            else
+            {
+                rb.position = new Vector2(InitialPosition.x, InitialPosition.y + type1Distance * directionMult);
+            }
+            window = type1StayTime1;
+            timer = 0;
+            while (timer < window)
+            {
+                timer += Time.deltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+
+            velocity = type1Velocity1 * -directionMult;
+            if (type1Horizontal)
+            {
+                rb.velocity = new Vector2(velocity, 0);
+            }
+            else
+            {
+                rb.velocity = new Vector2(0, velocity);
+            }
+            while (reachedEnd == false)
+            {
+                yield return new WaitForFixedUpdate();
+                if (type1Horizontal && Mathf.Abs(rb.position.x - InitialPosition.x) <= Mathf.Abs(velocity) * Time.fixedDeltaTime)
+                {
+                    reachedEnd = true;
+                }
+                else if (type1Horizontal == false && Mathf.Abs(rb.position.y - InitialPosition.y) <= Mathf.Abs(velocity) * Time.fixedDeltaTime)
+                {
+                    reachedEnd = true;
+                }
+            }
+            reachedEnd = false;
+
+            rb.velocity = Vector2.zero;
+            rb.position = InitialPosition;
+            window = type1StayTime2;
+            timer = 0;
+            while (timer < window)
+            {
+                timer += Time.deltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+        }
     }
 
     IEnumerator InitialDelay()

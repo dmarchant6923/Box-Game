@@ -22,6 +22,10 @@ public class BoxVelocity : MonoBehaviour
     private void Start()
     {
         windVelocity = 0;
+        for (int i = 0; i < velocitiesX.Count; i++)
+        {
+            velocitiesX[i] = 0;
+        }
     }
     void Update()
     {

@@ -10,8 +10,9 @@ public class Switch : MonoBehaviour
     GameObject[] items = new GameObject[3];
 
     public bool releaseOnExit = false;
-    public bool pressToRelease = false;
+    float itemsInTrigger = 0;
 
+    public bool pressToRelease = false;
 
     public bool boxCanActivate = true;
     public bool enemiesCanActivate = false;
@@ -48,6 +49,10 @@ public class Switch : MonoBehaviour
             {
                 item.GetComponent<Door>().Trigger();
             }
+            if (item != null && item.GetComponent<MovingObjects>() != null)
+            {
+                item.GetComponent<MovingObjects>().Trigger();
+            }
         }
     }
 
@@ -62,6 +67,10 @@ public class Switch : MonoBehaviour
             if (item != null && item.GetComponent<Door>() != null)
             {
                 item.GetComponent<Door>().Trigger();
+            }
+            if (item != null && item.GetComponent<MovingObjects>() != null)
+            {
+                item.GetComponent<MovingObjects>().Trigger();
             }
         }
     }
@@ -79,14 +88,17 @@ public class Switch : MonoBehaviour
             {
                 Deactivate();
             }
+            itemsInTrigger++;
         }
     }
+
     private void OnTriggerExit2D(Collider2D collision)
     {
         if ((boxCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Box")) ||
             (enemiesCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Enemies")))
         {
-            if (releaseOnExit)
+            itemsInTrigger--;
+            if (releaseOnExit && itemsInTrigger == 0)
             {
                 Deactivate();
             }

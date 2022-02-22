@@ -6,13 +6,38 @@ public class EnemySpawn : MonoBehaviour
 {
     public GameObject spawn;
     public GameObject prefab;
-    public float timer = 1.5f;
+    Transform killzone;
+
+    public bool killzoneActive = false;
+    float killzoneTimer = 0;
+    public float killzoneTime = 1f;
+
+    public float respawnTime = 1.5f;
 
     bool spawnCRActive = false;
 
+    public bool debugEnabled = false;
+
     void Start()
     {
-        GetComponent<SpriteRenderer>().enabled = false;
+        killzone = transform.GetChild(0);
+
+        if (debugEnabled == false)
+        {
+            GetComponent<SpriteRenderer>().enabled = false;
+        }
+        if (killzoneActive)
+        {
+            if (debugEnabled == false)
+            {
+                killzone.GetComponent<SpriteRenderer>().enabled = false;
+            }
+        }
+        else
+        {
+            killzone.GetComponent<SpriteRenderer>().enabled = false;
+            killzone.localScale = Vector2.zero;
+        }
     }
 
     // Update is called once per frame
@@ -21,21 +46,40 @@ public class EnemySpawn : MonoBehaviour
         if (spawn == null && spawnCRActive == false)
         {
             StartCoroutine(Respawn());
-            Debug.Log("you are here");
+        }
+
+        if (killzoneTimer > killzoneTime)
+        {
+            spawn.GetComponent<EnemyManager>().instantKill = true;
         }
     }
 
     IEnumerator Respawn()
     {
-
         spawnCRActive = true;
-        float time = 0;
-        while (time < timer)
+        float timer = 0;
+        while (timer < respawnTime)
         {
-            time += Time.deltaTime;
+            timer += Time.deltaTime;
             yield return null;
         }
         spawn = Instantiate(prefab, transform.position, Quaternion.identity);
         spawnCRActive = false;
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (killzoneActive && collision.gameObject == spawn)
+        {
+            killzoneTimer += Time.deltaTime;
+            Debug.Log(killzoneTimer);
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (killzoneActive && collision.gameObject == spawn)
+        {
+            killzoneTimer = 0;
+        }
     }
 }

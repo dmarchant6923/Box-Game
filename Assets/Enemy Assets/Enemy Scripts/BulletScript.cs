@@ -92,12 +92,17 @@ public class BulletScript : MonoBehaviour
         bulletTimer += Time.deltaTime;
         if (bulletTimer >= bulletDespawnWindow)
         {
-            if (explodingBullets == true)
-            {
-                Explosion(explosionDamage);
-            }
-            Destroy(gameObject);
+            DestroyBullet();
         }
+    }
+
+    public void DestroyBullet()
+    {
+        if (explodingBullets == true)
+        {
+            Explosion(explosionDamage);
+        }
+        Destroy(gameObject);
     }
 
     private void Explosion(float explosionDamage)
@@ -120,11 +125,8 @@ public class BulletScript : MonoBehaviour
             Box.damageTaken = bulletDamage;
             Box.boxDamageDirection = new Vector2(Mathf.Sign(bulletRB.velocity.x), 1).normalized;
             Box.activateDamage = true;
-            if (explodingBullets == true)
-            {
-                Explosion(bulletDamage / 1.6f);
-            }
-            Destroy(gameObject);
+            explosionDamage = bulletDamage / 1.6f;
+            DestroyBullet();
         }
         else if (1 << collision.gameObject.layer == boxLM && bulletWasReflected == true)
         {
@@ -139,22 +141,20 @@ public class BulletScript : MonoBehaviour
             {
                 collision.GetComponentInParent<EnemyManager>().enemyWasDamaged = true;
             }
-            if (explodingBullets == true)
-            {
-                Explosion(explosionDamage);
-            }
-            Destroy(gameObject);
+            DestroyBullet();
         }
         else if (1 << collision.gameObject.layer == enemyLM && bulletWasReflected == false)
         {
         }
         else if (1 << collision.gameObject.layer != LayerMask.GetMask("Pulse") && collision.isTrigger == false)
         {
-            if (explodingBullets == true)
-            {
-                Explosion(explosionDamage);
-            }
-            Destroy(gameObject);
+            DestroyBullet();
+        }
+
+        if (collision.transform.root.GetComponent<HitSwitch>() != null)
+        {
+            collision.transform.root.GetComponent<HitSwitch>().Hit();
+            DestroyBullet();
         }
     }
 

@@ -5,7 +5,7 @@ using UnityEngine;
 public class perks : MonoBehaviour
 {
     public bool heart;
-    float amountHealed = 25;
+    public float amountHealed = 25;
 
     public bool speed;
 

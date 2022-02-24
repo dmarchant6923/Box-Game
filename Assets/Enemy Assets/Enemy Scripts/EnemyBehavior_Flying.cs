@@ -139,7 +139,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
 
         diveVelocity = 3;
 
-        bulletDespawnTime = shootBoxRadius * 2 / bulletSpeed;
+        bulletDespawnTime = shootBoxRadius * 3 / bulletSpeed;
         float horizDirection = Random.Range(0, 2);
         if (horizDirection == 0)
         {

@@ -94,6 +94,8 @@ public class EnemyManager : MonoBehaviour
         cameraTransform = GameObject.Find("Main Camera").GetComponent<Transform>();
 
         shockActive = false;
+        enemyWasPulsed = false;
+        pulseActive = false;
 
         enemyObjects = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
         enemyColors = new List<Color>();
@@ -125,25 +127,6 @@ public class EnemyManager : MonoBehaviour
         else
         {
             inBoxLOS = false;
-        }
-
-        //activate pulse force on enemy
-        if (pulseActive)
-        {
-            if (inBoxLOS && enemyIsInvulnerable == false && normalPulse && enemyWasKilled == false)
-            {
-                //enemyRB.AddForce(-directionToBox * Box.enemyPulseMagnitude, ForceMode2D.Impulse);
-                //while (enemyRB.velocity.magnitude < 7)
-                //{
-                    //enemyRB.AddForce(-directionToBox * Box.enemyPulseMagnitude, ForceMode2D.Impulse);
-                    enemyRB.velocity = -directionToBox * 15;
-                //}
-            }
-            if (inBoxLOS && shockActive)
-            {
-                shockActive = false;
-            }
-            pulseActive = false;
         }
 
         if ((enemyWasDamaged == true && shieldCurrentlyActive == false) || instantKill)
@@ -208,7 +191,6 @@ public class EnemyManager : MonoBehaviour
         {
             if (shockActive == false && canBeShocked && shockCoolDown == false)
             {
-                //Debug.Log("you are here");
                 shockCoolDown = true;
                 shockActive = true;
                 StartCoroutine(Shock());
@@ -237,6 +219,24 @@ public class EnemyManager : MonoBehaviour
         if (canSeeItem && exclamationActive == false && enemyWasKilled == false)
         {
             StartCoroutine(Exclamation());
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        //activate pulse force on enemy
+        if (pulseActive)
+        {
+            if (inBoxLOS && enemyIsInvulnerable == false && normalPulse && enemyWasKilled == false)
+            {
+                enemyRB.velocity = -directionToBox * 16 + Vector2.up * -directionToBox.y * 2;
+            }
+            if (inBoxLOS && shockActive)
+            {
+                shockActive = false;
+            }
+            pulseActive = false;
+            StartCoroutine(PulseRecord());
         }
     }
     private void OnCollisionEnter2D(Collision2D collision)
@@ -371,6 +371,10 @@ public class EnemyManager : MonoBehaviour
     }
     IEnumerator EnemyDeath()
     {
+        if (FindObjectOfType<EpisodeManager>() != null && respawn == false)
+        {
+            FindObjectOfType<EpisodeManager>().enemiesKilled++;
+        }
         enemyDeathActive = true;
         enemyRB.gravityScale = 7;
         if (multipleParts == true)
@@ -466,7 +470,7 @@ public class EnemyManager : MonoBehaviour
     IEnumerator Shock()
     {
         float window1 = shockTime; // length of shock status
-        float window2 = 0.05f; // time between aesthetic lightnings
+        float window2 = 0.3f; // time between aesthetic lightnings
         StartCoroutine(ShockFlash());
         float timer1 = 0;
         float timer2 = 0;
@@ -490,6 +494,7 @@ public class EnemyManager : MonoBehaviour
                 newLightning.GetComponent<Lightning>().pointB = pointB;
                 newLightning.GetComponent<Lightning>().aestheticElectricity = true;
                 timer2 = 0;
+                window2 = 0.3f + Random.Range(0, 0.4f);
             }
             timer1 += Time.deltaTime;
             timer2 += Time.deltaTime;
@@ -552,5 +557,11 @@ public class EnemyManager : MonoBehaviour
             yield return null;
         }
         exclamationActive = false;
+    }
+    IEnumerator PulseRecord()
+    {
+        enemyWasPulsed = true;
+        yield return new WaitForSeconds(0.1f);
+        enemyWasPulsed = false;
     }
 }

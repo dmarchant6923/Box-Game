@@ -13,17 +13,14 @@ public class EnemyBehavior_Thunder : MonoBehaviour
     int obstacleLM;
     int boxLM;
     int enemyLM;
-    int platformLM;
 
     float thunderRadius = 8;
-    float cooldownTime = 6;
-    float chargedTime = 4;
     float thunderDamage = 40;
 
     public bool isStationary = false;
     float initialDistAtoB = 8;
     float distAtoB;
-    float timeToMove = 4;
+    public float timeToMove = 4;
     float maxMoveForce = 25;
     int forceDirectionX = 0;
     int forceDirectionY = 0;
@@ -63,7 +60,6 @@ public class EnemyBehavior_Thunder : MonoBehaviour
         obstacleLM = LayerMask.GetMask("Obstacles");
         boxLM = LayerMask.GetMask("Box");
         enemyLM = LayerMask.GetMask("Enemies");
-        platformLM = LayerMask.GetMask("Platforms");
 
         initialColor = GetComponent<SpriteRenderer>().color;
 
@@ -163,7 +159,6 @@ public class EnemyBehavior_Thunder : MonoBehaviour
             StartCoroutine(Shock());
         }
 
-        RaycastHit2D spikeHitBox = Physics2D.CircleCast(enemyRB.position, 1, Vector2.zero, 0, boxLM);
         bool thisEnemyFound = false;
         foreach (RaycastHit2D enemy in Box.attackRayCast)
         {
@@ -195,10 +190,6 @@ public class EnemyBehavior_Thunder : MonoBehaviour
             if (shockPrepared && enemyHitstopActive == false)
             {
                 Box.damageTaken = Lightning.contactDamage;
-                if (stage == 4)
-                {
-                    Box.damageTaken *= 2;
-                }
                 Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
                 Box.activateDamage = true;
                 Box.activateShock = true;
@@ -279,7 +270,6 @@ public class EnemyBehavior_Thunder : MonoBehaviour
     IEnumerator SwitchPoints()
     {
         addForce = false;
-        //StartCoroutine(Lightning());
         float window = timeToMove;
         float timer = 0;
         while (timer < window)

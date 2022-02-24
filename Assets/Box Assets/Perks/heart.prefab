@@ -118,6 +118,9 @@ MonoBehaviour:
   heart: 1
   speed: 0
   shield: 0
+  heavy: 0
+  spikes: 0
+  star: 0
   willDespawn: 1
 --- !u!114 &4013793619399521282
 MonoBehaviour:
@@ -133,18 +136,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialDelay: 2
   randomInitialDelay: 1
+  distance: 0.5
+  horizontal: 0
   movementType1: 0
-  type1Horizontal: 0
   type1Velocity1: 2.6
   type1Velocity2: 2.6
-  type1Distance: 5
   type1StayTime1: 1
   type1StayTime2: 1
   movementType2: 1
-  type2Horizontal: 0
   type2Period: 3.5
-  type2Distance: 0.7
   isMoving: 0
+  startReverse: 0
+  activateBySwitch: 0
+  startActive: 0
+  stayActive: 0
+  active: 1
+  pauseOnDeactivate: 0
+  bufferDeactivate: 0
 --- !u!50 &5497161150198287046
 Rigidbody2D:
   serializedVersion: 4

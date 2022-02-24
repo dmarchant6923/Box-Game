@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -17,34 +16,38 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     RaycastHit2D enemyRC_RayToBox;
 
     [System.NonSerialized] public bool enemyIsGrounded = false;
+    bool touchedGround = false;
 
     [HideInInspector] public bool touchingThisEnemy = false;
 
-    float moveToBoxRadius = 8;
-    float attackBoxRadius = 4;
-    float maxHorizSpeed = 4;
+    public float moveToBoxRadius = 8;
+    public float attackBoxRadius = 4;
+    public float maxHorizSpeed = 4;
     float moveForce = 50;
 
     public bool willIdleWalk = true;
     bool idleCRActive = false;
 
     bool attackCRActive = false;
+    bool onCoolDown = false;
     //bool attackAirborne = false;
     [System.NonSerialized] public bool enemyHitboxActive = false;
     float attackDelay = 0.1f;
     float attackSpinDelay = 0.08f;
-    float attackCoolDown = 2f; //must be larger than attackSpinDelay
-    float attackJumpVelocity = 10;
-    float attackHorizSpeed = 5.7f;
+    public float attackCoolDown = 2f; //must be larger than attackSpinDelay
+    public float attackJumpVelocity = 10;
     float attackSpinSpeed = -1000;
-    float movingPlatformsExtraAttackHorizSpeed = 0;
-    float movingPlatformsExtraWalkSpeed = 0;
+    float platformSpeed = 0;
     [System.NonSerialized] public float enemySpinDamageSpeed = -500;
     [HideInInspector] public bool enemyWasReboundedDash = false;
     [HideInInspector] public bool enemyWasRebounded = false;
 
+    [HideInInspector] public bool willDamageEnemies = false;
+
     bool enemyHitstopActive = false;
-    [System.NonSerialized] public float enemyAttackDamage = 25;
+    bool extendHitstop = false;
+    public float damage = 25;
+    bool isInvulnerable = false;
 
     bool enemyIsPushedBack = false;
     bool enemyIsWalking = false;
@@ -53,12 +56,14 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     bool canSeeBox = false;
     int lookingRight = 1; //same as lookingRight for Box. Will be set to = directionToBoxX if box is within range.
 
+    Color initialColor;
+
     int boxLM;
     int groundLM;
     int obstacleAndBoxLM;
     int enemyLM;
 
-    bool debugLines = false;
+    public bool debugLines = false;
 
     private void Awake()
     {
@@ -67,6 +72,13 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         EM = GetComponent<EnemyManager>();
 
         enemyCollider = GetComponent<PolygonCollider2D>();
+
+        initialColor = GetComponent<SpriteRenderer>().color;
+
+        isInvulnerable = false;
+        onCoolDown = false;
+        willDamageEnemies = false;
+        attackCRActive = false;
 
         boxLM = LayerMask.GetMask("Box");
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
@@ -82,8 +94,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
         directionToBoxX = (int) Mathf.Sign(boxRB.position.x - enemyRB.position.x);
 
-        isGroundedRC = Physics2D.BoxCast(new Vector2(enemyCollider.bounds.center.x, enemyCollider.bounds.center.y - (transform.lossyScale.y / 2) - 0.02f),
-            new Vector2(transform.lossyScale.x / 2 * 0.6f, 0.05f), 0, Vector2.down, 0f, groundLM);
         enemyRC_MoveToBox = Physics2D.CircleCast(enemyRB.position, moveToBoxRadius, new Vector2(0, 0), 0f, boxLM);
         enemyRC_AttackBox = Physics2D.CircleCast(enemyRB.position, attackBoxRadius, new Vector2(0, 0), 0f, boxLM);
         walkFloorCheckRC = Physics2D.BoxCast(new Vector2(enemyRB.position.x + transform.lossyScale.x * 1.5f * lookingRight,
@@ -93,7 +103,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         enemyRC_RayToBox = Physics2D.Raycast(enemyRB.position, (boxRB.position - enemyRB.position).normalized,
             moveToBoxRadius, obstacleAndBoxLM);
 
-        //inBoxLOS
+        //canseebox
         if (enemyRC_RayToBox.collider != null && 1 << enemyRC_RayToBox.collider.gameObject.layer == boxLM)
         {
             canSeeBox = true;
@@ -107,7 +117,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
 
         //enemy isGrounded
-        if (isGroundedRC.collider != null && enemyRB.velocity.y < 0.05)
+        if (touchedGround)
         {
             enemyIsGrounded = true;
             enemyHitboxActive = false;
@@ -129,7 +139,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             {
                 walkSpeed = maxHorizSpeed;
             }
-            if (Math.Abs(enemyRB.velocity.x - movingPlatformsExtraWalkSpeed) <= walkSpeed 
+            if (Mathf.Abs(enemyRB.velocity.x - platformSpeed) <= walkSpeed 
                 && walkFloorCheckRC.collider != null && walkObstacleCheckRC.collider == null && attackCRActive == false)
             {
                 enemyRB.AddForce(new Vector2(moveForce * lookingRight, 0));
@@ -137,44 +147,17 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         }
 
         //Start idle walking
-        if (canSeeBox == false && idleCRActive == false && enemyIsGrounded == true && willIdleWalk)
+        if (canSeeBox == false && idleCRActive == false && enemyIsGrounded == true)
         {
             StartCoroutine(IdleWalking());
-        }
-
-        if (debugLines)
-        {
-            if (canSeeBox == true)
-            {
-                Debug.DrawRay(enemyRB.position, moveToBoxRadius * (boxRB.position - enemyRB.position).normalized, Color.white);
-                Debug.DrawRay(enemyRB.position, attackBoxRadius * (boxRB.position - enemyRB.position).normalized, Color.red);
-            }
-            else
-            {
-                Debug.DrawRay(enemyRB.position, moveToBoxRadius * (boxRB.position - enemyRB.position).normalized, Color.gray);
-            }
-
-            if (enemyIsGrounded == true && enemyRC_MoveToBox.collider != null)
-            {
-                gameObject.GetComponent<Renderer>().material.color = Color.cyan;
-            }
-            else if (enemyHitboxActive == true)
-            {
-                gameObject.GetComponent<Renderer>().material.color = Color.red;
-            }
-            else
-            {
-                gameObject.GetComponent<Renderer>().material.color = Color.white;
-            }
         }
 
         //move if inside move radius but outside attack radius, attack if inside attack radius
         if (enemyRC_MoveToBox.collider != null && enemyIsGrounded == true && canSeeBox == true)
         {
-            StopCoroutine(IdleWalking());
             lookingRight = directionToBoxX;
             idleCRActive = false;
-            if (enemyRC_AttackBox.collider == null && attackCRActive == false && Math.Abs(enemyRB.velocity.x) <= maxHorizSpeed)
+            if (enemyRC_AttackBox.collider == null && attackCRActive == false && Mathf.Abs(enemyRB.velocity.x) <= maxHorizSpeed)
             {
                 enemyIsWalking = true;
             }
@@ -211,7 +194,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             if (BoxPerks.spikesActive == false)
             {
                 //...and if the box is currently attacking or is in hitstop...
-                if (Box.boxHitboxActive)
+                if (Box.boxHitboxActive && isInvulnerable == false)
                 {
                     //...and if the enemy is not currently attacking, damage the enemy.
                     if (enemyHitboxActive == false)
@@ -238,7 +221,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                     && enemyWasRebounded == false)
                 {
                     Box.activateDamage = true;
-                    Box.damageTaken = enemyAttackDamage;
+                    Box.damageTaken = damage;
                     Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
                     StartCoroutine(EnemyHitstop());
                 }
@@ -281,7 +264,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         if (EM.enemyWasDamaged == true)
         {
             enemyHitboxActive = false;
-            StopCoroutine(Attack());
         }
 
         //if the enemy was rebounded...
@@ -292,9 +274,9 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         }
 
         //if the enemy was pushed back...
-        if (enemyIsPushedBack == true && Math.Abs(enemyRB.velocity.x) < 2)
+        if (enemyIsPushedBack == true && Mathf.Abs(enemyRB.velocity.x) < 2)
         {
-            int pushDirection = -(int)(Math.Abs(boxRB.position.x - enemyRB.position.x) / (boxRB.position.x - enemyRB.position.x));
+            int pushDirection = -(int)(Mathf.Abs(boxRB.position.x - enemyRB.position.x) / (boxRB.position.x - enemyRB.position.x));
             enemyRB.AddForce(new Vector2((float)20 * pushDirection, 0));
         }
 
@@ -302,24 +284,121 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         {
             enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
         }
+
+        if (debugLines)
+        {
+            if (canSeeBox == true)
+            {
+                Debug.DrawRay(enemyRB.position, moveToBoxRadius * (boxRB.position - enemyRB.position).normalized, Color.white);
+                Debug.DrawRay(enemyRB.position, attackBoxRadius * (boxRB.position - enemyRB.position).normalized, Color.red);
+            }
+            else
+            {
+                Debug.DrawRay(enemyRB.position, moveToBoxRadius * (boxRB.position - enemyRB.position).normalized, Color.gray);
+            }
+
+            if (enemyIsGrounded == true && enemyRC_MoveToBox.collider != null)
+            {
+                Color color = initialColor * 4;
+                gameObject.GetComponent<SpriteRenderer>().color = color;
+            }
+            else if (enemyHitboxActive == true)
+            {
+                gameObject.GetComponent<SpriteRenderer>().color = Color.red;
+            }
+            else
+            {
+                gameObject.GetComponent<SpriteRenderer>().color = initialColor;
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (enemyHitboxActive)
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+        }
+        else
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+        }
+
+        if (attackCRActive && onCoolDown == false)
+        {
+            if (EM.enemyWasPulsed)
+            {
+                willDamageEnemies = true;
+            }
+        }
+        else
+        {
+            willDamageEnemies = false;
+        }
+        Debug.DrawRay(enemyRB.position + (Vector2.down * enemyCollider.bounds.extents.y * 1.2f) + Vector2.left * 0.25f, Vector2.right * 0.5f);
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (1 << collision.collider.gameObject.layer == enemyLM)
+        if (willDamageEnemies)
         {
-            enemyHitboxActive = false;
-            StopCoroutine("Attack");
+            if (collision.transform.root.GetComponent<EnemyManager>() != null)
+            {
+                if (collision.transform.root.GetComponent<EnemyManager>().enemyIsInvulnerable == false)
+                {
+                    collision.transform.root.GetComponent<EnemyManager>().enemyWasDamaged = true;
+                }
+            }
+            if (collision.transform.root.GetComponent<HitSwitch>() != null)
+            {
+                collision.transform.root.GetComponent<HitSwitch>().Hit();
+            }
         }
-        if (1 << collision.collider.gameObject.layer == LayerMask.GetMask("Platforms") || 1 << collision.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
+
+        if (collision.transform.root.GetComponent<EnemyManager>() != null)
         {
-            movingPlatformsExtraAttackHorizSpeed = collision.collider.gameObject.GetComponent<Rigidbody2D>().velocity.x;
-            movingPlatformsExtraWalkSpeed = collision.collider.gameObject.GetComponent<Rigidbody2D>().velocity.x;
+            if (willDamageEnemies == false)
+            {
+                enemyHitboxActive = false;
+            }
+        }
+            if (1 << collision.collider.gameObject.layer == LayerMask.GetMask("Platforms") || 1 << collision.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
+        {
+            platformSpeed = collision.collider.gameObject.GetComponent<Rigidbody2D>().velocity.x;
+        }
+
+        touchedGround = false;
+        RaycastHit2D groundCheck = Physics2D.Raycast(enemyRB.position + (Vector2.down * enemyCollider.bounds.extents.y * 1.2f) + Vector2.left * 0.25f,
+            Vector2.right, 0.5f, groundLM);
+        foreach (ContactPoint2D col in collision.contacts)
+        {
+            if (col.normal.y > 0.8f && enemyRB.velocity.y - collision.transform.GetComponent<Rigidbody2D>().velocity.y < 3f && groundCheck.collider != null)
+            {
+                touchedGround = true;
+                enemyHitboxActive = false;
+                break;
+            }
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        if (willDamageEnemies)
+        {
+            if (collision.transform.root.GetComponent<EnemyManager>() != null)
+            {
+                if (collision.transform.root.GetComponent<EnemyManager>().enemyIsInvulnerable == false)
+                {
+                    collision.transform.root.GetComponent<EnemyManager>().enemyWasDamaged = true;
+                    StartCoroutine(EnemyHitstop());
+                }
+            }
+            if (collision.transform.root.GetComponent<HitSwitch>() != null)
+            {
+                collision.transform.root.GetComponent<HitSwitch>().Hit();
+            }
+        }
+
         if (collision.gameObject.tag == "Hazard")
         {
             EM.enemyWasDamaged = true;
@@ -328,8 +407,8 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        movingPlatformsExtraAttackHorizSpeed = 0;
-        movingPlatformsExtraWalkSpeed = 0;
+        platformSpeed = 0;
+        touchedGround = false;
     }
     IEnumerator Attack()
     {
@@ -337,7 +416,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         float attackDelayTimer = 0;
         float attackSpinDelayTimer = 0;
         float attackCoolDownTimer = 0;
-        while (attackDelayTimer <= attackDelay)
+        while (attackDelayTimer <= attackDelay) // delay on ground before launching upwards
         {
             if (EM.hitstopImpactActive == false)
             {
@@ -345,9 +424,14 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             }
             yield return null;
         }
-        float adjustedAttackHorizSpeed = Math.Abs(enemyRB.position.x - boxRB.position.x) * (attackHorizSpeed / 4);
-        enemyRB.velocity = new Vector2(adjustedAttackHorizSpeed * directionToBoxX + movingPlatformsExtraAttackHorizSpeed, attackJumpVelocity);
-        while (attackSpinDelayTimer <= attackSpinDelay)
+        float horizDistance = Mathf.Abs(enemyRB.position.x - boxRB.position.x);
+        float timeToLand = 2 * attackJumpVelocity / (9.81f * enemyRB.gravityScale);
+        float adjustedAttackHorizSpeed = horizDistance / timeToLand;
+        if (EM.enemyWasKilled == false && enemyIsGrounded && Mathf.Abs(enemyRB.velocity.x - platformSpeed) < maxHorizSpeed * 1.2f)
+        {
+            enemyRB.velocity = new Vector2(adjustedAttackHorizSpeed * directionToBoxX + platformSpeed, attackJumpVelocity);
+        }
+        while (attackSpinDelayTimer <= attackSpinDelay) // delay after launching before starting to spin activating hitbox
         {
             if (EM.hitstopImpactActive == false)
             {
@@ -357,6 +441,11 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         }
         enemyHitboxActive = true;
         enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
+        while (enemyHitboxActive)
+        {
+            yield return null;
+        }
+        onCoolDown = true;
         while (attackCoolDownTimer <= attackCoolDown - attackSpinDelay)
         {
             if (EM.hitstopImpactActive == false)
@@ -366,23 +455,26 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             yield return null;
         }
         attackCRActive = false;
+        onCoolDown = false;
     }
     IEnumerator EnemyRebound()
     {
+        isInvulnerable = true;
         int reboundDirection;
         if (enemyWasReboundedDash == true)
         {
             reboundDirection = (int)new Vector2(boxRB.velocity.x, 0).normalized.x;
-            enemyRB.velocity = new Vector2(5*reboundDirection, 9);
+            enemyRB.velocity = new Vector2(7*reboundDirection, enemyRB.gravityScale * 3);
         }
         else
         {
             reboundDirection = -(int)new Vector2(boxRB.position.x - enemyRB.position.x, 0).normalized.x;
-            enemyRB.velocity = new Vector2(3*reboundDirection, 6);
+            enemyRB.velocity = new Vector2(4*reboundDirection, enemyRB.gravityScale * 2);
         }
         enemyWasReboundedDash = false;
         enemyWasRebounded = false;
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.2f);
+        isInvulnerable = false;
     }
     IEnumerator IdleWalking()
     {
@@ -390,36 +482,63 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         idleCRActive = true;
         float waitTime = 0.5f + Random.value * 3;
         float moveTime = 0.5f + Random.value * 5f;
-        if (walkFloorCheckRC.collider == null || walkObstacleCheckRC.collider != null)
+        if (walkFloorCheckRC.collider == null || walkObstacleCheckRC.collider != null && willIdleWalk)
         {
             lookingRight *= -1;
         }
-        else
+        else if (willIdleWalk)
         {
             lookingRight = Random.Range(0, 3) - 1;
         }
-        yield return new WaitForSeconds(waitTime);
-        enemyIsWalking = true;
-        yield return new WaitForSeconds(moveTime);
-        StartCoroutine(IdleWalking());
-    }
-    IEnumerator EnemyHitstop()
-    {
-        enemyHitstopActive = true;
-        Vector2 enemyHitstopVelocity = enemyRB.velocity;
-        float enemyHitstopRotationSlowDown = 10;
-        enemyRB.velocity = new Vector2(0, 0);
-        enemyRB.angularVelocity /= enemyHitstopRotationSlowDown;
-        enemyRB.isKinematic = true;
-        yield return null;
-        while (Box.boxHitstopActive)
+        else
         {
-            yield return null;
+            lookingRight = 0;
         }
-        //yield return new WaitForSeconds(Box.damageTaken * Box.boxHitstopDelayMult);
-        enemyRB.isKinematic = false;
-        enemyRB.angularVelocity *= enemyHitstopRotationSlowDown;
-        enemyHitstopActive = false;
-        enemyRB.velocity = enemyHitstopVelocity;
+        yield return new WaitForSeconds(waitTime);
+        if (idleCRActive)
+        {
+            enemyIsWalking = true;
+            yield return new WaitForSeconds(moveTime);
+        }
+        if (idleCRActive)
+        {
+            StartCoroutine(IdleWalking());
+        }
+    }
+    public IEnumerator EnemyHitstop()
+    {
+        if (enemyHitstopActive == false)
+        {
+            isInvulnerable = true;
+            enemyHitstopActive = true;
+            Vector2 enemyHitstopVelocity = enemyRB.velocity;
+            float enemyHitstopRotationSlowDown = 10;
+            enemyRB.velocity = new Vector2(0, 0);
+            enemyRB.angularVelocity /= enemyHitstopRotationSlowDown;
+            enemyRB.isKinematic = true;
+            yield return null;
+            float window = Box.boxHitstopDelayMult * damage;
+            float timer = 0;
+            while (Box.boxHitstopActive || timer < window)
+            {
+                timer += Time.deltaTime;
+                if (extendHitstop)
+                {
+                    timer = 0;
+                    extendHitstop = false;
+                }
+                yield return null;
+            }
+            enemyRB.isKinematic = false;
+            enemyRB.angularVelocity *= enemyHitstopRotationSlowDown;
+            enemyHitstopActive = false;
+            enemyRB.velocity = enemyHitstopVelocity;
+            yield return new WaitForSeconds(0.2f);
+            isInvulnerable = false;
+        }
+        else
+        {
+            extendHitstop = true;
+        }
     }
 }

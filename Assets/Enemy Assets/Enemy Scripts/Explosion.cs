@@ -39,17 +39,17 @@ public class Explosion : MonoBehaviour
             if (1 << item.collider.gameObject.layer == boxLM)
             {
                 explosion_RayToItem = Physics2D.Raycast(transform.position, vectorToItem.normalized, explosionRadius,
-                    LayerMask.GetMask("Obstacles", "Hazards", "Box"));
+                    LayerMask.GetMask("Obstacles", "Box"));
             }
             if (1 << item.collider.gameObject.layer == enemyLM)
             {
                 explosion_RayToItem = Physics2D.Raycast(transform.position, vectorToItem.normalized, explosionRadius,
-                    LayerMask.GetMask("Obstacles", "Hazards", "Enemies"));
+                    LayerMask.GetMask("Obstacles", "Enemies"));
             }
             if (1 << item.collider.gameObject.layer == LayerMask.GetMask("Enemy Device"))
             {
                 explosion_RayToItem = Physics2D.Raycast(transform.position, vectorToItem.normalized, explosionRadius,
-                    LayerMask.GetMask("Obstacles", "Hazards", "Enemy Device"));
+                    LayerMask.GetMask("Obstacles", "Enemy Device"));
             }
 
             // if the explosion sees the box and there's no obstacles in between, damage the box.
@@ -60,52 +60,29 @@ public class Explosion : MonoBehaviour
                 Box.damageTaken = explosionDamage;
                 Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - transform.position.x), 1).normalized;
             }
-            // if the explosion sees an enemy object and the object contains EnemyManager script (AKA multipleParts = false)
-            if (1 << item.collider.gameObject.layer == enemyLM && item.collider.gameObject.GetComponent<EnemyManager>() != null &&
+            // if the explosion sees an enemy object
+            if (1 << item.collider.gameObject.layer == enemyLM && item.transform.root.GetComponent<EnemyManager>() != null &&
                 explosion_RayToItem.collider != null && 1 << explosion_RayToItem.collider.gameObject.layer == enemyLM)
             {
+                EnemyManager EM = item.transform.root.GetComponent<EnemyManager>();
+                Rigidbody2D RB = item.transform.root.GetComponentInChildren<Rigidbody2D>();
                 // if the explosion isn't set to damage enemies AND the enemy itself won't take damage from normal explosions, push the enemy
-                if (item.collider.gameObject.GetComponent<EnemyManager>().normalExplosionsWillDamage == false && damageEnemies == false)
+                if (EM.normalExplosionsWillDamage == false && damageEnemies == false)
                 {
-                    if (item.collider.gameObject.GetComponent<Rigidbody2D>() != null &&
-                        item.collider.gameObject.GetComponent<Rigidbody2D>().isKinematic == false)
+                    if (RB != null && RB.isKinematic == false)
                     {
-                        Rigidbody2D itemRB = item.collider.gameObject.GetComponent<Rigidbody2D>();
-                        Vector2 forceVector = new Vector2(itemRB.position.x - transform.position.x, itemRB.position.y - transform.position.y);
-                        itemRB.AddForce(forceVector * 2, ForceMode2D.Impulse);
-                        while (itemRB.velocity.magnitude < 15)
+                        Vector2 forceVector = new Vector2(RB.position.x - transform.position.x, RB.position.y - transform.position.y);
+                        RB.AddForce(forceVector * 2, ForceMode2D.Impulse);
+                        while (RB.velocity.magnitude < 15)
                         {
-                            itemRB.AddForce(forceVector, ForceMode2D.Impulse);
+                            RB.AddForce(forceVector, ForceMode2D.Impulse);
                         }
                     }
                 }
                 // otherwise deal damage to the enemy
                 else
                 {
-                    item.collider.gameObject.GetComponent<EnemyManager>().enemyWasDamaged = true;
-                }
-            }
-            // if the explosion sees an enemy object and the object does NOT contain EnemyManager script (AKA multipleParts == true)
-            else if (1 << item.collider.gameObject.layer == enemyLM && item.collider.gameObject.GetComponent<EnemyManager>() == null &&
-                explosion_RayToItem.collider != null && 1 << explosion_RayToItem.collider.gameObject.layer == enemyLM)
-            {
-                Transform itemParent = item.collider.transform.root;
-                if (itemParent.GetComponent<EnemyManager>().normalExplosionsWillDamage == false && damageEnemies == false)
-                {
-                    Rigidbody2D itemRB = itemParent.GetComponentInChildren<Rigidbody2D>();
-                    if (itemRB.isKinematic == false)
-                    {
-                        Vector2 forceVector = new Vector2(itemRB.position.x - transform.position.x, itemRB.position.y - transform.position.y);
-                        itemRB.AddForce(forceVector * 2, ForceMode2D.Impulse);
-                        while (itemRB.velocity.magnitude < 0)
-                        {
-                            itemRB.AddForce(forceVector, ForceMode2D.Impulse);
-                        }
-                    }
-                }
-                else
-                {
-                    itemParent.GetComponent<EnemyManager>().enemyWasDamaged = true;
+                    EM.enemyWasDamaged = true;
                 }
             }
             if (1 << item.collider.gameObject.layer == LayerMask.GetMask("Enemy Device") &&
@@ -119,6 +96,10 @@ public class Explosion : MonoBehaviour
                 {
                     item.collider.GetComponent<Grenade>().remoteExplode = true;
                 }
+            }
+            if (item.transform.root.GetComponent<HitSwitch>() != null)
+            {
+                item.transform.GetComponent<HitSwitch>().Hit();
             }
         }
         if (explosionClose.collider != null)

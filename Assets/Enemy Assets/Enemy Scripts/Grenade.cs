@@ -109,6 +109,10 @@ public class Grenade : MonoBehaviour
             Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - grenadeRB.position.x), 1).normalized;
             StartCoroutine(GrenadeHitstop());
         }
+        if (collision.transform.GetComponent<HitSwitch>() != null && velocityList[2].magnitude >= 20)
+        {
+            collision.transform.GetComponent<HitSwitch>().Hit();
+        }
     }
 
     private void Explosion()

@@ -441,9 +441,9 @@ public class Box : MonoBehaviour
         }
 
         //looking R/L
-        if (Math.Abs(BoxVelocity.velocitiesX[0]) >= 0.5)
+        if (Mathf.Abs(BoxVelocity.velocitiesX[0]) >= 0.5)
         {
-            lookingRight = (int)(BoxVelocity.velocitiesX[0] / Math.Abs(BoxVelocity.velocitiesX[0]));
+            lookingRight = (int)(BoxVelocity.velocitiesX[0] / Mathf.Abs(BoxVelocity.velocitiesX[0]));
         }
         //start air timer
         if (isGrounded == false)
@@ -477,7 +477,7 @@ public class Box : MonoBehaviour
         //air acceleration L/R and air friction + larger air friction if moving faster than horiz max speed
         if ((isGrounded == false || isOnIce == true) && ceilingCling == false)
         {
-            if (Math.Abs(BoxVelocity.velocitiesX[0]) > horizMaxSpeed)
+            if (Mathf.Abs(BoxVelocity.velocitiesX[0]) > horizMaxSpeed)
             {
                 if (lookingRight == 1)
                 {
@@ -598,7 +598,7 @@ public class Box : MonoBehaviour
         {
             rigidBody.angularVelocity = attackSpinSpeed * lookingRight;
         }
-        if (Mathf.Abs(rigidBody.angularVelocity) >= -attackSpinDamageSpeed)
+        if (Mathf.Abs(rigidBody.angularVelocity) >= -attackSpinDamageSpeed || enemyHitstopActive)
         {
             attackTimer += Time.deltaTime;
         }
@@ -662,7 +662,7 @@ public class Box : MonoBehaviour
             }
             if (BoxPerks.spikesActive == false || (BoxPerks.spikesActive && canWallJump == false))
             {
-                rigidBody.velocity = new Vector2(rigidBody.velocity.x, rigidBody.velocity.y * 7 / 8 + 5);
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, rigidBody.velocity.y * 11 / 12 + 5);
             }
             if (rigidBody.velocity.y < 0)
             {
@@ -701,8 +701,9 @@ public class Box : MonoBehaviour
             activatePushBack = false;
         }
         //activate box hitbox
-        if (spinAttackActive || Math.Abs(BoxVelocity.velocitiesX[0]) >= dashSpeed * 0.95f || enemyHitstopActive == true ||
-            BoxPerks.spikesActive || BoxPerks.starActive)
+        if ((spinAttackActive && damageActive == false) || Mathf.Abs(BoxVelocity.velocitiesX[0]) >= dashSpeed * 0.95f ||
+            ((Mathf.Abs(rigidBody.velocity.x) >= 15 || rigidBody.velocity.y >= 15 || rigidBody.velocity.y < maxFallSpeed * 1.05f) && damageActive == true) || 
+            enemyHitstopActive == true || BoxPerks.spikesActive || BoxPerks.starActive)
         {
             boxHitboxActive = true;
         }
@@ -732,6 +733,22 @@ public class Box : MonoBehaviour
             }
             activateRebound = false;
         }
+        //shock
+        if (activateShock)
+        {
+            if (shockActive == false)
+            {
+                shockActive = true;
+                canBeShocked = false;
+                StartCoroutine(Shock(true));
+                StartCoroutine(ResidualShock());
+            }
+            activateShock = false;
+        }
+        if (inShockRadius && shockCR == false)
+        {
+            StartCoroutine(Shock(false));
+        }
         //take damage
         if (activateDamage == true)
         {
@@ -756,7 +773,7 @@ public class Box : MonoBehaviour
                     boxHitstopDelay = Mathf.Min(damageTaken, 200) * boxHitstopDelayMult;
                     if (shockActive)
                     {
-                        boxHitstopDelay *= 2f;
+                        boxHitstopDelay *= 2.5f;
                     }
                     StartCoroutine(HitstopImpact(damageTaken));
                     if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
@@ -800,7 +817,7 @@ public class Box : MonoBehaviour
         {
             if (enemyHitstopActive == false)
             {
-                int pushDirection = (int)(Math.Abs(rigidBody.position.x - enemyPosition.x) / (rigidBody.position.x - enemyPosition.x));
+                int pushDirection = (int)(Mathf.Abs(rigidBody.position.x - enemyPosition.x) / (rigidBody.position.x - enemyPosition.x));
                 BoxVelocity.velocitiesX[2] = pushBackMagnitude * pushDirection;
             }
         }
@@ -824,23 +841,6 @@ public class Box : MonoBehaviour
             {
                 StartCoroutine(Invulnerability(1.5f, true));
             }
-        }
-
-        //shock
-        if (activateShock)
-        {
-            if (shockActive == false)
-            {
-                shockActive = true;
-                canBeShocked = false;
-                StartCoroutine(Shock(true));
-                StartCoroutine(ResidualShock());
-            }
-            activateShock = false;
-        }
-        if (inShockRadius && shockCR == false)
-        {
-            StartCoroutine(Shock(false));
         }
 
         //debug color changes (will probably keep walljump color in normal game)
@@ -888,7 +888,7 @@ public class Box : MonoBehaviour
                 boxDamageDirection = new Vector2(0, 1 * Mathf.Sign(boxDamageDirection.y));
             }
         }
-        if (1 << collision.gameObject.layer == platformLayerMask && collision.gameObject.GetComponent<PlatformDrop>().shockActive && Box.isGrounded)
+        if (1 << collision.gameObject.layer == platformLayerMask && collision.gameObject.GetComponent<PlatformDrop>().shockActive && isGrounded)
         {
             if (isInvulnerable == false)
             {
@@ -918,6 +918,7 @@ public class Box : MonoBehaviour
         bool touchingLeftWall = false;
         bool touchingRightWall = false;
         Vector2 wallVelocity = Vector2.zero;
+        GameObject wall = collision.gameObject;
 
         bool touchingCeiling = false;
         float ceilingPositionY = 0;
@@ -932,11 +933,13 @@ public class Box : MonoBehaviour
             {
                 touchingLeftWall = true;
                 wallVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
+                wall = col.collider.gameObject;
             }
             if (col.normal.x < -0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
             { 
                 touchingRightWall = true;
                 wallVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
+                wall = col.collider.gameObject;
             }
             if (col.normal.y < -0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
             { 
@@ -1060,7 +1063,7 @@ public class Box : MonoBehaviour
                 {
                     if (holdToWallActive == false)
                     {
-                        StartCoroutine(HoldToWall(collision.gameObject));
+                        StartCoroutine(HoldToWall(wall));
                     }
                     if (BoxPerks.spikesActive == false)
                     {
@@ -1103,7 +1106,7 @@ public class Box : MonoBehaviour
                 }
                 wallJumpTime += Time.deltaTime;
                 //walljump condition
-                if (wallJumpTime <= wallJumpWindow && Math.Abs(rigidBody.velocity.y) >= 0.01)
+                if (wallJumpTime <= wallJumpWindow && Mathf.Abs(rigidBody.velocity.y) >= 0.01)
                 {
                     canWallJump = true;
                 }
@@ -1243,7 +1246,7 @@ public class Box : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         blastZoneCRActive = false;
     }
-    IEnumerator HitStop() // for when the player does damage to an enemy
+    public IEnumerator HitStop() // for when the player does damage to an enemy
     {
         enemyHitstopActive = true;
         inputs.inputsEnabled = false;
@@ -1469,8 +1472,12 @@ public class Box : MonoBehaviour
         {
             if (wall.GetComponent<MovingObjects>().isMoving == true)
             {
-                rigidBody.position = new Vector2(wall.transform.position.x + wallJumpDirection * (transform.lossyScale.x / 2 + wall.transform.lossyScale.x / 2), rigidBody.position.y);
-                rigidBody.velocity = new Vector2(wall.GetComponent<Rigidbody2D>().velocity.x, rigidBody.velocity.y);
+                if (Mathf.Abs(wall.transform.position.x + wallJumpDirection * (transform.lossyScale.x / 2 + wall.transform.lossyScale.x / 2) - rigidBody.position.x) < 0.05f)
+                {
+                    rigidBody.position = new Vector2(wall.transform.position.x + wallJumpDirection * (transform.lossyScale.x / 2 + wall.transform.lossyScale.x / 2),
+                        rigidBody.position.y);
+                }
+                BoxVelocity.velocitiesX[0] = wall.GetComponent<Rigidbody2D>().velocity.x;
             }
             rigidBody.angularVelocity = 0;
             rigidBody.rotation = 0;
@@ -1498,7 +1505,7 @@ public class Box : MonoBehaviour
         }
         else
         {
-            reboundDirection = (int)((rigidBody.position.x - enemyPosition.x) / Math.Abs(rigidBody.position.x - enemyPosition.x));
+            reboundDirection = (int)((rigidBody.position.x - enemyPosition.x) / Mathf.Abs(rigidBody.position.x - enemyPosition.x));
             reboundMagnitude = 1;
         }
         dashActive = false;
@@ -1518,7 +1525,7 @@ public class Box : MonoBehaviour
     {
         canTech = false;
         boxHitstopActive = true;
-        gameObject.GetComponent<BoxCollider2D>().enabled = false;
+        //gameObject.GetComponent<BoxCollider2D>().enabled = false;
         inputs.inputsEnabled = false;
         isInvulnerable = true;
         damageActive = true;
@@ -1564,7 +1571,7 @@ public class Box : MonoBehaviour
             yield return new WaitForSeconds(shuffleDelay);
         }
         rigidBody.position = freezePosition;
-        gameObject.GetComponent<BoxCollider2D>().enabled = true;
+        //gameObject.GetComponent<BoxCollider2D>().enabled = true;
         boxHitstopActive = false;
         rigidBody.isKinematic = false;
         if (BoxPerks.shieldActive == false)
@@ -1870,11 +1877,11 @@ public class Box : MonoBehaviour
     }
     IEnumerator Shock(bool damaged)
     {
-        float window = 0.05f;
+        float window = 0.1f;
         float timer = window;
         if (damaged == false)
         {
-            window *= 5;
+            window *= 3;
         }
         shockCR = true;
         int direction = 1;
@@ -1922,7 +1929,6 @@ public class Box : MonoBehaviour
         while (timer < window)
         {
             forceInputsDisabled = true;
-            inputs.inputsEnabled = false;
             timer += Time.deltaTime;
             yield return null;
         }

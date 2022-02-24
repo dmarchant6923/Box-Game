@@ -18,7 +18,7 @@ public class Lightning : MonoBehaviour
     public GameObject lightning;
     GameObject newLightning;
 
-    public float thunderDamage = 40;
+    [HideInInspector] public static float thunderDamage = 40;
     public bool aestheticElectricity = false;
     float chainRadius = 5;
     float chainDelay = 0.4f;
@@ -218,7 +218,6 @@ public class Lightning : MonoBehaviour
             StartCoroutine(LightningStrike(chainRadius, chainDelay, thunderDamage, pointB, false, boxCheck.collider.gameObject));
             strike = true;
         }
-        Debug.Log(enemyCheck.Length);
         foreach (RaycastHit2D item in enemyCheck)
         {
             if (item.collider != null
@@ -230,7 +229,13 @@ public class Lightning : MonoBehaviour
                     && item.transform.root.gameObject.GetComponent<EnemyManager>().enemyWasKilled == false)
             {
                 item.transform.root.gameObject.GetComponent<EnemyManager>().activateShock = true;
-                StartCoroutine(LightningStrike(chainRadius, chainDelay, thunderDamage, pointB, false, item.transform.root.gameObject));
+                StartCoroutine(LightningStrike(chainRadius, chainDelay, thunderDamage, pointB, false, item.collider.gameObject));
+                strike = true;
+            }
+            else if (item.collider != null && item.transform.root.gameObject.GetComponent<HitSwitch>() != null
+                && item.transform.root.gameObject.GetComponent<HitSwitch>().canBeShocked)
+            {
+                item.transform.root.gameObject.GetComponent<HitSwitch>().activateShock = true;
                 strike = true;
             }
         }
@@ -261,12 +266,12 @@ public class Lightning : MonoBehaviour
         Rigidbody2D boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
         yield return new WaitForSeconds(delay);
         if (sourceObject != null && (
-            sourceObject.GetComponent<EnemyBehavior_Thunder>() != null || 
-            (sourceObject.GetComponent<EnemyManager>() != null && sourceObject.GetComponent<EnemyManager>().shockActive) ||
-            (sourceObject.GetComponent<PlatformDrop>() != null && sourceObject.GetComponent<PlatformDrop>().shockActive) ||
-            (sourceObject.GetComponent<Box>() != null && Box.shockActive)))
+            sourceObject.transform.root.GetComponent<EnemyBehavior_Thunder>() != null || sourceObject.transform.root.GetComponent<TeslaCoil>() != null ||
+            (sourceObject.transform.root.GetComponent<EnemyManager>() != null && sourceObject.transform.root.GetComponent<EnemyManager>().shockActive) ||
+            (sourceObject.transform.root.GetComponent<PlatformDrop>() != null && sourceObject.transform.root.GetComponent<PlatformDrop>().shockActive) ||
+            (sourceObject.transform.root.GetComponent<Box>() != null && Box.shockActive)))
         {
-            startPoint = sourceObject.transform.position;
+            //startPoint = sourceObject.transform.position;
             RaycastHit2D[] lightningCheck = Physics2D.CircleCastAll(startPoint, radius, Vector2.zero, 0,
                 LayerMask.GetMask("Box", "Platforms", "Enemies"));
             int strikes = 0;
@@ -279,6 +284,7 @@ public class Lightning : MonoBehaviour
                     int platformLM = LayerMask.GetMask("Platforms");
                     Vector2 transformPosition = item.transform.position;
                     bool success = false;
+                    Rigidbody2D targetRB = null;
                     if (sourceObject != null && item.collider.gameObject == sourceObject)
                     {
 
@@ -286,6 +292,7 @@ public class Lightning : MonoBehaviour
                     else if (1 << item.collider.gameObject.layer == boxLM && Box.shockActive == false && Box.isInvulnerable == false)
                     {
                         success = true;
+                        targetRB = item.collider.GetComponent<Rigidbody2D>();
                     }
                     else if (1 << item.collider.gameObject.layer == enemyLM && item.transform.root.gameObject.GetComponent<EnemyManager>() != null
                         && item.collider.gameObject.GetComponent<Rigidbody2D>() != null
@@ -295,27 +302,29 @@ public class Lightning : MonoBehaviour
                         && item.transform.root.gameObject.GetComponent<EnemyManager>().enemyWasKilled == false)
                     {
                         success = true;
+                        targetRB = item.transform.root.GetComponentInChildren<Rigidbody2D>();
+                    }
+                    else if (item.transform.root.GetComponent<HitSwitch>() != null && item.collider.GetComponent<Rigidbody2D>() != null
+                        && item.transform.root.GetComponent<HitSwitch>().canBeShocked == true)
+                    {
+                        success = true;
+                        targetRB = item.transform.root.GetComponent<Rigidbody2D>();
                     }
                     else if (1 << item.collider.gameObject.layer == platformLM && item.collider.gameObject.GetComponent<PlatformDrop>() != null
                         && item.collider.gameObject.GetComponent<PlatformDrop>().shockActive == false)
                     {
                         success = true;
+                        targetRB = item.collider.GetComponent<Rigidbody2D>();
                     }
 
                     if (success)
                     {
                         newLightning = Instantiate(lightning);
-                        if (sourceObject.GetComponent<EnemyManager>() != null && sourceObject.GetComponent<EnemyManager>().multipleParts)
-                        {
-                            newLightning.GetComponent<Lightning>().pointA = sourceObject.transform.GetChild(0).GetComponent<Rigidbody2D>().position;
-                        }
-                        else
-                        {
-                            newLightning.GetComponent<Lightning>().pointA = sourceObject.GetComponent<Rigidbody2D>().position;
-                        }
+                        newLightning.GetComponent<Lightning>().pointA = sourceObject.transform.position;
+                        newLightning.GetComponent<Lightning>().pointB = targetRB.position;
                         newLightning.GetComponent<Lightning>().movingTarget = true;
-                        newLightning.GetComponent<Lightning>().targetRB = item.collider.gameObject.GetComponent<Rigidbody2D>();
-                        newLightning.GetComponent<Lightning>().thunderDamage = damage;
+                        newLightning.GetComponent<Lightning>().targetRB = targetRB;
+                        yield return new WaitForFixedUpdate();
                         yield return new WaitForFixedUpdate();
                         yield return new WaitForFixedUpdate();
                         strikes++;

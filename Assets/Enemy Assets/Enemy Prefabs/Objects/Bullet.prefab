@@ -103,8 +103,8 @@ Rigidbody2D:
   m_GravityScale: 1
   m_Material: {fileID: 0}
   m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_SleepingMode: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!70 &10608686345694776
 CapsuleCollider2D:
@@ -134,8 +134,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db7157b41b1f96d409228be7002b7dff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bulletDespawnTime: 0
+  bulletDespawnWindow: 0
   bulletDamage: 0
+  bulletWasReflected: 0
   heatSeeking: 0
   explodingBullets: 0
   explosionContactDamage: 0

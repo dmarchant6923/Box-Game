@@ -8,8 +8,8 @@ public class CameraFollowBox : MonoBehaviour
     InputBroker inputs;
 
     Transform followBox;
+
     Vector2 boxOriginalScale;
-    float boxTruePositionY;
     public Transform blastZone;
     Camera cam;
     Vector2 boxPositionAvg;
@@ -21,6 +21,8 @@ public class CameraFollowBox : MonoBehaviour
     public float maxCamSize = 14;
     public float minCamSize = 5;
     float camSizeShiftSpeed = 10;
+    public bool overrideCamSize = false;
+    public float overrideSize = 10;
 
 
     int camArrayLength = 12;
@@ -38,6 +40,8 @@ public class CameraFollowBox : MonoBehaviour
     float camLookSpeed = 20;
 
     public bool disable = false;
+    [HideInInspector] public bool overridePosition;
+    [HideInInspector] public Vector2 forcedPosition;
 
     private void Awake()
     {
@@ -57,7 +61,7 @@ public class CameraFollowBox : MonoBehaviour
         cam.orthographicSize = PlayerPrefs.GetFloat("camSize", 5);
 
         camPositionArray = new List<Vector2>(new Vector2[camArrayLength]);
-        for (int i = 0; i < camArrayLength; i++)
+        for (int i = 0; i < camPositionArray.Count; i++)
         {
             camPositionArray[i] = followBox.position;
         }
@@ -65,56 +69,72 @@ public class CameraFollowBox : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (inputs.downDpad && cam.orthographicSize < maxCamSize)
+        //camera size
+        if (overrideCamSize)
         {
-            cam.orthographicSize += camSizeShiftSpeed * Time.deltaTime;
-            if (cam.orthographicSize > maxCamSize)
-            {
-                cam.orthographicSize = maxCamSize;
-            }
+            cam.orthographicSize = Mathf.MoveTowards(cam.orthographicSize, overrideSize, camSizeShiftSpeed * Time.deltaTime);
+        }
+        else if (cam.orthographicSize != PlayerPrefs.GetFloat("camSize", 5))
+        {
+            cam.orthographicSize = Mathf.MoveTowards(cam.orthographicSize, PlayerPrefs.GetFloat("camSize", 5), camSizeShiftSpeed * Time.deltaTime);
+        }
+        else if (inputs.downDpad && cam.orthographicSize < maxCamSize)
+        {
+            cam.orthographicSize = Mathf.MoveTowards(cam.orthographicSize, maxCamSize, camSizeShiftSpeed * Time.deltaTime);
             PlayerPrefs.SetFloat("camSize", cam.orthographicSize);
             PlayerPrefs.Save();
         }
-        if (inputs.upDpad && cam.orthographicSize > minCamSize)
+        else if (inputs.upDpad && cam.orthographicSize > minCamSize)
         {
-            cam.orthographicSize -= camSizeShiftSpeed * Time.deltaTime;
-            if (cam.orthographicSize < minCamSize)
-            {
-                cam.orthographicSize = minCamSize;
-            }
+            cam.orthographicSize = Mathf.MoveTowards(cam.orthographicSize, minCamSize, camSizeShiftSpeed * Time.deltaTime);
             PlayerPrefs.SetFloat("camSize", cam.orthographicSize);
             PlayerPrefs.Save();
         }
 
-        for (int i = 0; i < camArrayLength - 1; i++)
+
+        //shifting campositionarray values over by one, then creating the new value
+        for (int i = 0; i < camPositionArray.Count - 1; i++)
         {
             camPositionArray[i] = camPositionArray[i + 1];
         }
-        
-        if (disable == false)
+        if (disable == false && overridePosition == false)
         {
-            camPositionArray[camArrayLength - 1] = new Vector2(followBox.position.x, followBox.position.y - followBox.localScale.y / 2 + boxOriginalScale.y); //followBox.position;
-            boxTruePositionY = followBox.position.y - followBox.localScale.y / 2 + boxOriginalScale.y;
-            if (blastZone != null && boxTruePositionY <= blastZone.position.y + blastZone.lossyScale.y / 2 + cam.orthographicSize)
-            {
-                camPositionArray[camArrayLength - 1] = new Vector2(camPositionArray[camArrayLength - 1].x,
-                    blastZone.position.y + blastZone.lossyScale.y / 2 + cam.orthographicSize + boxOriginalScale.y);
-            }
+            camPositionArray[camPositionArray.Count - 1] = new Vector2(followBox.position.x, followBox.position.y - followBox.localScale.y / 2 + boxOriginalScale.y);
+        }
+        else if (overridePosition && disable == false)
+        {
+            camPositionArray[camPositionArray.Count - 1] = forcedPosition;
         }
         else
         {
-            camPositionArray[camArrayLength - 1] = camPositionArray[camArrayLength - 2];
+            camPositionArray[camPositionArray.Count - 1] = camPositionArray[camPositionArray.Count - 2];
         }
 
 
+        //calculating a Vector2 of the x and y values of camPositionArray
         boxPositionAvg = new Vector2(camPositionArray.Average(x=>x.x), camPositionArray.Average(x=>x.y));
 
-        camDisplacementScalarx = Mathf.MoveTowards(camDisplacementScalarx, Box.lookingRight, (0.25f + Mathf.Abs(Box.lookingRight - camDisplacementScalarx) * 5) * Time.deltaTime);
 
-        if (blastZone != null && boxPositionAvg.y <= blastZone.position.y + blastZone.lossyScale.y / 2 + cam.orthographicSize + boxOriginalScale.y)
+        //shifting camera movement left and right based on box.lookingright
+        if (disable == false && overridePosition == false)
+        {
+            camDisplacementScalarx = Mathf.MoveTowards(camDisplacementScalarx, Box.lookingRight, (0.25f + Mathf.Abs(Box.lookingRight - camDisplacementScalarx) * 5) * Time.deltaTime);
+        }
+        else if (disable)
+        {
+            camDisplacementScalarx = 0;
+        }
+        else if (overridePosition)
+        {
+            camDisplacementScalarx = Mathf.MoveTowards(camDisplacementScalarx, 0, 5 * Time.deltaTime);
+        }
+
+
+        //calculate the true position of the camera, which is the average position plus camera shifting left and right. If camera can see blast zone, move up.
+        if (blastZone != null && boxPositionAvg.y <= blastZone.position.y + blastZone.lossyScale.y / 2 + cam.orthographicSize + boxOriginalScale.y * 2)
         {
             camTruePosition = new Vector3(boxPositionAvg.x + (camDisplacementMaxx * camDisplacementScalarx), 
-                blastZone.position.y + blastZone.lossyScale.y / 2 + cam.orthographicSize + boxOriginalScale.y);
+                blastZone.position.y + blastZone.lossyScale.y / 2 + cam.orthographicSize + boxOriginalScale.y * 2);
         }
         else
         {
@@ -122,11 +142,12 @@ public class CameraFollowBox : MonoBehaviour
         }
 
 
-        if (inputs.leftDpad == false && inputs.rightDpad)
+        //peeking left and right based on dpad inputs
+        if (inputs.leftDpad == false && inputs.rightDpad && disable == false && overridePosition == false)
         {
             camLookOffset = new Vector3(Mathf.MoveTowards(camLookOffset.x, camLookMax, (camLookSpeed - camLookOffset.x * (camLookSpeed / camLookMax) * 0.95f) * Time.deltaTime), 0);
         }
-        else if (inputs.leftDpad && inputs.rightDpad == false)
+        else if (inputs.leftDpad && inputs.rightDpad == false && disable == false && overridePosition == false)
         {
             camLookOffset = new Vector3(Mathf.MoveTowards(camLookOffset.x, -camLookMax, (camLookSpeed + camLookOffset.x * (camLookSpeed / camLookMax) * 0.95f) * Time.deltaTime), 0);
         }
@@ -136,10 +157,14 @@ public class CameraFollowBox : MonoBehaviour
         }
 
 
-
+        //calculating the final position of the camera based on the box avg position, shifting left and right, camera shaking, and peeking left and right.
         if (disable == false)
         {
             transform.position = camTruePosition + camShakeOffset + camLookOffset + Vector3.back * 10;
+        }
+        else
+        {
+            transform.position += camShakeOffset;
         }
     }
 
@@ -157,6 +182,32 @@ public class CameraFollowBox : MonoBehaviour
                 StartCoroutine(CameraShake(boxDamageTaken, 12));
             }
             boxDamageShake = false;
+        }
+    }
+
+    public IEnumerator ResetCamera()
+    {
+        camPositionArray = new List<Vector2>(new Vector2[30]);
+        for (int i = 0; i < camPositionArray.Count; i++)
+        {
+            camPositionArray[i] = transform.position;
+        }
+        while (camPositionArray.Count > camArrayLength)
+        {
+            float window = 0.03f;
+            float timer = 0;
+            while (timer < window)
+            {
+                timer += Time.fixedDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+            List<Vector2> temp = new List<Vector2>(new Vector2[camPositionArray.Count - 1]);
+            Vector2 boxPositionAvg = new Vector2(camPositionArray.Average(x => x.x), camPositionArray.Average(x => x.y));
+            for (int i = 0; i < temp.Count; i++)
+            {
+                temp[i] = boxPositionAvg;
+            }
+            camPositionArray = temp;
         }
     }
 

@@ -308,6 +308,10 @@ public class PlatformDrop : MonoBehaviour
                 newLightning.GetComponent<Lightning>().pointA = pointA;
                 newLightning.GetComponent<Lightning>().pointB = pointB;
                 newLightning.GetComponent<Lightning>().pointsPerUnit = 2 - Mathf.Min(transform.localScale.x / 15, 1);
+                if (transform.position.y == 5)
+                {
+                    Debug.Log(2 - Mathf.Min(transform.localScale.x / 15, 1));
+                }
                 newLightning.GetComponent<Lightning>().aestheticElectricity = true;
                 timer2 = 0;
                 window2 = 0.4f + Random.Range(-0.3f, 0.3f);

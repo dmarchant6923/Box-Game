@@ -32,13 +32,12 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     bool onCoolDown = false;
     //bool attackAirborne = false;
     [System.NonSerialized] public bool enemyHitboxActive = false;
-    float attackDelay = 0.1f;
+    public float attackDelay = 0.1f;
     float attackSpinDelay = 0.08f;
     public float attackCoolDown = 2f; //must be larger than attackSpinDelay
     public float attackJumpVelocity = 10;
-    float attackSpinSpeed = -1000;
+    public float attackSpinSpeed = -1000;
     float platformSpeed = 0;
-    [System.NonSerialized] public float enemySpinDamageSpeed = -500;
     [HideInInspector] public bool enemyWasReboundedDash = false;
     [HideInInspector] public bool enemyWasRebounded = false;
 
@@ -48,6 +47,8 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     bool extendHitstop = false;
     public float damage = 25;
     bool isInvulnerable = false;
+
+    public bool lvl3 = false;
 
     bool enemyIsPushedBack = false;
     bool enemyIsWalking = false;
@@ -64,6 +65,9 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     int enemyLM;
 
     public bool debugLines = false;
+
+    float[] YVelocities = new float[3];
+    float avgYVelocity = 0;
 
     private void Awake()
     {
@@ -197,7 +201,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                 if (Box.boxHitboxActive && isInvulnerable == false)
                 {
                     //...and if the enemy is not currently attacking, damage the enemy.
-                    if (enemyHitboxActive == false)
+                    if (enemyHitboxActive == false || BoxPerks.starActive)
                     {
                         EM.enemyWasDamaged = true;
                         if (EM.enemyIsInvulnerable == false)
@@ -206,7 +210,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                         }
                     }
                     //...and if the enemy is currently attacking, rebound box and enemy. Cause a stronger enemy rebound if it was a dash attack.
-                    else
+                    else if (lvl3 == false)
                     {
                         if (Box.dashActive == true)
                         {
@@ -215,47 +219,45 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                         enemyWasRebounded = true;
                         Box.activateRebound = true;
                     }
+                    else
+                    {
+                        if (EM.shockActive)
+                        {
+                            Box.activateShock = true;
+                        }
+                        Box.activateDamage = true;
+                        Box.damageTaken = damage;
+                        Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
+                        StartCoroutine(EnemyHitstop());
+                    }
                 }
                 //...and if the box is NOT currently attacking, but the enemy is currently attacking, damage the box.
                 else if (enemyHitboxActive == true && EM.enemyWasDamaged == false && Box.isInvulnerable == false
                     && enemyWasRebounded == false)
                 {
+                    if (EM.shockActive)
+                    {
+                        Box.activateShock = true;
+                    }
                     Box.activateDamage = true;
                     Box.damageTaken = damage;
                     Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
                     StartCoroutine(EnemyHitstop());
                 }
                 //...and if neither the box or the enemy are attacking and the box is grounded, activate pushback.
-                else if (Box.isGrounded == true)
+                else if (Box.isGrounded == true && Box.isInvulnerable == false)
                 {
                     Box.activatePushBack = true;
                     enemyIsPushedBack = true;
                 }
             }
-            //...and if the spike perk is active...
+            //...and if the spike perk is active, damage the enemy no matter what.
             else
             {
-                //...and if the box is currently attacking or is in hitstop, damage the enemy regardless of if they're attacking or not
-                if (Box.boxHitboxActive)
+                EM.enemyWasDamaged = true;
+                if (EM.enemyIsInvulnerable == false)
                 {
-                    EM.enemyWasDamaged = true;
-                    if (EM.enemyIsInvulnerable == false)
-                    {
-                        Box.activateHitstop = true;
-                    }
-                }
-                //...and if the box is NOT currently attacking, but the enemy is currently attacking, activate a rebound
-                else if (enemyHitboxActive == true && EM.enemyWasDamaged == false && Box.isInvulnerable == false
-                    && enemyWasRebounded == false)
-                {
-                    enemyWasRebounded = true;
-                    Box.activateRebound = true;
-                }
-                //...and if neither the box or the enemy are attacking and the box is grounded, activate pushback.
-                else if (Box.isGrounded == true)
-                {
-                    Box.activatePushBack = true;
-                    enemyIsPushedBack = true;
+                    Box.activateHitstop = true;
                 }
             }
         }
@@ -280,11 +282,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             enemyRB.AddForce(new Vector2((float)20 * pushDirection, 0));
         }
 
-        if (enemyHitboxActive == true && enemyHitstopActive == false)
-        {
-            enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
-        }
-
         if (debugLines)
         {
             if (canSeeBox == true)
@@ -296,6 +293,8 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             {
                 Debug.DrawRay(enemyRB.position, moveToBoxRadius * (boxRB.position - enemyRB.position).normalized, Color.gray);
             }
+
+            Debug.DrawRay(enemyRB.position + (Vector2.down * enemyCollider.bounds.extents.y * 1.2f) + Vector2.left * 0.25f, Vector2.right * 0.5f);
 
             if (enemyIsGrounded == true && enemyRC_MoveToBox.collider != null)
             {
@@ -311,6 +310,11 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                 gameObject.GetComponent<SpriteRenderer>().color = initialColor;
             }
         }
+
+        YVelocities[2] = YVelocities[1];
+        YVelocities[1] = YVelocities[0];
+        YVelocities[0] = enemyRB.velocity.y;
+        avgYVelocity = (YVelocities[0] + YVelocities[1] + YVelocities[2]) / 3;
     }
 
     private void Update()
@@ -335,7 +339,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         {
             willDamageEnemies = false;
         }
-        Debug.DrawRay(enemyRB.position + (Vector2.down * enemyCollider.bounds.extents.y * 1.2f) + Vector2.left * 0.25f, Vector2.right * 0.5f);
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -372,10 +375,43 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             Vector2.right, 0.5f, groundLM);
         foreach (ContactPoint2D col in collision.contacts)
         {
-            if (col.normal.y > 0.8f && enemyRB.velocity.y - collision.transform.GetComponent<Rigidbody2D>().velocity.y < 3f && groundCheck.collider != null)
+            if (col.normal.y > 0.8f && (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles") || 
+                (avgYVelocity - collision.transform.GetComponent<Rigidbody2D>().velocity.y < 1f && groundCheck.collider != null)))
             {
                 touchedGround = true;
-                enemyHitboxActive = false;
+                if (enemyHitboxActive)
+                {
+                    enemyHitboxActive = false;
+                    enemyRB.velocity = new Vector2(enemyRB.velocity.x / 3, enemyRB.velocity.y);
+                    if (lvl3 && willDamageEnemies == false && avgYVelocity < -4f)
+                    {
+                        enemyRB.velocity = Vector2.zero;
+                        enemyRB.position = new Vector2(enemyRB.position.x, col.point.y + enemyCollider.bounds.extents.y * 0.65f);
+                        enemyRB.rotation = 0;
+                        enemyRB.angularVelocity = 0;
+                        if (GameObject.Find("Main Camera") != null)
+                        {
+                            Debug.Log("you are here");
+                            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
+                            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo = new Vector2(30, (boxRB.position - enemyRB.position).magnitude);
+                        }
+
+                        RaycastHit2D groundpound = Physics2D.CircleCast(enemyRB.position, 8, Vector2.zero, 0, boxLM);
+                        if (groundpound.collider != null && (Box.isGrounded || Box.canWallJump))
+                        {
+                            Box.activateDamage = true;
+                            Box.damageTaken = 30;
+                            if (Box.isGrounded)
+                            {
+                                Box.boxDamageDirection = Vector2.up;
+                            }
+                            else
+                            {
+                                Box.boxDamageDirection = new Vector2(Box.wallJumpDirection, 1).normalized;
+                            }
+                        }
+                    }
+                }
                 break;
             }
         }
@@ -416,7 +452,14 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         float attackDelayTimer = 0;
         float attackSpinDelayTimer = 0;
         float attackCoolDownTimer = 0;
-        while (attackDelayTimer <= attackDelay) // delay on ground before launching upwards
+        float squatFactor = 0.7f;
+        if (lvl3)
+        {
+            enemyRB.rotation = 0;
+            transform.localScale = new Vector2(transform.localScale.x, transform.localScale.y * squatFactor);
+            enemyRB.position += Vector2.down * transform.localScale.y * (1 - squatFactor) / 2;
+        }
+        while (attackDelayTimer <= attackDelay && EM.enemyWasKilled == false) // delay on ground before launching upwards
         {
             if (EM.hitstopImpactActive == false)
             {
@@ -424,12 +467,23 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             }
             yield return null;
         }
-        float horizDistance = Mathf.Abs(enemyRB.position.x - boxRB.position.x);
+        if (lvl3)
+        {
+            transform.localScale = new Vector2(transform.localScale.x, transform.localScale.y / squatFactor);
+            enemyRB.position += Vector2.up * transform.localScale.y * (1 - squatFactor) / 2;
+        }
+
+        float horizDistance = Mathf.Abs(enemyRB.position.x - boxRB.position.x) * directionToBoxX;
         float timeToLand = 2 * attackJumpVelocity / (9.81f * enemyRB.gravityScale);
+        float adjustedJumpVelocity = attackJumpVelocity;
+        if (boxRB.position.y - enemyRB.position.y > 5 && lvl3)
+        {
+            adjustedJumpVelocity *= Mathf.Sqrt((boxRB.position.y - enemyRB.position.y) / 3);
+        }
         float adjustedAttackHorizSpeed = horizDistance / timeToLand;
         if (EM.enemyWasKilled == false && enemyIsGrounded && Mathf.Abs(enemyRB.velocity.x - platformSpeed) < maxHorizSpeed * 1.2f)
         {
-            enemyRB.velocity = new Vector2(adjustedAttackHorizSpeed * directionToBoxX + platformSpeed, attackJumpVelocity);
+            enemyRB.velocity = new Vector2(adjustedAttackHorizSpeed + platformSpeed, adjustedJumpVelocity);
         }
         while (attackSpinDelayTimer <= attackSpinDelay) // delay after launching before starting to spin activating hitbox
         {
@@ -441,10 +495,17 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         }
         enemyHitboxActive = true;
         enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
-        while (enemyHitboxActive)
+        while (enemyHitboxActive || enemyIsGrounded == false)
         {
+            EM.physicalHitboxActive = true;
+            if (enemyHitstopActive == false)
+            {
+                enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, attackSpinSpeed * Mathf.Sign(horizDistance), 5000 * Time.deltaTime);
+            }
+            //enemyRB.angularVelocity = attackSpinSpeed * Mathf.Sign(horizDistance);
             yield return null;
         }
+        EM.physicalHitboxActive = false;
         onCoolDown = true;
         while (attackCoolDownTimer <= attackCoolDown - attackSpinDelay)
         {
@@ -471,6 +532,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             reboundDirection = -(int)new Vector2(boxRB.position.x - enemyRB.position.x, 0).normalized.x;
             enemyRB.velocity = new Vector2(4*reboundDirection, enemyRB.gravityScale * 2);
         }
+        Debug.Log("you are here");
         enemyWasReboundedDash = false;
         enemyWasRebounded = false;
         yield return new WaitForSeconds(0.2f);

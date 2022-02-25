@@ -42,6 +42,7 @@ public class BattlegroundManager : MonoBehaviour
     }
 
     public GameObject groundedEnemy1;
+    public GameObject groundedEnemy2;
 
     public GameObject flyingShooter1;
     public GameObject flyingShooter2;
@@ -71,6 +72,7 @@ public class BattlegroundManager : MonoBehaviour
     public GameObject thunderGuy;
 
     int groundedEnemy1Points = 1;
+    int groundedEnemy2Points = 1;
 
     int flyingShooter1Points = 2;
     int flyingShooter2Points = 4;
@@ -100,6 +102,7 @@ public class BattlegroundManager : MonoBehaviour
     int thunderGuyPoints = 9;
 
     Enemy groundedEnemyLvl1;
+    Enemy groundedEnemyLvl2;
 
     Enemy flyingShooterLvl1;
     Enemy flyingShooterLvl2;
@@ -160,11 +163,16 @@ public class BattlegroundManager : MonoBehaviour
         boxLM = LayerMask.GetMask("Box");
         enemyLM = LayerMask.GetMask("Enemies");
 
+        Box.dashUnlocked = true;
+        Box.teleportUnlocked = true;
+        Box.pulseUnlocked = true;
+
         spawnLimits[0] = transform.position; spawnLimits[1] = transform.lossyScale / 2;
 
         enemies.Clear();
 
         groundedEnemyLvl1 = new Enemy(groundedEnemy1, groundedEnemy1Points);
+        groundedEnemyLvl2 = new Enemy(groundedEnemy2, groundedEnemy2Points);
 
         flyingShooterLvl1 = new Enemy(flyingShooter1, flyingShooter1Points);
         flyingShooterLvl2 = new Enemy(flyingShooter2, flyingShooter2Points);
@@ -193,7 +201,7 @@ public class BattlegroundManager : MonoBehaviour
 
         thunderGuyLvl1 = new Enemy(thunderGuy, thunderGuyPoints);
 
-        groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl1, groundedEnemyLvl1);
+        groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemyLvl2);
         flyingShooter = new EnemyType(flyingShooterLvl1, flyingShooterLvl2, flyingShooterLvl3);
         flyingSniper = new EnemyType(flyingSniperLvl1, flyingSniperLvl2, flyingSniperLvl3);
         flyingKamikaze = new EnemyType(flyingKamikazeLvl1, flyingKamikazeLvl1, flyingKamikazeLvl1);

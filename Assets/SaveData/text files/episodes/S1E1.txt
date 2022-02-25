@@ -1,1 +1,1 @@
-{"completed":true,"checkpoint":false,"stickersFound":[true,true,true,true,true,true],"fastestTime":99.56802368164063}
+{"completed":true,"checkpoint":false,"stickersFound":[true,true,true,true,true,true],"fastestTime":91.64442443847656}

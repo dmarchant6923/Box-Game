@@ -118,7 +118,6 @@ public class HitSwitch : MonoBehaviour
             Hit();
             StartCoroutine(collision.GetComponent<EnemyBehavior_Grounded>().EnemyHitstop());
         }
-        Debug.Log("you are here");
         if (collision.GetComponent<Box>() != null && Box.boxHitboxActive && invulnerable == false)
         {
             Hit();

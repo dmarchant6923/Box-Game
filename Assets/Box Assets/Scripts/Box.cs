@@ -147,6 +147,7 @@ public class Box : MonoBehaviour
     [HideInInspector] public static bool activateHitstop = false; //will turn on for a frame when hitstop becomes active to activate the CR
     bool extendHitstop = false;
     [HideInInspector] public static bool activateDamage = false;
+    bool ignoreProjectileDamage = false;
     [HideInInspector] public static bool activateRebound = false;
     bool reboundActive = false;
     [HideInInspector] public static bool activatePushBack = false;
@@ -702,7 +703,7 @@ public class Box : MonoBehaviour
         }
         //activate box hitbox
         if ((spinAttackActive && damageActive == false) || Mathf.Abs(BoxVelocity.velocitiesX[0]) >= dashSpeed * 0.95f ||
-            ((Mathf.Abs(rigidBody.velocity.x) >= 15 || rigidBody.velocity.y >= 15 || rigidBody.velocity.y < maxFallSpeed * 1.05f) && damageActive == true) || 
+            ((Mathf.Abs(rigidBody.velocity.x) >= 15 || rigidBody.velocity.y >= 15 || rigidBody.velocity.y < maxFallSpeed * 1.05f) && damageActive && ignoreProjectileDamage == false) || 
             enemyHitstopActive == true || BoxPerks.spikesActive || BoxPerks.starActive)
         {
             boxHitboxActive = true;
@@ -803,7 +804,7 @@ public class Box : MonoBehaviour
             if (InputBroker.Xbox && canTech && techWindowActive == false && (Input.GetAxisRaw("Xbox L") < -0.9f || Input.GetAxisRaw("Xbox R") < -0.9f))
                 { StartCoroutine(TechBuffer()); }
 
-            if (damageActive)
+            if (damageActive && enemyHitstopActive == false)
             {
                 damageTime += Time.deltaTime;
             }
@@ -1320,7 +1321,12 @@ public class Box : MonoBehaviour
         if (successfulTeleport == true)
         {
             transform.position = new Vector2(transform.position.x + teleportDistancex, transform.position.y);
-            inputs.inputsEnabled = true;
+        }
+        else
+        {
+            int direction = (int)Mathf.Sign(teleportDistancex);
+            RaycastHit2D rayToWall = Physics2D.Raycast(rigidBody.position, Vector2.right * direction, teleportRange, obstacleLayerMask);
+            transform.position = rayToWall.point + Vector2.left * direction * transform.lossyScale.x / 2;
         }
         rigidBody.angularVelocity *= 4;
         rigidBody.angularDrag *= 100;
@@ -1624,19 +1630,23 @@ public class Box : MonoBehaviour
         {
             trueDamageVelocity = boxDamageDirection.normalized * launchSpeed;
         }
+
+        ignoreProjectileDamage = true;
         BoxVelocity.velocitiesX[0] = trueDamageVelocity.x;
         rigidBody.velocity = new Vector2(rigidBody.velocity.x, trueDamageVelocity.y);
 
-        //Debug.Log("damage taken: "+damageTaken + ". damage direction: " + boxDamageDirection + ". DI Input: " + DI / DIMult
-        //    + ". result vector: " + trueDamageVelocity + ". final velocity: " + trueDamageVelocity.magnitude);
         Vector2 launchPosition = rigidBody.position;
 
         yield return new WaitForFixedUpdate();
         airFriction = initialAirFriction / damageAirFrictionMult;
         rigidBody.angularVelocity = -Mathf.Sign(trueDamageVelocity.x) * damageTaken * 30;
         float launchTime = 0;
-        while (isGrounded == false && damageTime < maxDamageStunTime && techSuccessful == false)
+        while ((isGrounded == false || enemyHitstopActive) && damageTime < maxDamageStunTime && techSuccessful == false)
         {
+            if (damageTime > boxHitstopDelay + 0.15f)
+            {
+                ignoreProjectileDamage = false;
+            }
             yield return null;
             Debug.DrawRay(launchPosition, boxDamageDirection.normalized * 3);
             Debug.DrawRay(launchPosition + boxDamageDirection.normalized * 3, DI * 3, Color.green);

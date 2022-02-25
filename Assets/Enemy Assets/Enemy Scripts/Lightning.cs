@@ -356,7 +356,7 @@ public class Lightning : MonoBehaviour
                     int numBolts = 15;
                     float releaseRadius = chainRadius * 0.8f;
                     int boltsFired = 0;
-                    float distToBox = (sourceObject.GetComponent<Rigidbody2D>().position - boxRB.position).magnitude;
+                    float distToBox = (sourceObject.transform.root.GetComponentInChildren<Rigidbody2D>().position - boxRB.position).magnitude;
                     int quadrant = 1;
                     if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null && distToBox < 30)
                     {

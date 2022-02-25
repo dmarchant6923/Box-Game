@@ -59,6 +59,10 @@ public class TargetTestUI : MonoBehaviour
 
     private void Start()
     {
+        Box.dashUnlocked = true;
+        Box.teleportUnlocked = true;
+        Box.pulseUnlocked = true;
+
         UIInputs = GetComponent<InputBroker>();
         UITools = GetComponent<UITools>();
         boxScript = GameObject.Find("Box").GetComponent<Box>();

@@ -227,6 +227,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     if ((item.transform.GetComponent<BulletScript>() != null && item.transform.GetComponent<BulletScript>().bulletWasReflected) ||
                         (item.transform.GetComponent<Grenade>() != null && item.transform.GetComponent<Grenade>().grenadeWasReflected == true) ||
                         (item.transform.GetComponent<EnemyBehavior_Flying>() != null && item.transform.GetComponent<EnemyBehavior_Flying>().diveWasReflected == true) ||
+                        (item.transform.GetComponent<EnemyBehavior_Grounded>() != null && item.transform.GetComponent<EnemyBehavior_Grounded>().willDamageEnemies == true) ||
                         (item.transform.GetComponent<Box>() != null))
                     {
                         checkSuccessful = true;
@@ -318,6 +319,14 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     Rigidbody2D birdRB = item.transform.GetComponent<Rigidbody2D>();
                     Vector2 enemyReflectVector = (birdRB.position - enemyRB.position).normalized;
                     birdRB.velocity = enemyReflectVector * birdRB.velocity.magnitude;
+                }
+
+                //grounded enemy
+                if (item.transform.GetComponent<EnemyBehavior_Grounded>() != null && item.transform.GetComponent<EnemyBehavior_Grounded>().willDamageEnemies == true)
+                {
+                    Rigidbody2D RB = item.transform.GetComponent<Rigidbody2D>();
+                    Vector2 enemyReflectVector = (RB.position - enemyRB.position).normalized;
+                    RB.velocity = enemyReflectVector * RB.velocity.magnitude;
                 }
             }
         }

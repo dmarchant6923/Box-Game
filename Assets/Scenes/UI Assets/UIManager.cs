@@ -77,19 +77,6 @@ public class UIManager : MonoBehaviour
         rawTime = 0;
         minutes = 0;
 
-        if (Box.dashUnlocked == false)
-        {
-            dash.SetActive(false);
-        }
-        if (Box.pulseUnlocked == false)
-        {
-            pulse.SetActive(false);
-        }
-        if (Box.teleportUnlocked == false)
-        {
-            teleport.SetActive(false);
-        }
-
         dashBarInitialWidth = dashBar.transform.localScale.x;
         pulseBarInitialWidth = pulseBar.transform.localScale.x;
         teleportBarInitialWidth = dashBar.transform.localScale.x;
@@ -383,6 +370,18 @@ public class UIManager : MonoBehaviour
         {
             lostHealth = Instantiate(healthIncrement, healthText.transform);
             lostHealth.text = ((int)Mathf.Ceil(Box.boxHealth) - initialHealth).ToString();
+        }
+        if (Box.dashUnlocked == false)
+        {
+            dash.SetActive(false);
+        }
+        if (Box.pulseUnlocked == false)
+        {
+            pulse.SetActive(false);
+        }
+        if (Box.teleportUnlocked == false)
+        {
+            teleport.SetActive(false);
         }
         spawnIncrement = true;
     }

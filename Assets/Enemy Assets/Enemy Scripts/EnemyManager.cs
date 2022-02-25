@@ -54,6 +54,7 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public bool initialDelay = true;
 
     [HideInInspector] public bool touchingThisEnemy = false;
+    [HideInInspector] public bool physicalHitboxActive = false;
     public bool canBeShocked = true;
     [System.NonSerialized] public bool shockCoolDown = false;
     [HideInInspector] public bool activateShock = false;
@@ -197,13 +198,13 @@ public class EnemyManager : MonoBehaviour
             }
             activateShock = false;
         }
-        if (shockActive && touchingThisEnemy)
+        if (shockActive && touchingThisEnemy && hitstopImpactActive == false)
         {
-            if (Box.isInvulnerable)
+            if (physicalHitboxActive)
             {
-                shockActive = false;
+                StartCoroutine(DelayShockDeactivate());
             }
-            else if (GetComponent<EnemyBehavior_Grounded>() == null || GetComponent<EnemyBehavior_Grounded>().enemyHitboxActive == false && Box.isInvulnerable == false)
+            else if (Box.isInvulnerable == false)
             {
                 Box.damageTaken = Lightning.contactDamage;
                 Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
@@ -213,6 +214,10 @@ public class EnemyManager : MonoBehaviour
                 {
                     StartCoroutine(HitstopImpact(Lightning.contactDamage * Box.boxHitstopDelayMult * 2.5f));
                 }
+            }
+            else
+            {
+                shockActive = false;
             }
         }
 
@@ -563,5 +568,13 @@ public class EnemyManager : MonoBehaviour
         enemyWasPulsed = true;
         yield return new WaitForSeconds(0.1f);
         enemyWasPulsed = false;
+    }
+    IEnumerator DelayShockDeactivate()
+    {
+        while (Box.boxHitstopActive)
+        {
+            yield return null;
+        }
+        shockActive = false;
     }
 }

@@ -8,6 +8,8 @@ public class TeslaCoil : MonoBehaviour
     GameObject newLightning;
     float radius = 7;
 
+    Rigidbody2D boxRB;
+
     int phase = 1;
     public float timePerPhase = 3;
 
@@ -17,7 +19,8 @@ public class TeslaCoil : MonoBehaviour
     Vector3 initialColor;
     Vector3 activeColor;
     Vector3 fireColor;
-    float colorChangeSpeed = 1.6f;
+    float colorChangeSpeed = 0.6f;
+    float initialColorChangeSpeed;
 
     List<SpriteRenderer> coilObjects;
     List<Color> coilColors = new List<Color> { };
@@ -30,11 +33,15 @@ public class TeslaCoil : MonoBehaviour
         topload = transform.GetChild(1).GetComponent<SpriteRenderer>();
         breakoutPoint = transform.GetChild(0).position;
 
+        boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
+
         initialColor = new Vector3(topload.color.r, topload.color.g, topload.color.b);
         activeColor = new Vector3(0.6f, 0.3f, 0.7f);
         fireColor = new Vector3(1, 0, 0);
 
         toploadColorVector = initialColor;
+        colorChangeSpeed *= 3 / timePerPhase;
+        initialColorChangeSpeed = colorChangeSpeed;
 
         coilObjects = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
         foreach (SpriteRenderer item in coilObjects)
@@ -63,6 +70,16 @@ public class TeslaCoil : MonoBehaviour
         {
             topload.color = new Color(toploadColorVector.x, toploadColorVector.y, toploadColorVector.z);
         }
+
+        if (Box.pulseActive && (breakoutPoint - boxRB.position).magnitude < Box.pulseRadius)
+        {
+            RaycastHit2D rayToBox = Physics2D.Raycast(breakoutPoint, (boxRB.position - breakoutPoint).normalized, Box.pulseRadius, LayerMask.GetMask("Obstacles", "Box"));
+            if (rayToBox.collider != null && rayToBox.collider.GetComponent<Box>() != null)
+            {
+                shockActive = false;
+                phase = 0;
+            }
+        }
     }
 
     IEnumerator PhaseChange()
@@ -72,16 +89,17 @@ public class TeslaCoil : MonoBehaviour
         if (phase > 3)
         {
             phase = 1;
-            colorChangeSpeed *= 2;
+            colorChangeSpeed = initialColorChangeSpeed;
         }
         if (phase == 2)
         {
-            window *= 1.5f;
-            colorChangeSpeed /= 2;
+            window *= 1.4f;
+            colorChangeSpeed = initialColorChangeSpeed * 0.5f;
         }
         if (phase == 3)
         {
-            window *= 0.5f;
+            window *= 0.6f;
+            colorChangeSpeed = initialColorChangeSpeed;
         }
         while (timer < window)
         {
@@ -92,7 +110,7 @@ public class TeslaCoil : MonoBehaviour
         StartCoroutine(PhaseChange());
         if (phase == 2)
         {
-            window = 1f;
+            window = timePerPhase * 0.5f;
             timer = 0;
             while (timer < window)
             {
@@ -108,37 +126,72 @@ public class TeslaCoil : MonoBehaviour
         }
         if (phase == 1 && shockActive)
         {
-            Debug.Log("you are here");
             StartCoroutine(lightning.GetComponent<Lightning>().LightningStrike(radius, 0, Lightning.thunderDamage, breakoutPoint, true, transform.GetChild(0).gameObject));
+            StartCoroutine(ReleaseFlash());
             shockActive = false;
         }
     }
 
     IEnumerator Shock()
     {
+        float window1 = 0.12f;
+        StartCoroutine(ShockFlash());
+        bool LtoR = true;
+        yield return null;
+        Vector2 pointA;
+        Vector2 pointB;
+        Vector2 toploadPosition = topload.transform.position;
+        Vector2 toploadScale = topload.transform.lossyScale;
+        Vector2 normal = (breakoutPoint - GetComponent<Rigidbody2D>().position).normalized;
+        Vector2 perpendicular = Vector2.Perpendicular(normal);
+        while (shockActive)
+        {
+            if (LtoR)
+            {
+                pointA = toploadPosition - (toploadScale.x * perpendicular * 2) + (Random.Range(-1f, 1f) * normal * toploadScale.y / 2);
+                pointB = toploadPosition + (toploadScale.x * perpendicular * 2) + (Random.Range(-1f, 1f) * normal * toploadScale.y / 2);
+                LtoR = false;
+            }
+            else
+            {
+                pointA = toploadPosition - (toploadScale.x * perpendicular * 2) + (Random.Range(-1f, 1f) * normal * toploadScale.y / 2);
+                pointB = toploadPosition + (toploadScale.x * perpendicular * 2) + (Random.Range(-1f, 1f) * normal * toploadScale.y / 2);
+                LtoR = true;
+            }
+            newLightning = Instantiate(lightning);
+            newLightning.GetComponent<Lightning>().pointA = pointA;
+            newLightning.GetComponent<Lightning>().pointB = pointB;
+            newLightning.GetComponent<Lightning>().pointsPerUnit = 4;
+            newLightning.GetComponent<Lightning>().aestheticElectricity = true;
+
+            //Debug.DrawLine(toploadPosition - (toploadScale.x * perpendicular * 2), toploadPosition + (toploadScale.x * perpendicular * 2));
+
+            yield return new WaitForSeconds(window1 + Random.Range(0, window1 * 5));
+        }
+    }
+
+    IEnumerator ShockFlash()
+    {
         float window1 = 0.15f;
         float window2 = 0.05f;
         while (shockActive)
         {
             flash = true;
-            foreach (SpriteRenderer item in coilObjects)
-            {
-                item.color = Color.white;
-            }
+            topload.color = Color.white;
             yield return new WaitForSeconds(window2 + Random.Range(0f, window2));
             flash = false;
-            for (int i = 0; i < coilObjects.Count; i++)
-            {
-                coilObjects[i].color = coilColors[i];
-            }
             topload.color = new Color(toploadColorVector.x, toploadColorVector.y, toploadColorVector.z);
             yield return new WaitForSeconds(window1 + Random.Range(0f, window1));
         }
+    }
 
-
-        for (int i = 0; i < coilObjects.Count; i++)
-        {
-            coilObjects[i].color = coilColors[i];
-        }
+    IEnumerator ReleaseFlash()
+    {
+        float window2 = 0.2f;
+        topload.color = Color.white;
+        flash = true;
+        yield return new WaitForSeconds(window2);
+        flash = false;
+        toploadColorVector = new Vector3(1, 1, 1);
     }
 }

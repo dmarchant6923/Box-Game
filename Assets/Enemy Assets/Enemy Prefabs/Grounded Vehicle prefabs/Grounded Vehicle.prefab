@@ -493,7 +493,7 @@ CircleCollider2D:
   m_GameObject: {fileID: 6035763129534007469}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 6200000, guid: 1c1de2bc7548da549b18fb9e56cea03a, type: 2}
+  m_Material: {fileID: 6200000, guid: 4bfb9817f12a59440ab86cfdb33fd26e, type: 2}
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
@@ -597,6 +597,7 @@ MonoBehaviour:
   enemyIsInvulnerable: 0
   enemyWasDamaged: 0
   enemyWasKilled: 0
+  instantKill: 0
   hitstopImpactActive: 0
   scriptsEnabled: 1
   normalPulse: 1
@@ -613,10 +614,12 @@ MonoBehaviour:
   canBeShocked: 1
   activateShock: 0
   shockActive: 0
+  flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
   enemyHitstopActive: 0
   enemyHealth: 2
   startEnemyDeath: 0
+  respawn: 0
 --- !u!1 &6418317588530658419
 GameObject:
   m_ObjectHideFlags: 0
@@ -709,7 +712,7 @@ CircleCollider2D:
   m_GameObject: {fileID: 6418317588530658419}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 6200000, guid: 1c1de2bc7548da549b18fb9e56cea03a, type: 2}
+  m_Material: {fileID: 6200000, guid: 4bfb9817f12a59440ab86cfdb33fd26e, type: 2}
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0

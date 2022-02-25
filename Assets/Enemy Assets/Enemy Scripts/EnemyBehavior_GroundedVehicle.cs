@@ -115,7 +115,6 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     int boxLM;
     int groundLM;
     int obstacleAndBoxLM;
-    int enemyLM;
 
     public bool debugLinesEnabled = false;
 
@@ -135,7 +134,6 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
 
         boxLM = LayerMask.GetMask("Box");
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
-        enemyLM = LayerMask.GetMask("Enemies");
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
 
         gameObject.transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(true);
@@ -840,6 +838,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         EM.normalPulse = false;
         dashDirection = directionToBoxX;
         float dashTimer = 0;
+        EM.physicalHitboxActive = true;
         //continue dashing as long as the timer isn't up and there's no reason to brake
         while (dashTimer <= maxDashAttackTime && isDashing && explosionDeathActive == false &&
             ((dashDirection == 1 && walkFloorCheckRightRC.collider != null && walkObstacleCheckRightRC.collider == null) ||
@@ -851,6 +850,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             }
             yield return null;
         }
+        EM.physicalHitboxActive = false;
         EM.normalPulse = true;
         isDashing = false;
     }

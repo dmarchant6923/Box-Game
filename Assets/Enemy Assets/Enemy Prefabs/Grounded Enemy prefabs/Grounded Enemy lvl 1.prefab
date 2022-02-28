@@ -157,6 +157,7 @@ MonoBehaviour:
   attackBoxRadius: 4
   maxHorizSpeed: 4
   willIdleWalk: 1
+  attackDelay: 0.1
   attackCoolDown: 1.5
   attackJumpVelocity: 10
   attackSpinSpeed: -1000
@@ -165,6 +166,7 @@ MonoBehaviour:
   willDamageEnemies: 0
   damage: 25
   lvl3: 0
+  pulse: {fileID: 0}
   debugLines: 0
 --- !u!114 &1388795964695304197
 MonoBehaviour:
@@ -248,7 +250,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7598005115943019868}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1

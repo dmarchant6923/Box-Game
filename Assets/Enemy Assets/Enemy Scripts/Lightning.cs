@@ -24,7 +24,7 @@ public class Lightning : MonoBehaviour
     float chainDelay = 0.4f;
     bool chainFinished = false;
 
-    [System.NonSerialized] public float pointsPerUnit = 1.6f;
+    [System.NonSerialized] public float pointsPerUnit = 1.656f;
     [System.NonSerialized] public float pointRadius = 0.3f;
     int numPoints;
 
@@ -46,8 +46,9 @@ public class Lightning : MonoBehaviour
         if (aestheticElectricity)
         {
             width = 0.08f;
-            if (pointsPerUnit == 1.6f)
+            if (pointsPerUnit == 1.656f)
             {
+                Debug.Log("you are here");
                 pointsPerUnit = 5f;
             }
             fadeSpeed = 20;

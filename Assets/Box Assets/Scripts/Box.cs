@@ -1002,6 +1002,7 @@ public class Box : MonoBehaviour
             ceilingCling = false;
         }
 
+        touchingWall = false;
         if ((1 << collision.gameObject.layer == obstacleLayerMask && collision.gameObject.tag != "Hazard") || (collision.gameObject.tag == "Hazard" && isInvulnerable))
         {
             RaycastHit2D wallcast = Physics2D.BoxCast(rigidBody.position + Vector2.up * transform.localScale.y / 4, new Vector2(transform.localScale.x * 1.1f, transform.localScale.y / 3),

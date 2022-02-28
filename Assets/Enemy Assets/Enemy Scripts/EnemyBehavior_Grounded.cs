@@ -49,6 +49,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     bool isInvulnerable = false;
 
     public bool lvl3 = false;
+    public GameObject pulse;
 
     bool enemyIsPushedBack = false;
     bool enemyIsWalking = false;
@@ -68,6 +69,9 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
     float[] YVelocities = new float[3];
     float avgYVelocity = 0;
+    float groundpoundYVel = -8;
+    public float groundpoundRadius = 7;
+    public float groundpoundDamage = 30;
 
     private void Awake()
     {
@@ -87,7 +91,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         boxLM = LayerMask.GetMask("Box");
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
         enemyLM = LayerMask.GetMask("Enemies");
-        obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Platforms", "Box");
+        obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
     }
     void FixedUpdate()
     {
@@ -311,6 +315,11 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             }
         }
 
+        if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false)
+        {
+            enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 3f);
+        }
+
         YVelocities[2] = YVelocities[1];
         YVelocities[1] = YVelocities[0];
         YVelocities[0] = enemyRB.velocity.y;
@@ -319,13 +328,17 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
     private void Update()
     {
-        if (enemyHitboxActive)
+        if (lvl3 && enemyHitboxActive && avgYVelocity <= groundpoundYVel && willDamageEnemies == false)
         {
-            transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+            transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.9f, 0f, 0, 0.7f);
+        }
+        else if (enemyHitboxActive)
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.6f, 0, 0, 0.3f);
         }
         else
         {
-            transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+            transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0,0,0,0);
         }
 
         if (attackCRActive && onCoolDown == false)
@@ -383,7 +396,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                 {
                     enemyHitboxActive = false;
                     enemyRB.velocity = new Vector2(enemyRB.velocity.x / 3, enemyRB.velocity.y);
-                    if (lvl3 && willDamageEnemies == false && avgYVelocity < -4f)
+                    if (lvl3 && willDamageEnemies == false && avgYVelocity < groundpoundYVel)
                     {
                         enemyRB.velocity = Vector2.zero;
                         enemyRB.position = new Vector2(enemyRB.position.x, col.point.y + enemyCollider.bounds.extents.y * 0.65f);
@@ -393,14 +406,19 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                         {
                             Debug.Log("you are here");
                             GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
-                            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo = new Vector2(30, (boxRB.position - enemyRB.position).magnitude);
+                            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo = 
+                                new Vector2(groundpoundDamage * 0.75f, (boxRB.position - enemyRB.position).magnitude);
                         }
 
-                        RaycastHit2D groundpound = Physics2D.CircleCast(enemyRB.position, 8, Vector2.zero, 0, boxLM);
+                        GameObject newPulse = Instantiate(pulse, enemyRB.position, Quaternion.identity);
+                        newPulse.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.05f);
+                        newPulse.transform.localScale = Vector2.one * groundpoundRadius * 2;
+
+                        RaycastHit2D groundpound = Physics2D.CircleCast(enemyRB.position, groundpoundRadius, Vector2.zero, 0, boxLM);
                         if (groundpound.collider != null && (Box.isGrounded || Box.canWallJump))
                         {
                             Box.activateDamage = true;
-                            Box.damageTaken = 30;
+                            Box.damageTaken = groundpoundDamage;
                             if (Box.isGrounded)
                             {
                                 Box.boxDamageDirection = Vector2.up;
@@ -465,6 +483,11 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             {
                 attackDelayTimer += Time.deltaTime;
             }
+            if (lvl3)
+            {
+                enemyRB.rotation = 0;
+                enemyRB.angularVelocity = 0;
+            }
             yield return null;
         }
         if (lvl3)
@@ -478,7 +501,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         float adjustedJumpVelocity = attackJumpVelocity;
         if (boxRB.position.y - enemyRB.position.y > 5 && lvl3)
         {
-            adjustedJumpVelocity *= Mathf.Sqrt((boxRB.position.y - enemyRB.position.y) / 3);
+            adjustedJumpVelocity *= 1 + (Mathf.Sqrt(boxRB.position.y - 5 - enemyRB.position.y) / 3);
         }
         float adjustedAttackHorizSpeed = horizDistance / timeToLand;
         if (EM.enemyWasKilled == false && enemyIsGrounded && Mathf.Abs(enemyRB.velocity.x - platformSpeed) < maxHorizSpeed * 1.2f)

@@ -43,6 +43,7 @@ public class BattlegroundManager : MonoBehaviour
 
     public GameObject groundedEnemy1;
     public GameObject groundedEnemy2;
+    public GameObject groundedEnemy3;
 
     public GameObject flyingShooter1;
     public GameObject flyingShooter2;
@@ -73,6 +74,7 @@ public class BattlegroundManager : MonoBehaviour
 
     int groundedEnemy1Points = 1;
     int groundedEnemy2Points = 1;
+    int groundedEnemy3Points = 1;
 
     int flyingShooter1Points = 2;
     int flyingShooter2Points = 4;
@@ -103,6 +105,7 @@ public class BattlegroundManager : MonoBehaviour
 
     Enemy groundedEnemyLvl1;
     Enemy groundedEnemyLvl2;
+    Enemy groundedEnemylvl3;
 
     Enemy flyingShooterLvl1;
     Enemy flyingShooterLvl2;
@@ -173,6 +176,7 @@ public class BattlegroundManager : MonoBehaviour
 
         groundedEnemyLvl1 = new Enemy(groundedEnemy1, groundedEnemy1Points);
         groundedEnemyLvl2 = new Enemy(groundedEnemy2, groundedEnemy2Points);
+        groundedEnemylvl3 = new Enemy(groundedEnemy3, groundedEnemy3Points);
 
         flyingShooterLvl1 = new Enemy(flyingShooter1, flyingShooter1Points);
         flyingShooterLvl2 = new Enemy(flyingShooter2, flyingShooter2Points);
@@ -201,7 +205,7 @@ public class BattlegroundManager : MonoBehaviour
 
         thunderGuyLvl1 = new Enemy(thunderGuy, thunderGuyPoints);
 
-        groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemyLvl2);
+        groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemylvl3);
         flyingShooter = new EnemyType(flyingShooterLvl1, flyingShooterLvl2, flyingShooterLvl3);
         flyingSniper = new EnemyType(flyingSniperLvl1, flyingSniperLvl2, flyingSniperLvl3);
         flyingKamikaze = new EnemyType(flyingKamikazeLvl1, flyingKamikazeLvl1, flyingKamikazeLvl1);
@@ -221,11 +225,11 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(wizard); //7
         enemies.Add(thunder); //8
 
-        wave = 14;
+        wave = 79;
         enemiesKilled = 0;
 
-        Box.boxHealth = 100;
-        UIManager.initialHealth = (int) maxHealth;
+        Box.boxHealth = 1000;
+        UIManager.initialHealth = 1000;//(int) maxHealth;
 
         if ((wave == 0 && Box.boxHealth == 250) || (wave == 14 && Box.boxHealth == 100))
         {
@@ -266,7 +270,7 @@ public class BattlegroundManager : MonoBehaviour
         yield return new WaitForSeconds(timeBetweenWaves * 3/4);
         float wavePointMult = 1.5f;
         wavePoints = (int) Mathf.Floor(wave * wavePointMult);
-        int shieldWizards = 0;
+        int wizards = 0;
         int groundedVehicles = 0;
 
         while (wavePoints > 0)
@@ -284,13 +288,11 @@ public class BattlegroundManager : MonoBehaviour
             }
             else if (wave > 32)
             {
+                int[] difficulties = new int[] {2, 2, 2, 3 };
+                enemyDifficulty = difficulties[Random.Range(0, difficulties.Length)];
                 if (wavePoints > (int)Mathf.Floor(wave * wavePointMult * 0.75f))
                 {
                     enemyDifficulty = 3;
-                }
-                else
-                {
-                    enemyDifficulty = 2;
                 }
             }
             else if (wave > 24)
@@ -340,7 +342,7 @@ public class BattlegroundManager : MonoBehaviour
                 continue;
             }
             //only allow a max of 4 grounded enemies to spawn at higher waves
-            if (enemySelected.enemyObject == groundedEnemy1 && wavePoints > enemySelected.enemyPoints * 4)
+            if (enemies[enemyTypeSelected] == groundedEnemy && wavePoints > enemySelected.enemyPoints * 4)
             {
                 continue;
             }
@@ -352,18 +354,13 @@ public class BattlegroundManager : MonoBehaviour
             //no wizards if below wave 17 or if it's the first enemy spawned. If there's already two shield wizards, turn them to pulse wizards.
             if (enemyTypeSelected == 7)
             {
-                if (wave < 17 || wavePoints == (int)Mathf.Floor(wave * wavePointMult))
+                if (wave < 17 || wavePoints == (int)Mathf.Floor(wave * wavePointMult) || wizards > 2)
                 {
                     continue;
                 }
-                else if (enemySelected.enemyObject == wizardShield && shieldWizards > 1)
-                {
-                    enemyTypeSelected = 7;
-                    enemySelected = enemies[enemyTypeSelected].enemylvl2;
-                }
                 else
                 {
-                    shieldWizards++;
+                    wizards++;
                 }
             }
             //no grounded vehicles before wave 15 (besides scripted one on wave 10)
@@ -444,7 +441,7 @@ public class BattlegroundManager : MonoBehaviour
             {
                 enemyTypeSelected = 5; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 0;
             }
-            if (wave == 15)
+            if (wave == 18)
             {
                 enemyTypeSelected = 3; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
                 if (spawnedEnemies.Count >= 6)
@@ -453,6 +450,14 @@ public class BattlegroundManager : MonoBehaviour
                 }
             }
             if (wave == 20)
+            {
+                enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
+                if (spawnedEnemies.Count >= 3)
+                {
+                    wavePoints = 0;
+                }
+            }
+            if (wave == 21)
             {
                 if (wavePoints == Mathf.Floor(wave * wavePointMult))
                 {
@@ -467,7 +472,7 @@ public class BattlegroundManager : MonoBehaviour
                     wavePoints = 0;
                 }
             }
-            if (wave == 21)
+            if (wave == 22)
             {
                 if (wavePoints == Mathf.Floor(wave * wavePointMult))
                 {
@@ -482,7 +487,7 @@ public class BattlegroundManager : MonoBehaviour
                     wavePoints = 0;
                 }
             }
-            if (wave == 22)
+            if (wave == 23)
             {
                 if (wavePoints == Mathf.Floor(wave * wavePointMult))
                 {

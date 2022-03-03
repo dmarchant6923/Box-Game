@@ -146,7 +146,7 @@ public class BulletScript : MonoBehaviour
         else if (1 << collision.gameObject.layer == enemyLM && bulletWasReflected == false)
         {
         }
-        else if (1 << collision.gameObject.layer != LayerMask.GetMask("Pulse") && collision.isTrigger == false)
+        else if (1 << collision.gameObject.layer != LayerMask.GetMask("Pulse") && collision.isTrigger == false && collision.tag != "Fence")
         {
             DestroyBullet();
         }

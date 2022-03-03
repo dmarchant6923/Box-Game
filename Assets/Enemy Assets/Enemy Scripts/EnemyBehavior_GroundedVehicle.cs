@@ -25,7 +25,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     RaycastHit2D walkFloorCheckRightRC;
     RaycastHit2D walkObstacleCheckLeftRC;
     RaycastHit2D walkObstacleCheckRightRC;
-    RaycastHit2D enemyRC_RayToBox;
+    RaycastHit2D[] enemyRC_RayToBox;
     RaycastHit2D enemyRC_DashAttack;
 
     public float moveToBoxRadius = 20;
@@ -282,7 +282,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         //turretAngleToBox
         turretAngleToBox = -Mathf.Atan2(turretVectorToBox.x, turretVectorToBox.y) * Mathf.Rad2Deg;
 
-        enemyRC_RayToBox = Physics2D.Raycast(turretCenterPosition, turretVectorToBox, moveToBoxRadius, obstacleAndBoxLM);
+        enemyRC_RayToBox = Physics2D.RaycastAll(turretCenterPosition, turretVectorToBox, moveToBoxRadius, obstacleAndBoxLM);
         enemyRC_AttackBox = Physics2D.CircleCast(turretCenterPosition, attackBoxRadius, new Vector2(0, 0), 0f, boxLM);
         enemyRC_MoveFromBox = Physics2D.CircleCast(turretCenterPosition, moveFromBoxRadius, new Vector2(0, 0), 0f, boxLM);
 
@@ -303,8 +303,25 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         walkObstacleCheckRightRC = Physics2D.BoxCast(new Vector2(enemyRB.position.x + enemyBodyTransform.lossyScale.x * 1.5f,
             enemyRB.position.y), new Vector2(enemyBodyTransform.lossyScale.x / 4, enemyBodyTransform.lossyScale.y / 3), 0, Vector2.down, 0f, groundLM);
 
+
+        float distToBox = 1000;
+        float distToObstacle = 1000;
+        bool boxInRadius = false;
+        foreach (RaycastHit2D col in enemyRC_RayToBox)
+        {
+            if (col.collider != null && 1 << col.collider.gameObject.layer == boxLM)
+            {
+                distToBox = col.distance;
+                boxInRadius = true;
+            }
+            if (col.collider != null && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles") && col.collider.gameObject.tag != "Fence")
+            {
+                distToObstacle = col.distance;
+            }
+        }
+
         //inBoxLOS = true if within moveToBox distance, no obstacles in between, and not underneath box
-        if (enemyRC_RayToBox.collider != null && 1 << enemyRC_RayToBox.collider.gameObject.layer == boxLM
+        if (boxInRadius == true && distToBox < distToObstacle
             && Vector2.Dot(turretVectorToBox, bodyRotationVector) >= Vector2.Dot(turretVectorLimits[0], bodyRotationVector))
         {
             canSeeBox = true;

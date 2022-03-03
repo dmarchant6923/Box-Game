@@ -8,6 +8,7 @@ TagManager:
   - Ice
   - Effect
   - Hazard
+  - Fence
   layers:
   - Default
   - TransparentFX

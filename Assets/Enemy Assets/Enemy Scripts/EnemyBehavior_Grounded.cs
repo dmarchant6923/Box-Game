@@ -231,6 +231,10 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                         }
                         Box.activateDamage = true;
                         Box.damageTaken = damage;
+                        if (avgYVelocity <= groundpoundYVel && willDamageEnemies == false)
+                        {
+                            Box.damageTaken = damage * 2.5f;
+                        }
                         Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
                         StartCoroutine(EnemyHitstop());
                     }
@@ -245,6 +249,10 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                     }
                     Box.activateDamage = true;
                     Box.damageTaken = damage;
+                    if (lvl3 && avgYVelocity <= groundpoundYVel && willDamageEnemies == false)
+                    {
+                        Box.damageTaken = damage * 2.5f;
+                    }
                     Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
                     StartCoroutine(EnemyHitstop());
                 }
@@ -313,11 +321,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             {
                 gameObject.GetComponent<SpriteRenderer>().color = initialColor;
             }
-        }
-
-        if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false)
-        {
-            enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 3f);
         }
 
         YVelocities[2] = YVelocities[1];
@@ -498,12 +501,14 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
         float horizDistance = Mathf.Abs(enemyRB.position.x - boxRB.position.x) * directionToBoxX;
         float timeToLand = 2 * attackJumpVelocity / (9.81f * enemyRB.gravityScale);
-        float adjustedJumpVelocity = attackJumpVelocity;
-        if (boxRB.position.y - enemyRB.position.y > 5 && lvl3)
-        {
-            adjustedJumpVelocity *= 1 + (Mathf.Sqrt(boxRB.position.y - 5 - enemyRB.position.y) / 3);
-        }
         float adjustedAttackHorizSpeed = horizDistance / timeToLand;
+        float adjustedJumpVelocity = attackJumpVelocity;
+        if (lvl3)
+        {
+            adjustedJumpVelocity = Mathf.Max(Mathf.Sqrt(2 * 9.81f * enemyRB.gravityScale * (boxRB.position.y - enemyRB.position.y + 4)), attackJumpVelocity);
+            adjustedAttackHorizSpeed *= 1.3f;
+            adjustedAttackHorizSpeed *= 1 - Mathf.Abs(boxRB.position.y - enemyRB.position.y) / 30;
+        }
         if (EM.enemyWasKilled == false && enemyIsGrounded && Mathf.Abs(enemyRB.velocity.x - platformSpeed) < maxHorizSpeed * 1.2f)
         {
             enemyRB.velocity = new Vector2(adjustedAttackHorizSpeed + platformSpeed, adjustedJumpVelocity);
@@ -516,16 +521,21 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             }
             yield return null;
         }
+        bool fastFall = false;
         enemyHitboxActive = true;
         enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
         while (enemyHitboxActive || enemyIsGrounded == false)
         {
             EM.physicalHitboxActive = true;
-            if (enemyHitstopActive == false)
+            if (enemyHitstopActive == false && EM.enemyWasKilled == false)
             {
                 enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, attackSpinSpeed * Mathf.Sign(horizDistance), 5000 * Time.deltaTime);
             }
-            //enemyRB.angularVelocity = attackSpinSpeed * Mathf.Sign(horizDistance);
+            if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false && fastFall == false)
+            {
+                enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 3f);
+                fastFall = true;
+            }
             yield return null;
         }
         EM.physicalHitboxActive = false;

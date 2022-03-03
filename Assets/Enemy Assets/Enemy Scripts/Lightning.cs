@@ -48,7 +48,6 @@ public class Lightning : MonoBehaviour
             width = 0.08f;
             if (pointsPerUnit == 1.656f)
             {
-                Debug.Log("you are here");
                 pointsPerUnit = 5f;
             }
             fadeSpeed = 20;

@@ -234,8 +234,17 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     }
 
                     Vector2 itemPosition = item.transform.position;
-                    RaycastHit2D rayToItem = Physics2D.Raycast(enemyRB.position, (itemPosition - enemyRB.position).normalized, pulseDetectRadius, obstacleLM);
-                    if ((rayToItem.collider == null || (rayToItem.collider != null && (itemPosition - enemyRB.position).magnitude < rayToItem.distance)) && checkSuccessful)
+                    float obstacleDist = 1000;
+                    RaycastHit2D[] rayToItem = Physics2D.RaycastAll(enemyRB.position, (itemPosition - enemyRB.position).normalized, pulseDetectRadius, obstacleLM);
+                    foreach (RaycastHit2D col in rayToItem)
+                    {
+                        if (col.collider.gameObject.tag != "Fence")
+                        {
+                            obstacleDist = Mathf.Min(obstacleDist, col.distance);
+                        }
+                    }
+
+                    if ((itemPosition - enemyRB.position).magnitude < obstacleDist && checkSuccessful)
                     {
                         pulseCheckSuccess = true;
                         EM.canSeeItem = true;

@@ -38,8 +38,29 @@ public class Explosion : MonoBehaviour
             Vector2 vectorToItem = new Vector2(item.transform.position.x - transform.position.x, item.transform.position.y - transform.position.y);
             if (1 << item.collider.gameObject.layer == boxLM)
             {
-                explosion_RayToItem = Physics2D.Raycast(transform.position, vectorToItem.normalized, explosionRadius,
+                // if the explosion sees the box and there's no obstacles in between, damage the box.
+                RaycastHit2D[] explosion_RayToBox = Physics2D.RaycastAll(transform.position, vectorToItem.normalized, explosionRadius,
                     LayerMask.GetMask("Obstacles", "Box"));
+
+                float boxDist = 1000;
+                float obstacleDist = 1000;
+                foreach (RaycastHit2D col in explosion_RayToBox)
+                {
+                    if (col.collider != null && 1 << col.collider.gameObject.layer == boxLM)
+                    {
+                        boxDist = col.distance;
+                    }
+                    if (col.collider != null && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles") && col.collider.gameObject.tag != "Fence")
+                    {
+                        obstacleDist = col.distance;
+                    }
+                }
+                if (boxDist < obstacleDist)
+                {
+                    Box.activateDamage = true;
+                    Box.damageTaken = explosionDamage;
+                    Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - transform.position.x), 1).normalized;
+                }
             }
             if (1 << item.collider.gameObject.layer == enemyLM)
             {
@@ -52,14 +73,7 @@ public class Explosion : MonoBehaviour
                     LayerMask.GetMask("Obstacles", "Enemy Device"));
             }
 
-            // if the explosion sees the box and there's no obstacles in between, damage the box.
-            if (explosion_RayToItem.collider != null && 1 << explosion_RayToItem.collider.gameObject.layer == boxLM &&
-                1 << item.collider.gameObject.layer == boxLM)
-            {
-                Box.activateDamage = true;
-                Box.damageTaken = explosionDamage;
-                Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - transform.position.x), 1).normalized;
-            }
+
             // if the explosion sees an enemy object
             if (1 << item.collider.gameObject.layer == enemyLM && item.transform.root.GetComponent<EnemyManager>() != null &&
                 explosion_RayToItem.collider != null && 1 << explosion_RayToItem.collider.gameObject.layer == enemyLM)

@@ -19,7 +19,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
     Rigidbody2D boxRB;
     EnemyManager EM;
 
-    RaycastHit2D enemyRC_RayToBox;
+    RaycastHit2D[] enemyRC_RayToBox;
     RaycastHit2D enemyRC_MoveToBox;
     RaycastHit2D enemyRC_ShootBox;
     RaycastHit2D enemyRC_ShootBoxTruePosition;
@@ -135,6 +135,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         if (isStationary == true)
         {
             moveFromBoxRadius = 0;
+            moveToBoxRadius = shootBoxRadius;
         }
 
         diveVelocity = 3;
@@ -263,40 +264,6 @@ public class EnemyBehavior_Flying : MonoBehaviour
             }
         }
 
-        //if (isStationary == false && kamikaze == false)
-        //{
-        //    //if the enemy is within shooting range but outside 'too close' range (or backed up into a wall), begin shooting
-        //    if (enemyRC_ShootBox.collider != null && canSeeItem == true && isAttacking == false && EM.initialDelay == false)
-        //    {
-        //        if (enemyRC_MoveFromBox.collider != null)
-        //        {
-        //            // shoot if backed up into a wall
-        //            if (enemyRC_ObstacleLeftTP.collider != null && horizDirectionToBox == 1)
-        //            {
-        //                StartCoroutine(Attack());
-        //            }
-        //            else if (enemyRC_ObstacleRightTP.collider != null && horizDirectionToBox == -1)
-        //            {
-        //                StartCoroutine(Attack());
-        //            }
-        //        }
-        //        else if (enemyRC_MoveFromBox.collider == null)
-        //        {
-        //            StartCoroutine(Attack());
-        //        }
-        //    }
-        //    //if the box is within move range but outside shooting range, move closer
-        //    else if (enemyRC_MoveToBox.collider != null && enemyRC_ShootBoxTruePosition.collider == null && canSeeItem == true &&
-        //        (isAttacking == false || isOnCoolDown || moveWhileShooting))
-        //    {
-        //        truePosition = new Vector2(truePosition.x + truePositionVelocity * horizDirectionToBox * Time.deltaTime, truePosition.y);
-        //    }
-        //    //if the box is within 'too close' range, move further away
-        //    else if (enemyRC_MoveFromBox.collider != null && canSeeItem == true && (isAttacking == false || isOnCoolDown || moveWhileShooting))
-        //    {
-        //        truePosition = new Vector2(truePosition.x - truePositionVelocity * horizDirectionToBox * Time.deltaTime, truePosition.y);
-        //    }
-        //}
         else if (isStationary == true && kamikaze == false)
         {
             //if the enemy is stationary, shoot whenever the enemy is within shooting range
@@ -463,8 +430,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         enemyRC_ShootBox = Physics2D.CircleCast(enemyRB.position, shootBoxRadius, new Vector2(0, 0), 0f, boxLM);
         enemyRC_ShootBoxTruePosition = Physics2D.CircleCast(truePosition, shootBoxRadius, new Vector2(0, 0), 0f, boxLM);
         enemyRC_MoveFromBox = Physics2D.CircleCast(enemyRB.position, moveFromBoxRadius, new Vector2(0, 0), 0f, boxLM);
-        enemyRC_RayToBox = Physics2D.Raycast(enemyRB.position, vectorToBox,
-            Math.Max(moveToBoxRadius, shootBoxRadius), obstacleAndBoxLM);
+        enemyRC_RayToBox = Physics2D.RaycastAll(enemyRB.position, vectorToBox, moveToBoxRadius, obstacleAndBoxLM);
 
 
         enemyRC_ObstacleLeft = Physics2D.BoxCast(new Vector2(enemyRB.position.x - 1f, truePosition.y + 0.5f),
@@ -486,7 +452,20 @@ public class EnemyBehavior_Flying : MonoBehaviour
         }
 
         //canSeeItem, and keeping the barrel angle still once canSeeItem = false
-        if (enemyRC_RayToBox.collider != null && 1 << enemyRC_RayToBox.collider.gameObject.layer == boxLM)
+        float distToBox = 1000;
+        float distToObstacle = 1000;
+        foreach (RaycastHit2D col in enemyRC_RayToBox)
+        {
+            if (col.collider != null && 1 << col.collider.gameObject.layer == boxLM && enemyRC_MoveToBox.collider != null)
+            {
+                distToBox = col.distance;
+            }
+            if (col.collider != null && 1 << col.collider.gameObject.layer == obstacleLM && col.collider.gameObject.tag != "Fence")
+            {
+                distToObstacle = col.distance;
+            }
+        }
+        if (enemyRC_MoveToBox.collider != null && distToBox < distToObstacle)
         {
             canSeeBox = true;
             EM.canSeeItem = true;

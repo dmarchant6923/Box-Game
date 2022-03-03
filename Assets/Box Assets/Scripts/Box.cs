@@ -1323,7 +1323,7 @@ public class Box : MonoBehaviour
         {
             transform.position = new Vector2(transform.position.x + teleportDistancex, transform.position.y);
         }
-        else
+        else if (timer >= window)
         {
             int direction = (int)Mathf.Sign(teleportDistancex);
             RaycastHit2D rayToWall = Physics2D.Raycast(rigidBody.position, Vector2.right * direction, teleportRange, obstacleLayerMask);
@@ -1937,6 +1937,7 @@ public class Box : MonoBehaviour
     public IEnumerator DisableInputs(float window)
     {
         float timer = 0;
+        inputs.inputsEnabled = false;
         while (timer < window)
         {
             forceInputsDisabled = true;

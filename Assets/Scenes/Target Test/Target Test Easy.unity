@@ -517,10 +517,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blastZone: {fileID: 972371782}
+  maxCamSize: 14
+  minCamSize: 5
+  overrideCamSize: 0
+  overrideSize: 10
   startCamShake: 0
   boxDamageShake: 0
   boxDamageTaken: 0
   shakeInfo: {x: 0, y: 0}
+  disable: 0
+  overridePosition: 0
+  forcedPosition: {x: 0, y: 0}
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0
@@ -831,6 +838,14 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -2088875313082826883, guid: e858e229d7acaae4d82732d844e1464f, type: 3}
+      propertyPath: distance
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: -2088875313082826883, guid: e858e229d7acaae4d82732d844e1464f, type: 3}
+      propertyPath: horizontal
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2088875313082826883, guid: e858e229d7acaae4d82732d844e1464f, type: 3}
       propertyPath: type2Period
       value: 5
       objectReference: {fileID: 0}
@@ -990,19 +1005,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialDelay: 0
   randomInitialDelay: 0
+  distance: 8
+  horizontal: 1
   movementType1: 1
-  type1Horizontal: 1
   type1Velocity1: 4
   type1Velocity2: 4
-  type1Distance: 8
   type1StayTime1: 1
   type1StayTime2: 1
   movementType2: 0
-  type2Horizontal: 0
   type2Period: 1
-  type2Distance: 1
   isMoving: 0
   startReverse: 0
+  activateBySwitch: 0
+  startActive: 0
+  stayActive: 0
+  active: 1
+  pauseOnDeactivate: 0
+  bufferDeactivate: 0
 --- !u!1001 &1086047014
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1128,6 +1147,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -2088875313082826883, guid: e858e229d7acaae4d82732d844e1464f, type: 3}
+      propertyPath: distance
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: -2088875313082826883, guid: e858e229d7acaae4d82732d844e1464f, type: 3}
       propertyPath: movementType1
       value: 1

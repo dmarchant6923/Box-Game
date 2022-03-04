@@ -225,7 +225,7 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(wizard); //7
         enemies.Add(thunder); //8
 
-        wave = 79;
+        wave = 0;
         enemiesKilled = 0;
 
         Box.boxHealth = 1000;

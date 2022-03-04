@@ -506,7 +506,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         if (lvl3)
         {
             adjustedJumpVelocity = Mathf.Max(Mathf.Sqrt(2 * 9.81f * enemyRB.gravityScale * (boxRB.position.y - enemyRB.position.y + 4)), attackJumpVelocity);
-            adjustedAttackHorizSpeed *= 1.3f;
+            adjustedAttackHorizSpeed *= 1.2f;
             adjustedAttackHorizSpeed *= 1 - Mathf.Abs(boxRB.position.y - enemyRB.position.y) / 30;
         }
         if (EM.enemyWasKilled == false && enemyIsGrounded && Mathf.Abs(enemyRB.velocity.x - platformSpeed) < maxHorizSpeed * 1.2f)

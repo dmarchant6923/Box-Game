@@ -67,7 +67,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         spawnedAuras.Clear();
         wizardColor = GetComponent<SpriteRenderer>().material.color;
 
-        obstacleLM = LayerMask.GetMask("Obstacles", "Hazards");
+        obstacleLM = LayerMask.GetMask("Obstacles");
         enemyLM = LayerMask.GetMask("Enemies");
         boxLM = LayerMask.GetMask("Box");
         obstacleAndBoxLM = LayerMask.GetMask("Box", "Obstacles");
@@ -218,7 +218,9 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         {
             EM.canSeeItem = false;
             pulseCheckSuccess = false;
+            Physics2D.queriesHitTriggers = true;
             RaycastHit2D[] pulseDetectCast = Physics2D.CircleCastAll(enemyRB.position, pulseDetectRadius, Vector2.zero, 0, LayerMask.GetMask("Box", "Enemies", "Enemy Device", "Projectiles"));
+            Physics2D.queriesHitTriggers = false;
             if (pulseDetectCast.Length > 0)
             {
                 foreach (RaycastHit2D item in pulseDetectCast)
@@ -262,7 +264,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             foreach (RaycastHit2D enemy in auraRC)
             {
                 GameObject parentEnemy;
-                if (enemy.collider.gameObject == this.gameObject)
+                if (enemy.collider.gameObject == gameObject)
                 {
                     continue;
                 }
@@ -289,53 +291,67 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         }
         if (checkThisFrame == true && pulse == true)
         {
-            //box
-            RaycastHit2D rayToBox = Physics2D.Raycast(enemyRB.position, (boxRB.position - enemyRB.position).normalized, auraRadius, obstacleAndBoxLM);
-            if (rayToBox.collider != null && 1 << rayToBox.collider.gameObject.layer == boxLM)
-            {
-                Box.boxWasPulsed = true;
-                Box.boxEnemyPulseDirection = (boxRB.position - enemyRB.position).normalized;
-                Box.boxEnemyPulseMagnitude = pulseMagnitude;
-            }
-
-            RaycastHit2D[] pulse = Physics2D.CircleCastAll(enemyRB.position, auraRadius, Vector2.zero, 0f, LayerMask.GetMask("Projectiles", "Enemy Device", "Enemies"));
+            Physics2D.queriesHitTriggers = true;
+            RaycastHit2D[] pulse = Physics2D.CircleCastAll(enemyRB.position, auraRadius, Vector2.zero, 0f, LayerMask.GetMask("Projectiles", "Enemy Device", "Enemies", "Box"));
+            Physics2D.queriesHitTriggers = false;
             foreach (RaycastHit2D item in pulse)
             {
-                //bullet
-                if (item.transform.GetComponent<BulletScript>() != null && item.transform.GetComponent<BulletScript>().bulletWasReflected == true)
+                float itemDist = new Vector2(item.transform.position.x - enemyRB.position.x, item.transform.position.y - enemyRB.position.y).magnitude;
+                float obstacleDist = 1000;
+                Vector2 directionToItem = new Vector2(item.transform.position.x - enemyRB.position.x, item.transform.position.y - enemyRB.position.y).normalized;
+                RaycastHit2D[] ray = Physics2D.RaycastAll(enemyRB.position, directionToItem, auraRadius, obstacleLM);
+                foreach (RaycastHit2D point in ray)
                 {
-                    BulletScript bullet = item.transform.GetComponent<BulletScript>();
-                    Rigidbody2D bulletRB = item.transform.GetComponent<Rigidbody2D>();
-                    bullet.bulletWasReflected = false;
-                    Vector2 enemyReflectVector = (bulletRB.position - enemyRB.position).normalized;
-                    bulletRB.velocity = enemyReflectVector * bulletRB.velocity.magnitude * Box.projectilePulseMagnitude;
-                    bullet.bulletDamage *= 1.2f;
+                    if (point.collider.gameObject.tag != "Fence")
+                    {
+                        obstacleDist = Mathf.Min(point.distance,obstacleDist);
+                    }
                 }
-
-                //grenade
-                if (item.transform.GetComponent<Grenade>() != null && item.transform.GetComponent<Grenade>().grenadeWasReflected == true)
+                if (itemDist < obstacleDist)
                 {
-                    Grenade grenade = item.transform.GetComponent<Grenade>();
-                    Rigidbody2D grenadeRB = item.transform.GetComponent<Rigidbody2D>();
-                    grenade.grenadeWasReflected = false;
-                    Vector2 enemyReflectVector = (grenadeRB.position - enemyRB.position).normalized;
-                    grenadeRB.velocity = enemyReflectVector * grenadeRB.velocity.magnitude * Box.projectilePulseMagnitude;
-                }
+                    //box
+                    if (item.transform.GetComponent<Box>() != null)
+                    {
+                        Box.boxWasPulsed = true;
+                        Box.boxEnemyPulseDirection = (boxRB.position - enemyRB.position).normalized;
+                        Box.boxEnemyPulseMagnitude = pulseMagnitude;
+                    }
+                    //bullet
+                    if (item.transform.GetComponent<BulletScript>() != null && item.transform.GetComponent<BulletScript>().bulletWasReflected == true)
+                    {
+                        BulletScript bullet = item.transform.GetComponent<BulletScript>();
+                        Rigidbody2D bulletRB = item.transform.GetComponent<Rigidbody2D>();
+                        bullet.bulletWasReflected = false;
+                        Vector2 enemyReflectVector = (bulletRB.position - enemyRB.position).normalized;
+                        bulletRB.velocity = enemyReflectVector * bulletRB.velocity.magnitude * Box.projectilePulseMagnitude;
+                        bullet.bulletDamage *= 1.2f;
+                    }
 
-                //kamikaze bird
-                if (item.transform.GetComponent<EnemyBehavior_Flying>() != null && item.transform.GetComponent<EnemyBehavior_Flying>().diveWasReflected == true)
-                {
-                    Rigidbody2D birdRB = item.transform.GetComponent<Rigidbody2D>();
-                    Vector2 enemyReflectVector = (birdRB.position - enemyRB.position).normalized;
-                    birdRB.velocity = enemyReflectVector * birdRB.velocity.magnitude;
-                }
+                    //grenade
+                    if (item.transform.GetComponent<Grenade>() != null && item.transform.GetComponent<Grenade>().grenadeWasReflected == true)
+                    {
+                        Grenade grenade = item.transform.GetComponent<Grenade>();
+                        Rigidbody2D grenadeRB = item.transform.GetComponent<Rigidbody2D>();
+                        grenade.grenadeWasReflected = false;
+                        Vector2 enemyReflectVector = (grenadeRB.position - enemyRB.position).normalized;
+                        grenadeRB.velocity = enemyReflectVector * grenadeRB.velocity.magnitude * Box.projectilePulseMagnitude;
+                    }
 
-                //grounded enemy
-                if (item.transform.GetComponent<EnemyBehavior_Grounded>() != null && item.transform.GetComponent<EnemyBehavior_Grounded>().willDamageEnemies == true)
-                {
-                    Rigidbody2D RB = item.transform.GetComponent<Rigidbody2D>();
-                    Vector2 enemyReflectVector = (RB.position - enemyRB.position).normalized;
-                    RB.velocity = enemyReflectVector * RB.velocity.magnitude;
+                    //kamikaze bird
+                    if (item.transform.GetComponent<EnemyBehavior_Flying>() != null && item.transform.GetComponent<EnemyBehavior_Flying>().diveWasReflected == true)
+                    {
+                        Rigidbody2D birdRB = item.transform.GetComponent<Rigidbody2D>();
+                        Vector2 enemyReflectVector = (birdRB.position - enemyRB.position).normalized;
+                        birdRB.velocity = enemyReflectVector * birdRB.velocity.magnitude;
+                    }
+
+                    //grounded enemy
+                    if (item.transform.GetComponent<EnemyBehavior_Grounded>() != null && item.transform.GetComponent<EnemyBehavior_Grounded>().willDamageEnemies == true)
+                    {
+                        Rigidbody2D RB = item.transform.GetComponent<Rigidbody2D>();
+                        Vector2 enemyReflectVector = (RB.position - enemyRB.position).normalized;
+                        RB.velocity = enemyReflectVector * RB.velocity.magnitude;
+                    }
                 }
             }
         }

@@ -462,7 +462,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
             }
             if (col.collider != null && 1 << col.collider.gameObject.layer == obstacleLM && col.collider.gameObject.tag != "Fence")
             {
-                distToObstacle = col.distance;
+                distToObstacle = Mathf.Min(col.distance, distToObstacle);
             }
         }
         if (enemyRC_MoveToBox.collider != null && distToBox < distToObstacle)

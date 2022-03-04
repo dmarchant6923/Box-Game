@@ -1149,6 +1149,11 @@ public class Box : MonoBehaviour
             rigidBody.angularVelocity = 0;
             rigidBody.rotation = 0;
         }
+
+        if ((touchingLeftWall || touchingRightWall) && damageActive && Mathf.Abs(BoxVelocity.velocitiesX[0]) > 5f)
+        {
+            BoxVelocity.velocitiesX[0] *= -0.4f;
+        }
     }
     private void OnCollisionExit2D(Collision2D collision)
     {

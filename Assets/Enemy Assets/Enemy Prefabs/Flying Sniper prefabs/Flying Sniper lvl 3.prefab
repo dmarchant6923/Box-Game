@@ -89,7 +89,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
       propertyPath: regularAngularVelocity
-      value: 750
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 6538536876540115399, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
       propertyPath: m_RootOrder

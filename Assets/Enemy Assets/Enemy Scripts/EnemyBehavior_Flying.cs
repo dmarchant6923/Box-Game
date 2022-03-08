@@ -599,15 +599,25 @@ public class EnemyBehavior_Flying : MonoBehaviour
             if (laserScopeEnabled)
             {
                 laserScope.SetPosition(0, enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3);
-                RaycastHit2D laserRC = Physics2D.Raycast(enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3, realBarrelVector, 100, obstacleAndBoxLM);
-                if (laserRC.collider != null)
+                RaycastHit2D[] laserRC = Physics2D.RaycastAll(enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3, realBarrelVector, 100, obstacleAndBoxLM);
+                float targetDist = 100;
+
+                foreach (RaycastHit2D col in laserRC)
                 {
-                    laserScope.SetPosition(1, laserRC.point);
+                    if (col.collider.tag != "Fence")
+                    {
+                        targetDist = Mathf.Min(targetDist, col.distance);
+                    }
                 }
-                else
-                {
-                    laserScope.SetPosition(1, enemyRB.position + realBarrelVector * 100);
-                }
+                laserScope.SetPosition(1, enemyRB.position + realBarrelVector * (transform.localScale.x * 2/3 + targetDist));
+                //if (laserRC.collider != null)
+                //{
+                //    laserScope.SetPosition(1, laserRC.point);
+                //}
+                //else
+                //{
+                //    laserScope.SetPosition(1, enemyRB.position + realBarrelVector * 100);
+                //}
             }
             if (EM.hitstopImpactActive == false)
             {

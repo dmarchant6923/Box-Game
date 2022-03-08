@@ -33,6 +33,7 @@ public class Box : MonoBehaviour
     public float initialHorizMaxSpeed = 15;
     float crouchMaxSpeed = 4f; //max horizontal speed while crouching on the ground
     [System.NonSerialized] public float groundFriction = 50; //time based, friction value while grounded
+    float initialGroundFriction;
     float crouchFriction = 100; //time based, friction value while grounded and crouching
     float crouchThreshold = -0.5f;
     [System.NonSerialized] public static bool isCrouching = false;
@@ -48,6 +49,8 @@ public class Box : MonoBehaviour
     bool iceCRActive = false;
     [System.NonSerialized] public static RaycastHit2D groundRayCast; // boxcast used to determine isGrounded
     [System.NonSerialized] public static float groundVerticalVelocity;
+    bool sticky = false;
+    float stickyFriction;
 
     [System.NonSerialized] public float jumpSpeed = 15; //vertical jump velocity
     float groundTime = 0; //timer showing how long isGrounded has been true
@@ -162,8 +165,10 @@ public class Box : MonoBehaviour
     float damageTime = 0;
     bool isCurrentlyFlashing = false;
     bool canTech = false;
+    bool techCRActive = false;
     bool techWindowActive = false;
     bool techSuccessful = false;
+    bool techWalljump = false;
     [System.NonSerialized] public static float damageTaken;
 
     [System.NonSerialized] public static bool activateShock = false;
@@ -175,6 +180,8 @@ public class Box : MonoBehaviour
     bool shockCR = false;
 
     bool forceInputsDisabled = false;
+
+    public bool debugEnabled = false;
 
     private void Awake()
     {
@@ -206,6 +213,8 @@ public class Box : MonoBehaviour
         shockActive = false;
         inShockRadius = false;
 
+        initialGroundFriction = groundFriction;
+        stickyFriction = initialGroundFriction * 4;
         airAccel = initialAirAccel;
         airFriction = initialAirFriction;
 
@@ -257,6 +266,10 @@ public class Box : MonoBehaviour
                     StartCoroutine(Ice());
                 }
             }
+            if (ground.tag == "Fence")
+            {
+                sticky = true;
+            }
         }
         else
         {
@@ -302,6 +315,19 @@ public class Box : MonoBehaviour
         maxFallSpeed = rigidBody.gravityScale * -5;
 
         checkIsGrounded();
+
+        if (BoxPerks.spikesActive)
+        {
+            sticky = true;
+        }
+        if (sticky == true)
+        {
+            groundFriction = stickyFriction;
+        }
+        else
+        {
+            groundFriction = initialGroundFriction;
+        }
 
         float adjustedCrouchSpeed = crouchMaxSpeed * Mathf.Min(Mathf.Abs(inputs.leftStick.x), 0.5f) * 2;
         float adjustedHorizSpeed = horizMaxSpeed * Mathf.Max(Mathf.Abs(inputs.leftStick.x), 0.2f);
@@ -514,7 +540,7 @@ public class Box : MonoBehaviour
         {
             StartCoroutine(BufferGroundedJump());
         }
-        if (canDoubleJump && (inputs.jumpButtonDown || inputs.leftSmashU) && (BoxPerks.spikesActive == false || (BoxPerks.spikesActive && canWallJump == false))
+        if (canDoubleJump && (inputs.jumpButtonDown || inputs.leftSmashU) && (sticky == false || (sticky && canWallJump == false))
             && airTime >= shortJumpWindow / 4 && isGrounded == false && dashActive == false && groundedJump == false)
         {
             if (inputs.leftStick.x != 0)
@@ -544,7 +570,7 @@ public class Box : MonoBehaviour
             {
                 rigidBody.velocity = new Vector2(rigidBody.velocity.x, maxFallSpeed);
             }
-            else if (techWindowActive == false)
+            else if (techCRActive == false)
             {
                 StartCoroutine(FastFallBuffer());
             }
@@ -616,7 +642,7 @@ public class Box : MonoBehaviour
             spinAttackActive = false;
         }
         //teleporting
-        if (teleportUnlocked && inputs.teleportButtonDown && canTeleport && teleportActive == false && dashActive == false && techWindowActive == false)
+        if (teleportUnlocked && inputs.teleportButtonDown && canTeleport && teleportActive == false && dashActive == false && techCRActive == false)
         {
             deactivateCrouch = true;
             teleportActive = true; canTeleport = false;
@@ -627,14 +653,14 @@ public class Box : MonoBehaviour
             rigidBody.velocity = new Vector2(teleportSpeedx / 4, teleportspeedy / 4);
         }
         //dash attack
-        if ((dashUnlocked && canDash && inputs.dashButtonDown && dashActive == false && teleportActive == false && techWindowActive == false) || dashActive)
+        if ((dashUnlocked && canDash && inputs.dashButtonDown && dashActive == false && teleportActive == false && techCRActive == false) || dashActive)
         {
             leftWallCheck = Physics2D.BoxCast(rigidBody.position + Vector2.left * transform.lossyScale.x / 2, new Vector2(0.1f, transform.lossyScale.y / 5),
                 0, Vector2.zero, 0, obstacleLayerMask);
             rightWallCheck = Physics2D.BoxCast(rigidBody.position + Vector2.right * transform.lossyScale.x / 2, new Vector2(0.1f, transform.lossyScale.y / 5),
                 0, Vector2.zero, 0, obstacleLayerMask);
         }
-        if (dashUnlocked && canDash && inputs.dashButtonDown && dashActive == false && teleportActive == false && techWindowActive == false)
+        if (dashUnlocked && canDash && inputs.dashButtonDown && dashActive == false && teleportActive == false && techCRActive == false)
         {
             if ((lookingRight == 1 && rightWallCheck.collider == null) || (lookingRight == -1 && leftWallCheck.collider == null))
             {
@@ -661,7 +687,7 @@ public class Box : MonoBehaviour
                     enemy.transform.root.GetComponent<EnemyManager>().pulseActive = true;
                 }
             }
-            if (BoxPerks.spikesActive == false || (BoxPerks.spikesActive && canWallJump == false))
+            if (sticky == false || (sticky && canWallJump == false))
             {
                 rigidBody.velocity = new Vector2(rigidBody.velocity.x, rigidBody.velocity.y * 11 / 12 + 5);
             }
@@ -797,11 +823,11 @@ public class Box : MonoBehaviour
             if (InputBroker.GameCube && Input.GetButton("GC L") == false && Input.GetButton("GC R") == false) { canTech = true; }
             if (InputBroker.Xbox && Input.GetAxisRaw("Xbox L") > -0.9f && Input.GetAxisRaw("Xbox R") > -0.9f) { canTech = true; }
 
-            if (InputBroker.Keyboard && canTech && techWindowActive == false && Input.GetKeyDown(KeyCode.Z))
+            if (InputBroker.Keyboard && canTech && techCRActive == false && Input.GetKeyDown(KeyCode.Z))
                 { StartCoroutine(TechBuffer()); }
-            if (InputBroker.GameCube && canTech && techWindowActive == false && (Input.GetButtonDown("GC L") || Input.GetButtonDown("GC R")))
+            if (InputBroker.GameCube && canTech && techCRActive == false && (Input.GetButtonDown("GC L") || Input.GetButtonDown("GC R")))
                 { StartCoroutine(TechBuffer()); }
-            if (InputBroker.Xbox && canTech && techWindowActive == false && (Input.GetAxisRaw("Xbox L") < -0.9f || Input.GetAxisRaw("Xbox R") < -0.9f))
+            if (InputBroker.Xbox && canTech && techCRActive == false && (Input.GetAxisRaw("Xbox L") < -0.9f || Input.GetAxisRaw("Xbox R") < -0.9f))
                 { StartCoroutine(TechBuffer()); }
 
             if (damageActive && enemyHitstopActive == false)
@@ -844,31 +870,34 @@ public class Box : MonoBehaviour
             }
         }
 
-        //debug color changes (will probably keep walljump color in normal game)
-        if (inputs.inputsEnabled == false && boxHitboxActive == false)
+        if (debugEnabled)
         {
-            gameObject.GetComponent<Renderer>().material.color = Color.red;
-        } // red = inputs disabled, aka damage or emeny pulse or anything that disables inputs, but not when hitbox is active
-        else if (boxHitboxActive)
-        {
-            gameObject.GetComponent<Renderer>().material.color = Color.green;
-        } // green = spin or dash attack is active
-        else if (isGrounded == true)
-        {
-            gameObject.GetComponent<Renderer>().material.color = Color.cyan;
-        } //cyan = grounded
-        else if (startAirTimer == true && shortJumpEnum == true)
-        {
-            gameObject.GetComponent<Renderer>().material.color = Color.blue;
-        } // blue = After grounded jump and within short jump window
-        else if (canWallJump == true)
-        {
-            gameObject.GetComponent<Renderer>().material.color = Color.magenta;
-        } // magenta = can wall jump
-        else
-        {
-            gameObject.GetComponent<Renderer>().material.color = Color.white;
-        } // white = none of the above
+            //debug color changes (will probably keep walljump color in normal game)
+            if (inputs.inputsEnabled == false && boxHitboxActive == false)
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.red;
+            } // red = inputs disabled, aka damage or emeny pulse or anything that disables inputs, but not when hitbox is active
+            else if (boxHitboxActive)
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.green;
+            } // green = spin or dash attack is active
+            else if (isGrounded == true)
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.cyan;
+            } //cyan = grounded
+            else if (startAirTimer == true && shortJumpEnum == true)
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.blue;
+            } // blue = After grounded jump and within short jump window
+            else if (canWallJump == true)
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.magenta;
+            } // magenta = can wall jump
+            else
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.white;
+            } // white = none of the above
+        }
 
         //isInvulnerable = true;
     }
@@ -947,6 +976,14 @@ public class Box : MonoBehaviour
                 touchingCeiling = true; ceilingPositionY = col.point.y;
                 ceilingVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
             }
+            if (col.collider.gameObject.tag == "Fence")
+            {
+                sticky = true;
+            }
+            else if (BoxPerks.spikesActive == false)
+            {
+                sticky = false;
+            }
         }
 
         if (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles") || 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms"))
@@ -974,7 +1011,7 @@ public class Box : MonoBehaviour
         }
 
         float spikeClimbSpeed = 8f;
-        if (touchingCeiling && BoxPerks.spikesActive && inputs.leftStick.y > 0.2f && damageActive == false && spinAttackActive == false)
+        if (touchingCeiling && sticky && inputs.leftStick.y > 0.2f && damageActive == false && spinAttackActive == false)
         {
             ceilingCling = true;
             rigidBody.position = new Vector2(rigidBody.position.x, ceilingPositionY - transform.localScale.y / 2);
@@ -1058,7 +1095,7 @@ public class Box : MonoBehaviour
                 }
             }
             //Condition for being on either side of the wall
-            if (touchingWall == true && isGrounded == false && (collision.gameObject.tag != "Ice" || (collision.gameObject.tag == "Ice" && BoxPerks.spikesActive == true)))
+            if (touchingWall == true && isGrounded == false && (collision.gameObject.tag != "Ice" || (collision.gameObject.tag == "Ice" && sticky == true)))
             {
                 //wall cling + walljumptime
                 if (pressToWall)
@@ -1067,7 +1104,7 @@ public class Box : MonoBehaviour
                     {
                         StartCoroutine(HoldToWall(wall));
                     }
-                    if (BoxPerks.spikesActive == false)
+                    if (sticky == false)
                     {
                         if (rigidBody.velocity.y <= wallClingSpeed && inputs.leftStick.y > crouchThreshold)
                         {
@@ -1133,9 +1170,9 @@ public class Box : MonoBehaviour
         foreach (ContactPoint2D col in collision.contacts)
         {
             if (col.normal.y > 0.6f) { touchingGround = true; }
-            if (col.normal.x > 0.8f) { touchingLeftWall = true; }
-            if (col.normal.x < -0.8f) { touchingRightWall = true; }
-            if (col.normal.y < -0.8f) { touchingCeiling = true; }
+            if (col.normal.x > 0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingLeftWall = true; }
+            if (col.normal.x < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingRightWall = true; }
+            if (col.normal.y < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingCeiling = true; }
         }
 
         if ((touchingLeftWall || touchingRightWall) && touchingGround == false && touchingCeiling == false && dashActive == false
@@ -1150,9 +1187,21 @@ public class Box : MonoBehaviour
             rigidBody.rotation = 0;
         }
 
-        if ((touchingLeftWall || touchingRightWall) && damageActive && Mathf.Abs(BoxVelocity.velocitiesX[0]) > 5f)
+        if ((touchingLeftWall || touchingRightWall || touchingCeiling) && damageActive && damageTime > boxHitstopDelay + 0.05f && techWindowActive)
         {
-            BoxVelocity.velocitiesX[0] *= -0.4f;
+            techSuccessful = true;
+            if ((touchingLeftWall && (Input.GetAxisRaw("Left Stick X") > 0.8f || Input.GetAxisRaw("Horizontal") > 0.8f)) ||
+                (touchingRightWall && (Input.GetAxisRaw("Left Stick X") < -0.8f || Input.GetAxisRaw("Horizontal") < -0.8f)))
+            {
+                techWalljump = true;
+            }
+        }
+        else if ((touchingLeftWall || touchingRightWall) && damageActive)
+        {
+            if (Mathf.Abs(BoxVelocity.velocitiesX[0]) > 15f)
+            {
+                BoxVelocity.velocitiesX[0] *= -0.6f;
+            }
         }
     }
     private void OnCollisionExit2D(Collision2D collision)
@@ -1161,6 +1210,13 @@ public class Box : MonoBehaviour
         wallJumpTime = 10;
         touchingWall = false;
         isOnIce = false;
+        sticky = false;
+        ceilingCling = false;
+
+        if (damageActive)
+        {
+            rigidBody.angularVelocity = -Mathf.Sign(BoxVelocity.velocitiesX[0]) * rigidBody.velocity.magnitude * 100;
+        }
     }
 
     IEnumerator FastFallBuffer()
@@ -1480,7 +1536,7 @@ public class Box : MonoBehaviour
     IEnumerator HoldToWall(GameObject wall)
     {
         holdToWallActive = true;
-        while (canWallJump && pressToWall && dashActive == false && inputs.attackButton == false && (wall.tag != "Ice" || wall.tag == "Ice" && BoxPerks.spikesActive == true))
+        while (canWallJump && pressToWall && dashActive == false && inputs.attackButton == false && (wall.tag != "Ice" || wall.tag == "Ice" && sticky == true))
         {
             if (wall.GetComponent<MovingObjects>().isMoving == true)
             {
@@ -1654,10 +1710,13 @@ public class Box : MonoBehaviour
                 ignoreProjectileDamage = false;
             }
             yield return null;
-            Debug.DrawRay(launchPosition, boxDamageDirection.normalized * 3);
-            Debug.DrawRay(launchPosition + boxDamageDirection.normalized * 3, DI * 3, Color.green);
-            Debug.DrawRay(launchPosition + boxDamageDirection.normalized * 3, perpVector * 3, Color.yellow);
-            Debug.DrawRay(launchPosition, trueDamageVelocity.normalized * 3, Color.blue);
+            if (debugEnabled)
+            {
+                Debug.DrawRay(launchPosition, boxDamageDirection.normalized * 3);
+                Debug.DrawRay(launchPosition + boxDamageDirection.normalized * 3, DI * 3, Color.green);
+                Debug.DrawRay(launchPosition + boxDamageDirection.normalized * 3, perpVector * 3, Color.yellow);
+                Debug.DrawRay(launchPosition, trueDamageVelocity.normalized * 3, Color.blue);
+            }
             launchTime += Time.deltaTime;
         }
         float remainderTime = 0;
@@ -1669,10 +1728,20 @@ public class Box : MonoBehaviour
         if (techSuccessful == true)
         {
             techSuccessful = false;
-            BoxVelocity.velocitiesX[0] /= 10;
-            rigidBody.velocity = new Vector2(rigidBody.velocity.x, 2);
+            if (techWalljump == false)
+            {
+                BoxVelocity.velocitiesX[0] = 0;
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, 2);
+            }
+            else
+            {
+                Debug.Log("asdfasdfa");
+                BoxVelocity.velocitiesX[0] = horizMaxSpeed * wallJumpDirection + wallJumpExtraSpeed;
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, jumpSpeed);
+            }
             rigidBody.rotation = 0;
             rigidBody.angularVelocity = 0;
+            techWalljump = false;
         }
         rigidBody.angularDrag *= 3;
         airFriction = initialAirFriction;
@@ -1684,40 +1753,20 @@ public class Box : MonoBehaviour
     }
     IEnumerator TechBuffer()
     {
-        techWindowActive = true;
+        techCRActive = true;
         float techWindow = 0.4f;
         float techTime = 0;
-        bool canTech = false;
-        RaycastHit2D techDetect;
         while (boxHitstopActive == true)
         {
             techTime += Time.deltaTime;
             yield return null;
         }
-        float xMult = 2.1f;
-        float yMult = 1.2f;
+        techWindowActive = true;
         while (inputs.inputsEnabled == false && techTime <= techWindow && (damageActive == true || boxEnemyPulseActive))
         {
-            if (damageActive == true)
+            if (techSuccessful)
             {
-                techDetect = Physics2D.BoxCast(rigidBody.position + Vector2.up * transform.lossyScale.x / 3,
-                    new Vector2(GetComponent<Collider2D>().bounds.extents.x * xMult, GetComponent<Collider2D>().bounds.extents.y * yMult), 0, Vector2.down, 0, LayerMask.GetMask("Obstacles", "Hazards"));
-            }
-            else
-            {
-                techDetect = Physics2D.BoxCast(rigidBody.position + Vector2.up * transform.lossyScale.x / 3,
-                    new Vector2(GetComponent<Collider2D>().bounds.extents.x * xMult, GetComponent<Collider2D>().bounds.extents.y * yMult), 0, Vector2.down, 0, LayerMask.GetMask("Obstacles"));
-            }
-            Debug.DrawRay(rigidBody.position + Vector2.up * transform.lossyScale.x / 3 + Vector2.down * GetComponent<Collider2D>().bounds.extents.y * yMult / 2, Vector2.up * GetComponent<Collider2D>().bounds.extents.y * yMult);
-            Debug.DrawRay(rigidBody.position + Vector2.up * transform.lossyScale.x / 3 + Vector2.left * GetComponent<Collider2D>().bounds.extents.x * xMult / 2, Vector2.right * GetComponent<Collider2D>().bounds.extents.x * xMult);
-            if (techDetect.collider != null && canTech == true)
-            {
-                techSuccessful = true;
                 break;
-            }
-            if (techDetect.collider == null && canTech == false)
-            {
-                canTech = true;
             }
 
             if (boxEnemyPulseActive && damageActive)
@@ -1728,26 +1777,31 @@ public class Box : MonoBehaviour
             techTime += Time.deltaTime;
             yield return null;
         }
+        techWindowActive = false;
         float techDownTime = 0;
-        while (inputs.inputsEnabled == false && techDownTime <= techWindow * 2 && techSuccessful == false && (damageActive == true || boxEnemyPulseActive))
+        while (inputs.inputsEnabled == false && techDownTime <= techWindow && techSuccessful == false && (damageActive == true || boxEnemyPulseActive))
         {
             techDownTime += Time.deltaTime;
             yield return null;
         }
         if (techSuccessful)
         {
-            float afterTechTime = 0;
-            float afterTechWinow = 0.1f;
-            while (afterTechTime <= afterTechWinow)
+            if (techWalljump == false)
             {
-                gravityScale *= 0.1f;
-                afterTechTime += Time.deltaTime;
-                yield return null;
+                float afterTechTime = 0;
+                float afterTechWinow = 0.1f;
+                while (afterTechTime <= afterTechWinow)
+                {
+                    gravityScale *= 0.1f;
+                    afterTechTime += Time.deltaTime;
+                    yield return null;
+                }
+                gravityScale = initialGravityScale;
             }
-            gravityScale = initialGravityScale;
+            yield return null;
         }
         techSuccessful = false;
-        techWindowActive = false;
+        techCRActive = false;
     }
     IEnumerator EnemyPulse()
     {

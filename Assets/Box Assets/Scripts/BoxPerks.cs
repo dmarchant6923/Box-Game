@@ -22,7 +22,6 @@ public class BoxPerks : MonoBehaviour
     float initialJumpSpeed;
     float initialDJumpSpeed;
     float initialAirAccel;
-    float initialGroundFriction;
 
     float initialDashCD;
     float initialPulseCD;
@@ -45,7 +44,6 @@ public class BoxPerks : MonoBehaviour
     [HideInInspector] public static bool activateSpikes = false;
     [HideInInspector] public static bool spikesActive = false;
     float spikesActiveTime = 16;
-    float spikesMult = 4;
     public GameObject spikes;
     GameObject newSpikes;
 
@@ -76,7 +74,6 @@ public class BoxPerks : MonoBehaviour
         initialJumpSpeed = boxScript.jumpSpeed;
         initialDJumpSpeed = boxScript.djumpSpeed;
         initialAirAccel = boxScript.initialAirAccel;
-        initialGroundFriction = boxScript.groundFriction;
 
         initialDashCD = boxScript.dashCooldown;
         initialPulseCD = boxScript.pulseCooldown;
@@ -203,7 +200,6 @@ public class BoxPerks : MonoBehaviour
     {
         yield return null;
         spikesActive = true;
-        boxScript.groundFriction *= spikesMult;
         buffActive = true;
         newSpikes = Instantiate(spikes);
         Rigidbody2D spikeRB = newSpikes.GetComponent<Rigidbody2D>();
@@ -264,7 +260,6 @@ public class BoxPerks : MonoBehaviour
         }
         buffTimer = 0;
         Destroy(newSpikes);
-        boxScript.groundFriction = initialGroundFriction;
         buffActive = false;
         spikesActive = false;
     }

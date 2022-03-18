@@ -7,8 +7,11 @@ public class HitSwitch : MonoBehaviour
     Switch switchScript;
     [HideInInspector] public bool active = false;
     public bool hitToDeactivate = false;
+
     public bool timedDeactivate = false;
     public float timeToDeactivate = 5f;
+    bool timerActive = false;
+    float hitTimer = 0;
 
     Transform diamond;
 
@@ -74,6 +77,10 @@ public class HitSwitch : MonoBehaviour
             {
                 Deactivate();
             }
+            else if (timedDeactivate)
+            {
+                hitTimer = 0;
+            }
 
             StartCoroutine(Invulnerability());
         }
@@ -138,13 +145,13 @@ public class HitSwitch : MonoBehaviour
     }
     IEnumerator TimedDeactivate()
     {
-        float timer = 0;
-        while (timer < timeToDeactivate && active)
+        while (hitTimer < timeToDeactivate && active)
         {
-            timer += Time.deltaTime;
+            hitTimer += Time.deltaTime;
             yield return null;
         }
         Deactivate();
+        hitTimer = 0;
     }
 
     IEnumerator Shock()

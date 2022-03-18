@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3798310204912918041}
   - component: {fileID: 676417280923779509}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Triangle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,7 +92,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2707023573642672439}
   - component: {fileID: 3383820046692868447}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Stand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -173,7 +173,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 184474487693633750}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Shimmer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -206,7 +206,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7979660675184885791}
   - component: {fileID: 8832772750686879394}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -288,7 +288,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2733396511241403930}
   - component: {fileID: 7594483729296259703}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Sprite Mask
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -369,7 +369,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9114923276592591634}
   - component: {fileID: 7671124173092787715}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Triangle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -453,7 +453,7 @@ GameObject:
   - component: {fileID: 8180468326211510192}
   - component: {fileID: 9145070796716740440}
   - component: {fileID: 5828315272332120321}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Hit Switch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -551,7 +551,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2776269977964269529}
   - component: {fileID: 7251623942320234282}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Sprite Mask
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -631,7 +631,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5589571522844329042}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Shimmer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -665,7 +665,7 @@ GameObject:
   - component: {fileID: 2695080107854492028}
   - component: {fileID: 8119706675915837033}
   - component: {fileID: 8517478359842830292}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Diamond
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -749,7 +749,7 @@ PolygonCollider2D:
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}

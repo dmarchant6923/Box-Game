@@ -275,7 +275,7 @@ public class Lightning : MonoBehaviour
             RaycastHit2D[] lightningCheck = Physics2D.CircleCastAll(startPoint, radius, Vector2.zero, 0,
                 LayerMask.GetMask("Box", "Platforms", "Enemies"));
             int strikes = 0;
-            if (lightningCheck.Length > 0)
+            if (lightningCheck.Length > 1)
             {
                 foreach (RaycastHit2D item in lightningCheck)
                 {
@@ -304,7 +304,7 @@ public class Lightning : MonoBehaviour
                         success = true;
                         targetRB = item.transform.root.GetComponentInChildren<Rigidbody2D>();
                     }
-                    else if (item.transform.root.GetComponent<HitSwitch>() != null && item.collider.GetComponent<Rigidbody2D>() != null
+                    else if (item.transform.root.GetComponent<HitSwitch>() != null && item.transform.root.GetComponent<Rigidbody2D>() != null
                         && item.transform.root.GetComponent<HitSwitch>().canBeShocked == true)
                     {
                         success = true;

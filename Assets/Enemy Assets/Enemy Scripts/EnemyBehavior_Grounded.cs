@@ -72,6 +72,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     float groundpoundYVel = -8;
     public float groundpoundRadius = 7;
     public float groundpoundDamage = 30;
+    bool groundpoundActive = false;
 
     private void Awake()
     {
@@ -331,13 +332,13 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
     private void Update()
     {
-        if (lvl3 && enemyHitboxActive && avgYVelocity <= groundpoundYVel && willDamageEnemies == false)
+        if (groundpoundActive)
         {
             transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.9f, 0f, 0, 0.7f);
         }
         else if (enemyHitboxActive)
         {
-            transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.6f, 0, 0, 0.3f);
+            transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.9f, 0, 0, 0.3f);
         }
         else
         {
@@ -399,7 +400,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                 {
                     enemyHitboxActive = false;
                     enemyRB.velocity = new Vector2(enemyRB.velocity.x / 3, enemyRB.velocity.y);
-                    if (lvl3 && willDamageEnemies == false && avgYVelocity < groundpoundYVel)
+                    if (groundpoundActive)
                     {
                         enemyRB.velocity = Vector2.zero;
                         enemyRB.position = new Vector2(enemyRB.position.x, col.point.y + enemyCollider.bounds.extents.y * 0.65f);
@@ -521,23 +522,26 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             }
             yield return null;
         }
-        bool fastFall = false;
+        bool activatedGroundPound = false;
         enemyHitboxActive = true;
         enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
         while (enemyHitboxActive || enemyIsGrounded == false)
         {
             EM.physicalHitboxActive = true;
-            if (enemyHitstopActive == false && EM.enemyWasKilled == false)
+            if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false && activatedGroundPound == false && EM.enemyWasKilled == false)
             {
-                enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, attackSpinSpeed * Mathf.Sign(horizDistance), 5000 * Time.deltaTime);
+                enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 2f);
+                activatedGroundPound = true;
+                groundpoundActive = true;
             }
-            if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false && fastFall == false)
+            if (activatedGroundPound && groundpoundActive && avgYVelocity > groundpoundYVel && enemyRB.velocity.y > groundpoundYVel)
             {
-                enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 3f);
-                fastFall = true;
+                groundpoundActive = false;
+                Debug.Log("you are here");
             }
             yield return null;
         }
+        groundpoundActive = false;
         EM.physicalHitboxActive = false;
         onCoolDown = true;
         while (attackCoolDownTimer <= attackCoolDown - attackSpinDelay)

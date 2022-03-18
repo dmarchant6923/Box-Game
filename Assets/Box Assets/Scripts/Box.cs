@@ -25,7 +25,6 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public bool enteredBlastZone = false;
     float blastZoneRespawnWait = 1f; // delay before respawning after hitting blast zone
     [System.NonSerialized] public bool blastZoneCRActive = false; //blast zone coroutine, true if it's active
-    Vector2 blastZonePosition; //box position that gets frozen upon entering blast zone
     int blastZoneLookingRight; //lookingRight value that gets frozen upon entering blast zone
 
     [System.NonSerialized] public static int lookingRight = 1; //1 if true, -1 if false
@@ -420,7 +419,7 @@ public class Box : MonoBehaviour
                 //regular movements, non crouched
                 else
                 {
-                    if (inputs.leftStick.x != 0 && Mathf.Abs(BoxVelocity.velocitiesX[0]) <= Mathf.Abs(adjustedHorizSpeed))
+                    if (inputs.leftStick.x != 0 && Mathf.Abs(BoxVelocity.velocitiesX[0]) <= Mathf.Abs(dashSpeed))
                     {
                         BoxVelocity.velocitiesX[0] = adjustedHorizSpeed * Mathf.Sign(inputs.leftStick.x);
                     }
@@ -898,6 +897,17 @@ public class Box : MonoBehaviour
                 gameObject.GetComponent<Renderer>().material.color = Color.white;
             } // white = none of the above
         }
+        else
+        {
+            if (damageActive)
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.red;
+            }
+            else
+            {
+                gameObject.GetComponent<Renderer>().material.color = Color.white;
+            }
+        }
 
         //isInvulnerable = true;
     }
@@ -1295,7 +1305,6 @@ public class Box : MonoBehaviour
     {
         inputs.inputsEnabled = false;
         blastZoneCRActive = true;
-        blastZonePosition = rigidBody.position;
         blastZoneLookingRight = lookingRight;
         float timer = 0;
         while (timer < blastZoneRespawnWait)

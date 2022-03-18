@@ -25,7 +25,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
       propertyPath: shootCoolDown
-      value: 1.5
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
       propertyPath: explosionTimer
@@ -53,7 +53,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
       propertyPath: bulletsPerVolley
-      value: 8
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: -4074235471091127912, guid: 428d81c2af23b024e8924ce0361f707e, type: 3}
       propertyPath: maxDashAttackTime

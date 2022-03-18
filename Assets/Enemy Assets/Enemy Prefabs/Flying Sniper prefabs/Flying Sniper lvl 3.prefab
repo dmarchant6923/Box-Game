@@ -53,11 +53,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
       propertyPath: bulletSpeed
-      value: 45
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
       propertyPath: bulletDamage
-      value: 80
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 6538536876540115395, guid: 09cb0ff23e96ccd41b93fec6340fd5bb, type: 3}
       propertyPath: bulletRecoil

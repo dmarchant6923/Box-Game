@@ -225,11 +225,11 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(wizard); //7
         enemies.Add(thunder); //8
 
-        wave = 0;
+        wave = 14;
         enemiesKilled = 0;
 
-        Box.boxHealth = 1000;
-        UIManager.initialHealth = 1000;//(int) maxHealth;
+        Box.boxHealth = 100;
+        UIManager.initialHealth = 250; //250
 
         if ((wave == 0 && Box.boxHealth == 250) || (wave == 14 && Box.boxHealth == 100))
         {
@@ -545,7 +545,7 @@ public class BattlegroundManager : MonoBehaviour
             if (enemies[enemyTypeSelected] == groundedVehicle)
             {
                 while (spawnObstacleCheck.collider != null || spawnGroundCheck.collider == null || spawnBoxCheck.collider != null ||
-                    spawnCoordinates.y > spawnLimits[0].y + (spawnLimits[1].y * 2/3))
+                    spawnCoordinates.y > spawnLimits[0].y)// + (spawnLimits[1].y * 2/3))
                 {
                     numberOfNewCoordinates++;
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),

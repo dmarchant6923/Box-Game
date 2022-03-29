@@ -25,7 +25,7 @@ public class BulletScript : MonoBehaviour
     public bool aggro = false;
 
     public bool explodingBullets = false;
-    float explosionRadius = 3f;
+    float explosionRadius = 2.6f;
     float explosionDamage = 25;
     public float explosionContactDamage;
     public GameObject explosion;

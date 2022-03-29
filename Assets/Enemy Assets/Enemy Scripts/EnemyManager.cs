@@ -51,6 +51,11 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public bool shieldCurrentlyActive = false;
     [HideInInspector] public bool canReceiveShield = true;
 
+    [HideInInspector] public bool aggroCurrentlyActive = false;
+    [HideInInspector] public bool canReceiveAggro = true;
+    [System.NonSerialized] public float aggroIncreaseMult = 1.3f;
+    [System.NonSerialized] public float aggroDecreaseMult = 0.75f;
+
     [HideInInspector] public bool initialDelay = true;
 
     [HideInInspector] public bool touchingThisEnemy = false;
@@ -174,16 +179,14 @@ public class EnemyManager : MonoBehaviour
         if (enemyWasDamaged && shieldCurrentlyActive && hitstopImpactActive == false && enemyIsInvulnerable == false)
         {
             StartCoroutine(HitstopImpact(Box.enemyHitstopDelay));
-            GameObject aura;
-            if (multipleParts == true)
+            foreach (Transform item in GetComponentsInChildren<Transform>())
             {
-                aura = transform.GetChild(0).transform.GetChild(transform.GetChild(0).transform.childCount - 1).gameObject;
+                if (item.GetComponent<Aura>() != null && item.GetComponent<Aura>().shield)
+                {
+                    item.GetComponent<Aura>().breakAura = true;
+                }
+                Debug.Log(item.gameObject);
             }
-            else
-            {
-                aura = transform.GetChild(transform.childCount - 1).gameObject;
-            }
-            aura.GetComponent<Aura>().breakShield = true;
             enemyIsInvulnerable = true;
             shieldCurrentlyActive = false;
         }
@@ -380,6 +383,8 @@ public class EnemyManager : MonoBehaviour
         {
             FindObjectOfType<EpisodeManager>().enemiesKilled++;
         }
+        shieldCurrentlyActive = false;
+        aggroCurrentlyActive = false;
         enemyDeathActive = true;
         enemyRB.gravityScale = 7;
         if (multipleParts == true)
@@ -538,7 +543,7 @@ public class EnemyManager : MonoBehaviour
     IEnumerator Exclamation()
     {
         exclamationActive = true;
-        yield return null;
+        yield return new WaitForSeconds(0.1f);
         newExclamation = Instantiate(exclamation);
         newExclamation.GetComponent<Exclamation>().enemy = gameObject;
         float distanceUp = 1.5f;

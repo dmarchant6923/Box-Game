@@ -9,6 +9,7 @@ TagManager:
   - Effect
   - Hazard
   - Fence
+  - Reflect
   layers:
   - Default
   - TransparentFX

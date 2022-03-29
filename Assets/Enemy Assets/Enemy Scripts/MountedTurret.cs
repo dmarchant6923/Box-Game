@@ -73,6 +73,8 @@ public class MountedTurret : MonoBehaviour
 
     bool initialShootDelay = true;
 
+    bool aggroActive = false;
+
     public bool debugLines = false;
 
     bool scriptEnabled = true;
@@ -407,6 +409,56 @@ public class MountedTurret : MonoBehaviour
             Box.activateDamage = true;
             Box.damageTaken += laserDOT * Time.deltaTime;
         }
+
+        if (EM.aggroCurrentlyActive && aggroActive == false)
+        {
+            aggroActive = true;
+
+            shootAngularVelocity *= EM.aggroIncreaseMult;
+            normalAngularVelocity *= EM.aggroIncreaseMult;
+
+            shootBoxRadius *= EM.aggroIncreaseMult;
+            delayBeforeShooting *= EM.aggroDecreaseMult;
+            restTime *= EM.aggroDecreaseMult;
+
+            bulletsPerAttack += 2;
+            bulletDamage *= EM.aggroIncreaseMult;
+            bulletInterval *= EM.aggroDecreaseMult;
+            bulletSpeed *= EM.aggroIncreaseMult;
+            bulletDespawnTime *= EM.aggroIncreaseMult;
+
+            grenadesPerAttack += 1;
+            grenadeSpeed *= EM.aggroIncreaseMult;
+            grenadeInterval *= EM.aggroDecreaseMult;
+
+            laserDuration *= EM.aggroIncreaseMult;
+            laserDOT *= EM.aggroIncreaseMult;
+
+        }
+        if (EM.aggroCurrentlyActive == false && aggroActive == true)
+        {
+            aggroActive = false;
+
+            shootAngularVelocity /= EM.aggroIncreaseMult;
+            normalAngularVelocity /= EM.aggroIncreaseMult;
+
+            shootBoxRadius /= EM.aggroIncreaseMult;
+            delayBeforeShooting /= EM.aggroDecreaseMult;
+            restTime /= EM.aggroDecreaseMult;
+
+            bulletsPerAttack -= 2;
+            bulletDamage /= EM.aggroIncreaseMult;
+            bulletInterval /= EM.aggroDecreaseMult;
+            bulletSpeed /= EM.aggroIncreaseMult;
+            bulletDespawnTime /= EM.aggroIncreaseMult;
+
+            grenadesPerAttack -= 1;
+            grenadeSpeed /= EM.aggroIncreaseMult;
+            grenadeInterval /= EM.aggroDecreaseMult;
+
+            laserDuration /= EM.aggroIncreaseMult;
+            laserDOT /= EM.aggroIncreaseMult;
+        }
     }
 
     IEnumerator ShootBullets()
@@ -436,6 +488,11 @@ public class MountedTurret : MonoBehaviour
             newBullet.GetComponent<BulletScript>().bulletDamage = bulletDamage;
             newBullet.GetComponent<Rigidbody2D>().velocity = (realBarrelVector +
                 Vector2.Perpendicular(realBarrelVector) * Mathf.Sin(bulletSpread * Mathf.PI / 180)).normalized * bulletSpeed;
+            if (aggroActive)
+            {
+                newBullet.GetComponent<BulletScript>().aggro = true;
+            }
+
 
             bulletsShot++;
 

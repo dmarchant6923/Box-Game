@@ -184,6 +184,13 @@ public class CameraFollowBox : MonoBehaviour
             boxDamageShake = false;
         }
     }
+    public void RefocusBox()
+    {
+        for (int i = 0; i < camPositionArray.Count; i++)
+        {
+            camPositionArray[i] = followBox.transform.position;
+        }
+    }
 
     public IEnumerator ResetCamera()
     {

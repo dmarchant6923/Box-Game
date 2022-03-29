@@ -18,7 +18,8 @@ public class Lightning : MonoBehaviour
     public GameObject lightning;
     GameObject newLightning;
 
-    [HideInInspector] public static float thunderDamage = 40;
+    [HideInInspector] public static float baseThunderDamage = 40;
+    [HideInInspector] public float thunderDamage = 40;
     public bool aestheticElectricity = false;
     float chainRadius = 5;
     float chainDelay = 0.4f;
@@ -324,6 +325,7 @@ public class Lightning : MonoBehaviour
                         newLightning.GetComponent<Lightning>().pointB = targetRB.position;
                         newLightning.GetComponent<Lightning>().movingTarget = true;
                         newLightning.GetComponent<Lightning>().targetRB = targetRB;
+                        newLightning.GetComponent<Lightning>().thunderDamage = damage;
                         yield return new WaitForFixedUpdate();
                         yield return new WaitForFixedUpdate();
                         yield return new WaitForFixedUpdate();

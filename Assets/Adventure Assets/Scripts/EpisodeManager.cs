@@ -24,17 +24,27 @@ public class EpisodeManager : MonoBehaviour
 
     public GameObject checkpoint;
 
+    public GameObject episodeStartBox;
+
     EnemyManager[] enemies;
-    int enemiesToKill = 0;
+    [HideInInspector] public int enemiesToKill = 0;
     public int enemiesKilled = 0;
     bool allEnemiesKilled = false;
 
     [HideInInspector] public bool episodeComplete = false;
     bool finishedCRActive = false;
     public float timeToBeat = 10;
+    [HideInInspector] public bool startAtCheckpoint = false;
+
+    public GameObject pauseInfo;
+
+    bool restartActive = false;
 
     void Start()    
     {
+        UIManager.canPause = false;
+        restartActive = false;
+
         UIManager.initialHealth = initialHealth;
         Box.boxHealth = initialHealth;
 
@@ -55,10 +65,13 @@ public class EpisodeManager : MonoBehaviour
         boxScript = boxRB.GetComponent<Box>();
         episodeStats = DataManager.episodeStats[season - 1, episode - 1];
         inGameStickersFound = episodeStats.stickersFound;
+
+        startAtCheckpoint = false;
         if (episodeStats.checkpoint)
         {
             checkpoint.GetComponent<Checkpoint>().checkpointActive = true;
             boxRB.position = checkpoint.transform.position + Vector3.left * 5;
+            startAtCheckpoint = true;
         }
 
         enemies = FindObjectsOfType<EnemyManager>();
@@ -81,10 +94,19 @@ public class EpisodeManager : MonoBehaviour
             }
         }
 
+        for (int i = 0; i < episodeStats.stickersFound.Length; i++)
+        {
+            if (episodeStats.stickersFound[i] == true)
+            {
+                pauseInfo.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(true);
+            }
+        }
+
+        timeToBeat = (int)Mathf.Floor(timeToBeat);
+
         StartCoroutine(EpisodeStart());
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.P))
@@ -113,11 +135,11 @@ public class EpisodeManager : MonoBehaviour
             }
         }
 
-        Debug.Log(enemiesKilled + " " + enemiesToKill);
-
-
-
-
+        if (Box.boxHealth <= 0 && restartActive == false)
+        {
+            restartActive = true;
+            StartCoroutine(RestartLevel());
+        }
     }
 
     public void StickerFound(GameObject sticker)
@@ -136,6 +158,14 @@ public class EpisodeManager : MonoBehaviour
     {
         episodeStats.checkpoint = true;
         SaveManager.SaveEpisode(season, episode, episodeStats);
+
+        for (int i = 0; i < episodeStats.stickersFound.Length; i++)
+        {
+            if (episodeStats.stickersFound[i] == true)
+            {
+                pauseInfo.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(true);
+            }
+        }
     }
     public void CheckpointDeactivated()
     {
@@ -148,24 +178,36 @@ public class EpisodeManager : MonoBehaviour
     IEnumerator EpisodeStart()
     {
         UIManager.stopClock = true;
-        StartCoroutine(boxScript.DisableInputs(0.5f));
+        float waitTime1 = 1f;
+        float waitTime2 = 2f;
+        StartCoroutine(boxScript.DisableInputs(waitTime1 + waitTime2));
         yield return null;
+        episodeStartBox.SetActive(true);
+        UIManager.canPause = false;
         foreach (BattleSpawner spawner in FindObjectsOfType<BattleSpawner>())
         {
             enemiesToKill += spawner.numEnemies;
         }
-        yield return new WaitForSeconds(0.5f);
-        float waitTime =1.5f;
+        string beatText = "Time To Beat: " + Mathf.Floor(timeToBeat / 60) + ":" + (timeToBeat % 60).ToString("00");
+        if (startAtCheckpoint)
+        {
+            beatText = "Time To Beat: ---";
+        }
+        pauseInfo.transform.GetChild(0).GetComponent<Text>().text = "Season " + season + " Episode " + episode +
+            "\n" + beatText + "\nEnemies To Kill: " + enemiesToKill;
+        yield return new WaitForSeconds(waitTime1);
         float timer = 0;
-        UIManager.stopClock = false;
-        while (timer < waitTime)
+        while (timer < waitTime2)
         {
             Color color = UIBackground.GetComponent<Image>().color;
-            color.a -= 1 / waitTime * Time.deltaTime;
+            color.a -= 1 / waitTime2 * Time.deltaTime;
             UIBackground.GetComponent<Image>().color = color;
             timer += Time.deltaTime;
             yield return null;
         }
+        episodeStartBox.SetActive(false);
+        UIManager.stopClock = false;
+        UIManager.canPause = true;
     }
 
     IEnumerator EpisodeFinished()
@@ -176,27 +218,18 @@ public class EpisodeManager : MonoBehaviour
         episodeStats.completed = true;
         episodeStats.checkpoint = false;
         episodeStats.stickersFound = inGameStickersFound;
-        if (UIManager.rawTime <= episodeStats.fastestTime || episodeStats.fastestTime == 0)
+        if ((UIManager.rawTime <= episodeStats.fastestTime || episodeStats.fastestTime == 0) && startAtCheckpoint == false)
         {
             episodeStats.fastestTime = UIManager.rawTime;
         }
-        if (UIManager.rawTime <= timeToBeat && episodeStats.stickersFound[5] == false)
+        if (UIManager.rawTime <= timeToBeat && episodeStats.stickersFound[5] == false && startAtCheckpoint == false)
         {
             episodeStats.stickersFound[5] = true;
             GameObject newSticker = Instantiate(sticker);
             newSticker.GetComponent<Sticker>().found = true;
             newSticker.GetComponent<Sticker>().timeFound = true;
         }
-        allEnemiesKilled = true;
-        foreach (EnemyManager enemy in enemies)
-        {
-            if (enemy != null && enemy.enemyWasKilled == false)
-            {
-                allEnemiesKilled = false;
-                Debug.Log("you are here");
-                break;
-            }
-        }
+
         if (allEnemiesKilled)
         {
             episodeStats.stickersFound[4] = true;
@@ -207,5 +240,48 @@ public class EpisodeManager : MonoBehaviour
         DataManager.exitFromAdventureModeEpisode = new Vector2(season, episode);
         yield return new WaitForSeconds(3);
         SceneManager.LoadScene("Main Menu");
+    }
+
+    IEnumerator RestartLevel()
+    {
+        UIManager.stopClock = true;
+        StartCoroutine(boxScript.DisableInputs(5));
+        float timer = 0;
+        float window = 0.4f;
+        boxScript.GetComponent<Renderer>().sortingLayerName = "Dead Enemy";
+        FindObjectOfType<CameraFollowBox>().overridePosition = true;
+        FindObjectOfType<CameraFollowBox>().forcedPosition = FindObjectOfType<CameraFollowBox>().transform.position;
+        while (timer < window)
+        {
+            boxScript.GetComponent<BoxCollider2D>().enabled = false;
+            boxScript.GetComponent<Rigidbody2D>().gravityScale = 0;
+            boxScript.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            boxScript.GetComponent<Rigidbody2D>().angularVelocity = 0;
+            BoxVelocity.velocitiesX[0] = 0;
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        boxScript.GetComponent<Rigidbody2D>().gravityScale = 6;
+        boxScript.GetComponent<Rigidbody2D>().velocity = Vector2.up * 17;
+        boxScript.GetComponent<Rigidbody2D>().angularVelocity = 1000;
+        boxScript.GetComponent<Rigidbody2D>().angularDrag = 0;
+        timer = 0;
+        window = 2f;
+        while (timer < window)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        timer = 0;
+        window = 1.5f;
+        while (timer < window)
+        {
+            Color color = UIBackground.GetComponent<Image>().color;
+            color.a += Time.deltaTime;
+            UIBackground.GetComponent<Image>().color = color;
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        SceneManager.LoadScene("S" + season + "E" + episode);
     }
 }

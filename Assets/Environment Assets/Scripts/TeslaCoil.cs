@@ -126,7 +126,7 @@ public class TeslaCoil : MonoBehaviour
         }
         if (phase == 1 && shockActive)
         {
-            StartCoroutine(lightning.GetComponent<Lightning>().LightningStrike(radius, 0, Lightning.thunderDamage, breakoutPoint, true, transform.GetChild(0).gameObject));
+            StartCoroutine(lightning.GetComponent<Lightning>().LightningStrike(radius, 0, Lightning.baseThunderDamage, breakoutPoint, true, transform.GetChild(0).gameObject));
             StartCoroutine(ReleaseFlash());
             shockActive = false;
         }

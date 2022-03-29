@@ -51,7 +51,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
     bool isDiving = false;
     float diveDelay = 1f;
     float maxDiveTime = 1.2f;
-    float diveVelocity;
+    float diveVelocity = 3;
     float diveAcceleration = 30;
     [HideInInspector] public bool kamikazeExplode = false;
     float kamikazeExplosionRadius = 5;
@@ -113,6 +113,8 @@ public class EnemyBehavior_Flying : MonoBehaviour
     public bool laserScopeEnabled = false;
     LineRenderer laserScope;
 
+    bool aggroActive = false;
+
     public bool debugLines = false;
 
     void Start()
@@ -146,7 +148,6 @@ public class EnemyBehavior_Flying : MonoBehaviour
         {
             horizDirection = -1;
         }
-        enemyRB.AddForce(new Vector2(flyForce * horizDirection/ 8, 0));
 
         if (kamikaze == true)
         {
@@ -202,7 +203,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
                 else
                 {
                     wanderDistance = 0.5f;
-                    flyForce = flySpeed * 3.5f;
+                    flyForce = flySpeed * 5; //3.5f
                 }
             }
             if (Math.Abs(enemyRB.position.x - truePosition.x) >= wanderDistance)
@@ -402,6 +403,56 @@ public class EnemyBehavior_Flying : MonoBehaviour
             realBarrelVector = new Vector2(Mathf.Cos(realBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
                 Mathf.Sin(realBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
             transform.eulerAngles = Vector3.forward * (realBarrelAngle);
+        }
+
+        //aggro
+        if (EM.aggroCurrentlyActive && aggroActive == false)
+        {
+            aggroActive = true;
+            truePositionVelocity *= EM.aggroIncreaseMult;
+            flySpeed *= EM.aggroIncreaseMult;
+
+            shootBoxRadius *= EM.aggroIncreaseMult;
+            moveToBoxRadius *= EM.aggroIncreaseMult;
+            moveFromBoxRadius *= EM.aggroIncreaseMult;
+
+            bulletSpeed *= EM.aggroIncreaseMult;
+            bulletDamage *= EM.aggroIncreaseMult;
+            bulletsPerAttack += 2;
+            bulletDespawnTime *= EM.aggroIncreaseMult;
+
+            shootTimeInterval *= EM.aggroDecreaseMult;
+            delayBeforeShooting *= EM.aggroDecreaseMult;
+            restTime *= EM.aggroDecreaseMult;
+
+            diveDelay *= EM.aggroDecreaseMult;
+            diveAcceleration *= EM.aggroIncreaseMult;
+            kamikazeExplosionRadius *= EM.aggroIncreaseMult;
+            kamikazeDamage *= EM.aggroDecreaseMult;
+        }
+        if (EM.aggroCurrentlyActive == false && aggroActive)
+        {
+            aggroActive = false;
+            truePositionVelocity /= EM.aggroIncreaseMult;
+            flySpeed /= EM.aggroIncreaseMult;
+
+            shootBoxRadius /= EM.aggroIncreaseMult;
+            moveToBoxRadius /= EM.aggroIncreaseMult;
+            moveFromBoxRadius /= EM.aggroIncreaseMult;
+
+            bulletSpeed /= EM.aggroIncreaseMult;
+            bulletDamage /= EM.aggroIncreaseMult;
+            bulletsPerAttack -= 2;
+            bulletDespawnTime /= EM.aggroIncreaseMult;
+
+            shootTimeInterval /= EM.aggroDecreaseMult;
+            delayBeforeShooting /= EM.aggroDecreaseMult;
+            restTime /= EM.aggroDecreaseMult;
+
+            diveDelay /= EM.aggroDecreaseMult;
+            diveAcceleration /= EM.aggroIncreaseMult;
+            kamikazeExplosionRadius /= EM.aggroIncreaseMult;
+            kamikazeDamage /= EM.aggroDecreaseMult;
         }
     }
 
@@ -647,6 +698,10 @@ public class EnemyBehavior_Flying : MonoBehaviour
                 if (explodingBullets)
                 {
                     newBullet.GetComponent<BulletScript>().explodingBullets = true;
+                }
+                if (aggroActive)
+                {
+                    newBullet.GetComponent<BulletScript>().aggro = true;
                 }
                 newBullet.GetComponent<Rigidbody2D>().velocity = (realBarrelVector +
                     Vector2.Perpendicular(realBarrelVector) * Mathf.Sin(bulletSpread * Mathf.PI / 180)).normalized * bulletSpeed;

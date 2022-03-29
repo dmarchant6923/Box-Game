@@ -361,6 +361,9 @@ public class UIManager : MonoBehaviour
     }
     IEnumerator InitialDelay()
     {
+        dash.SetActive(false);
+        pulse.SetActive(false);
+        teleport.SetActive(false);
         yield return null;
         if (initialHealth == 0)
         {
@@ -371,17 +374,17 @@ public class UIManager : MonoBehaviour
             lostHealth = Instantiate(healthIncrement, healthText.transform);
             lostHealth.text = ((int)Mathf.Ceil(Box.boxHealth) - initialHealth).ToString();
         }
-        if (Box.dashUnlocked == false)
+        if (Box.dashUnlocked)
         {
-            dash.SetActive(false);
+            dash.SetActive(true);
         }
-        if (Box.pulseUnlocked == false)
+        if (Box.pulseUnlocked)
         {
-            pulse.SetActive(false);
+            pulse.SetActive(true);
         }
-        if (Box.teleportUnlocked == false)
+        if (Box.teleportUnlocked)
         {
-            teleport.SetActive(false);
+            teleport.SetActive(true);
         }
         spawnIncrement = true;
     }

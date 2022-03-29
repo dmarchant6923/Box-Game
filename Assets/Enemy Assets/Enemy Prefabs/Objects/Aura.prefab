@@ -95,4 +95,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1282410bd67dd7640b014c39523483a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  breakShield: 0
+  breakAura: 0
+  shield: 0
+  aggro: 0

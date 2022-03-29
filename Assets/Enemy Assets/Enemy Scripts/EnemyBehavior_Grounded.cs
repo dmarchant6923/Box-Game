@@ -74,6 +74,8 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     public float groundpoundDamage = 30;
     bool groundpoundActive = false;
 
+    bool aggroActive = false;
+
     private void Awake()
     {
         enemyRB = GetComponent<Rigidbody2D>();
@@ -124,7 +126,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             EM.canSeeItem = false;
         }
 
-
         //enemy isGrounded
         if (touchedGround)
         {
@@ -162,7 +163,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         }
 
         //move if inside move radius but outside attack radius, attack if inside attack radius
-        if (enemyRC_MoveToBox.collider != null && enemyIsGrounded == true && canSeeBox == true)
+        if (enemyRC_MoveToBox.collider != null && enemyIsGrounded == true && canSeeBox == true && EM.initialDelay == false)
         {
             lookingRight = directionToBoxX;
             idleCRActive = false;
@@ -295,6 +296,40 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             enemyRB.AddForce(new Vector2((float)20 * pushDirection, 0));
         }
 
+        //aggro
+        if (EM.aggroCurrentlyActive && aggroActive == false)
+        {
+            aggroActive = true;
+            moveToBoxRadius *= EM.aggroIncreaseMult;
+            attackBoxRadius *= EM.aggroIncreaseMult;
+            maxHorizSpeed *= EM.aggroIncreaseMult;
+            moveForce *= EM.aggroIncreaseMult;
+            attackJumpVelocity *= EM.aggroIncreaseMult;
+            enemyRB.gravityScale *= EM.aggroIncreaseMult;
+
+            attackCoolDown *= EM.aggroDecreaseMult;
+            damage *= EM.aggroIncreaseMult;
+
+            groundpoundRadius *= EM.aggroIncreaseMult;
+            groundpoundDamage *= EM.aggroIncreaseMult;
+        }
+        if (EM.aggroCurrentlyActive == false && aggroActive)
+        {
+            aggroActive = false;
+            moveToBoxRadius /= EM.aggroIncreaseMult;
+            attackBoxRadius /= EM.aggroIncreaseMult;
+            maxHorizSpeed /= EM.aggroIncreaseMult;
+            moveForce /= EM.aggroIncreaseMult;
+            attackJumpVelocity /= EM.aggroIncreaseMult;
+            enemyRB.gravityScale /= EM.aggroIncreaseMult;
+
+            attackCoolDown /= EM.aggroDecreaseMult;
+            damage /= EM.aggroIncreaseMult;
+
+            groundpoundRadius /= EM.aggroIncreaseMult;
+            groundpoundDamage /= EM.aggroIncreaseMult;
+        }
+
         if (debugLines)
         {
             if (canSeeBox == true)
@@ -382,59 +417,58 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                 enemyHitboxActive = false;
             }
         }
-            if (1 << collision.collider.gameObject.layer == LayerMask.GetMask("Platforms") || 1 << collision.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
+        if (1 << collision.collider.gameObject.layer == LayerMask.GetMask("Platforms") || 1 << collision.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
         {
             platformSpeed = collision.collider.gameObject.GetComponent<Rigidbody2D>().velocity.x;
-        }
 
-        touchedGround = false;
-        RaycastHit2D groundCheck = Physics2D.Raycast(enemyRB.position + (Vector2.down * enemyCollider.bounds.extents.y * 1.2f) + Vector2.left * 0.25f,
-            Vector2.right, 0.5f, groundLM);
-        foreach (ContactPoint2D col in collision.contacts)
-        {
-            if (col.normal.y > 0.8f && (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles") || 
-                (avgYVelocity - collision.transform.GetComponent<Rigidbody2D>().velocity.y < 1f && groundCheck.collider != null)))
+            touchedGround = false;
+            RaycastHit2D groundCheck = Physics2D.Raycast(enemyRB.position + (Vector2.down * enemyCollider.bounds.extents.y * 1.2f) + Vector2.left * 0.25f,
+                Vector2.right, 0.5f, groundLM);
+            foreach (ContactPoint2D col in collision.contacts)
             {
-                touchedGround = true;
-                if (enemyHitboxActive)
+                if (col.normal.y > 0.8f && (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles") ||
+                    (avgYVelocity - collision.transform.GetComponent<Rigidbody2D>().velocity.y < 1f && groundCheck.collider != null)))
                 {
-                    enemyHitboxActive = false;
-                    enemyRB.velocity = new Vector2(enemyRB.velocity.x / 3, enemyRB.velocity.y);
-                    if (groundpoundActive)
+                    touchedGround = true;
+                    if (enemyHitboxActive)
                     {
-                        enemyRB.velocity = Vector2.zero;
-                        enemyRB.position = new Vector2(enemyRB.position.x, col.point.y + enemyCollider.bounds.extents.y * 0.65f);
-                        enemyRB.rotation = 0;
-                        enemyRB.angularVelocity = 0;
-                        if (GameObject.Find("Main Camera") != null)
+                        enemyHitboxActive = false;
+                        enemyRB.velocity = new Vector2(enemyRB.velocity.x / 3, enemyRB.velocity.y);
+                        if (groundpoundActive)
                         {
-                            Debug.Log("you are here");
-                            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
-                            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo = 
-                                new Vector2(groundpoundDamage * 0.75f, (boxRB.position - enemyRB.position).magnitude);
-                        }
-
-                        GameObject newPulse = Instantiate(pulse, enemyRB.position, Quaternion.identity);
-                        newPulse.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.05f);
-                        newPulse.transform.localScale = Vector2.one * groundpoundRadius * 2;
-
-                        RaycastHit2D groundpound = Physics2D.CircleCast(enemyRB.position, groundpoundRadius, Vector2.zero, 0, boxLM);
-                        if (groundpound.collider != null && (Box.isGrounded || Box.canWallJump))
-                        {
-                            Box.activateDamage = true;
-                            Box.damageTaken = groundpoundDamage;
-                            if (Box.isGrounded)
+                            enemyRB.velocity = Vector2.zero;
+                            enemyRB.position = new Vector2(enemyRB.position.x, col.point.y + enemyCollider.bounds.extents.y * 0.65f);
+                            enemyRB.rotation = 0;
+                            enemyRB.angularVelocity = 0;
+                            if (GameObject.Find("Main Camera") != null)
                             {
-                                Box.boxDamageDirection = Vector2.up;
+                                GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
+                                GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo =
+                                    new Vector2(groundpoundDamage * 0.75f, (boxRB.position - enemyRB.position).magnitude);
                             }
-                            else
+
+                            GameObject newPulse = Instantiate(pulse, enemyRB.position, Quaternion.identity);
+                            newPulse.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.05f);
+                            newPulse.transform.localScale = Vector2.one * groundpoundRadius * 2;
+
+                            RaycastHit2D groundpound = Physics2D.CircleCast(enemyRB.position, groundpoundRadius, Vector2.zero, 0, boxLM);
+                            if (groundpound.collider != null && (Box.isGrounded || Box.canWallJump))
                             {
-                                Box.boxDamageDirection = new Vector2(Box.wallJumpDirection, 1).normalized;
+                                Box.activateDamage = true;
+                                Box.damageTaken = groundpoundDamage;
+                                if (Box.isGrounded)
+                                {
+                                    Box.boxDamageDirection = Vector2.up;
+                                }
+                                else
+                                {
+                                    Box.boxDamageDirection = new Vector2(Box.wallJumpDirection, 1).normalized;
+                                }
                             }
                         }
                     }
+                    break;
                 }
-                break;
             }
         }
     }
@@ -475,13 +509,14 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         float attackSpinDelayTimer = 0;
         float attackCoolDownTimer = 0;
         float squatFactor = 0.7f;
+        bool damaged = false;
         if (lvl3)
         {
             enemyRB.rotation = 0;
             transform.localScale = new Vector2(transform.localScale.x, transform.localScale.y * squatFactor);
             enemyRB.position += Vector2.down * transform.localScale.y * (1 - squatFactor) / 2;
         }
-        while (attackDelayTimer <= attackDelay && EM.enemyWasKilled == false) // delay on ground before launching upwards
+        while (attackDelayTimer <= attackDelay && EM.enemyWasKilled == false && damaged == false) // delay on ground before launching upwards
         {
             if (EM.hitstopImpactActive == false)
             {
@@ -492,6 +527,10 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                 enemyRB.rotation = 0;
                 enemyRB.angularVelocity = 0;
             }
+            if (EM.enemyWasDamaged)
+            {
+                damaged = true;
+            }
             yield return null;
         }
         if (lvl3)
@@ -500,51 +539,54 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             enemyRB.position += Vector2.up * transform.localScale.y * (1 - squatFactor) / 2;
         }
 
-        float horizDistance = Mathf.Abs(enemyRB.position.x - boxRB.position.x) * directionToBoxX;
-        float timeToLand = 2 * attackJumpVelocity / (9.81f * enemyRB.gravityScale);
-        float adjustedAttackHorizSpeed = horizDistance / timeToLand;
-        float adjustedJumpVelocity = attackJumpVelocity;
-        if (lvl3)
+        if (damaged == false)
         {
-            adjustedJumpVelocity = Mathf.Max(Mathf.Sqrt(2 * 9.81f * enemyRB.gravityScale * (boxRB.position.y - enemyRB.position.y + 4)), attackJumpVelocity);
-            adjustedAttackHorizSpeed *= 1.2f;
-            adjustedAttackHorizSpeed *= 1 - Mathf.Abs(boxRB.position.y - enemyRB.position.y) / 30;
-        }
-        if (EM.enemyWasKilled == false && enemyIsGrounded && Mathf.Abs(enemyRB.velocity.x - platformSpeed) < maxHorizSpeed * 1.2f)
-        {
-            enemyRB.velocity = new Vector2(adjustedAttackHorizSpeed + platformSpeed, adjustedJumpVelocity);
-        }
-        while (attackSpinDelayTimer <= attackSpinDelay) // delay after launching before starting to spin activating hitbox
-        {
-            if (EM.hitstopImpactActive == false)
+            float horizDistance = Mathf.Abs(enemyRB.position.x - boxRB.position.x) * directionToBoxX;
+            float timeToLand = 2 * attackJumpVelocity / (9.81f * enemyRB.gravityScale);
+            float adjustedAttackHorizSpeed = horizDistance / timeToLand;
+            float adjustedJumpVelocity = attackJumpVelocity;
+            if (lvl3)
             {
-                attackSpinDelayTimer += Time.deltaTime;
+                adjustedJumpVelocity = Mathf.Max(Mathf.Sqrt(2 * 9.81f * enemyRB.gravityScale * (boxRB.position.y - enemyRB.position.y + 4)), attackJumpVelocity);
+                adjustedAttackHorizSpeed *= 1.2f;
+                adjustedAttackHorizSpeed *= 1 - Mathf.Abs(boxRB.position.y - enemyRB.position.y) / 30;
             }
-            yield return null;
-        }
-        bool activatedGroundPound = false;
-        enemyHitboxActive = true;
-        enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
-        while (enemyHitboxActive || enemyIsGrounded == false)
-        {
-            EM.physicalHitboxActive = true;
-            if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false && activatedGroundPound == false && EM.enemyWasKilled == false)
+            if (EM.enemyWasKilled == false && enemyIsGrounded && Mathf.Abs(enemyRB.velocity.x - platformSpeed) < maxHorizSpeed * 1.2f)
             {
-                enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 2f);
-                activatedGroundPound = true;
-                groundpoundActive = true;
+                enemyRB.velocity = new Vector2(adjustedAttackHorizSpeed + platformSpeed, adjustedJumpVelocity);
             }
-            if (activatedGroundPound && groundpoundActive && avgYVelocity > groundpoundYVel && enemyRB.velocity.y > groundpoundYVel)
+            while (attackSpinDelayTimer <= attackSpinDelay) // delay after launching before starting to spin activating hitbox
             {
-                groundpoundActive = false;
-                Debug.Log("you are here");
+                if (EM.hitstopImpactActive == false)
+                {
+                    attackSpinDelayTimer += Time.deltaTime;
+                }
+                yield return null;
             }
-            yield return null;
+            bool activatedGroundPound = false;
+            enemyHitboxActive = true;
+            enemyRB.angularVelocity = attackSpinSpeed * directionToBoxX;
+            while (enemyHitboxActive || enemyIsGrounded == false)
+            {
+                EM.physicalHitboxActive = true;
+                if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false && activatedGroundPound == false && EM.enemyWasKilled == false)
+                {
+                    enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 2f);
+                    activatedGroundPound = true;
+                    groundpoundActive = true;
+                }
+                if (activatedGroundPound && groundpoundActive && avgYVelocity > groundpoundYVel && enemyRB.velocity.y > groundpoundYVel)
+                {
+                    groundpoundActive = false;
+                }
+                yield return null;
+            }
         }
+
         groundpoundActive = false;
         EM.physicalHitboxActive = false;
         onCoolDown = true;
-        while (attackCoolDownTimer <= attackCoolDown - attackSpinDelay)
+        while (attackCoolDownTimer <= attackCoolDown)
         {
             if (EM.hitstopImpactActive == false)
             {
@@ -569,7 +611,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             reboundDirection = -(int)new Vector2(boxRB.position.x - enemyRB.position.x, 0).normalized.x;
             enemyRB.velocity = new Vector2(4*reboundDirection, enemyRB.gravityScale * 2);
         }
-        Debug.Log("you are here");
         enemyWasReboundedDash = false;
         enemyWasRebounded = false;
         yield return new WaitForSeconds(0.2f);

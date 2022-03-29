@@ -139,7 +139,7 @@ public class Box : MonoBehaviour
 
     [System.NonSerialized] public static float enemyHitstopDelay = 0.12f; //how long hitstop lasts for enemies
     [HideInInspector] public static float boxHitstopDelay;
-    [HideInInspector] public static float boxHitstopDelayMult = 0.1f/20;
+    [HideInInspector] public static float boxHitstopDelayMult = 0.1f/30;
     [System.NonSerialized] public static bool enemyHitstopActive = false; //whether or not histop from hitting the enemy is currently active
     [System.NonSerialized] public static bool boxHitstopActive = false; //whether or not hitstop from the box getting hit is currently active
     float hitstopRotationSlowDown = 30; //used for the still rotating effect during hitstop
@@ -181,6 +181,7 @@ public class Box : MonoBehaviour
     bool forceInputsDisabled = false;
 
     public bool debugEnabled = false;
+    public bool playtesting = false;
 
     private void Awake()
     {
@@ -712,8 +713,17 @@ public class Box : MonoBehaviour
         //
         //enemy interactions to activate when boxcast covering player body encounters an enemy. Mostly used in other scripts.
         //
-        attackRayCast = Physics2D.BoxCastAll(rigidBody.position, new Vector2(transform.localScale.x, transform.localScale.y),
-        rigidBody.rotation, Vector2.down, 0f, attackLayerMask);
+        if (GetComponent<BoxCollider2D>().enabled == true)
+        {
+            attackRayCast = Physics2D.BoxCastAll(rigidBody.position, new Vector2(transform.localScale.x, transform.localScale.y),
+                rigidBody.rotation, Vector2.down, 0f, attackLayerMask);
+        }
+        else
+        {
+            attackRayCast = Physics2D.BoxCastAll(rigidBody.position, new Vector2(transform.localScale.x, transform.localScale.y),
+                rigidBody.rotation, Vector2.down, 0f, LayerMask.GetMask(""));
+        }
+
         if (BoxPerks.spikesActive)
         {
             attackRayCast = Physics2D.CircleCastAll(rigidBody.position, 0.85f, Vector2.down, 0f, attackLayerMask);
@@ -792,11 +802,11 @@ public class Box : MonoBehaviour
                 {
                     boxHealth -= damageTaken;
                 }
-                if (damageTaken >= 1)
+                if (damageTaken >= 3)
                 {
                     dashActive = false;
                     teleportActive = false;
-                    boxHitstopDelay = Mathf.Min(damageTaken, 200) * boxHitstopDelayMult;
+                    boxHitstopDelay = 0.1f + Mathf.Min(damageTaken, 200) * boxHitstopDelayMult;
                     if (shockActive)
                     {
                         boxHitstopDelay *= 2.5f;
@@ -1701,6 +1711,14 @@ public class Box : MonoBehaviour
         {
             trueDamageVelocity = boxDamageDirection.normalized * launchSpeed;
         }
+        if (BoxPerks.speedActive)
+        {
+            trueDamageVelocity *= 1.3f;
+        }
+        if (playtesting == false && boxHealth <= 0)
+        {
+            trueDamageVelocity = Vector2.zero;
+        }
 
         ignoreProjectileDamage = true;
         BoxVelocity.velocitiesX[0] = trueDamageVelocity.x;
@@ -1744,7 +1762,6 @@ public class Box : MonoBehaviour
             }
             else
             {
-                Debug.Log("asdfasdfa");
                 BoxVelocity.velocitiesX[0] = horizMaxSpeed * wallJumpDirection + wallJumpExtraSpeed;
                 rigidBody.velocity = new Vector2(rigidBody.velocity.x, jumpSpeed);
             }
@@ -1899,7 +1916,7 @@ public class Box : MonoBehaviour
     IEnumerator DamageFlash()
     {
         isCurrentlyFlashing = true;
-        while (isInvulnerable == true)
+        while (isInvulnerable == true && ((boxHealth > 0 && playtesting == false) || playtesting == true))
         {
             gameObject.GetComponent<Renderer>().enabled = true;
             if (isInvulnerable == true)
@@ -2008,6 +2025,7 @@ public class Box : MonoBehaviour
         inputs.inputsEnabled = false;
         while (timer < window)
         {
+            inputs.inputsEnabled = false;
             forceInputsDisabled = true;
             timer += Time.deltaTime;
             yield return null;

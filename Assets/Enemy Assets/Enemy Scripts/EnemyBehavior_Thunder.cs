@@ -52,6 +52,8 @@ public class EnemyBehavior_Thunder : MonoBehaviour
     List<Color> enemyColors;
     bool releaseFlashCR = false;
 
+    bool aggroActive = false;
+
     public bool debugLines = false;
 
 
@@ -257,6 +259,26 @@ public class EnemyBehavior_Thunder : MonoBehaviour
                 enemyRB.AddForce(Vector2.right * forceDirectionX * force);
             }
             enemyRB.AddForce(Vector2.up * forceDirectionY * force);
+        }
+
+        //aggro
+        if (EM.aggroCurrentlyActive && aggroActive == false)
+        {
+            aggroActive = true;
+
+            thunderRadius *= EM.aggroIncreaseMult;
+            thunderDamage *= EM.aggroIncreaseMult;
+            timeToMove *= EM.aggroDecreaseMult;
+            maxMoveForce *= EM.aggroIncreaseMult;
+        }
+        if (EM.aggroCurrentlyActive == false && aggroActive)
+        {
+            aggroActive = false;
+
+            thunderRadius /= EM.aggroIncreaseMult;
+            thunderDamage /= EM.aggroIncreaseMult;
+            timeToMove /= EM.aggroDecreaseMult;
+            maxMoveForce /= EM.aggroIncreaseMult;
         }
     }
     private void OnCollisionEnter2D(Collision2D collision)

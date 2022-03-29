@@ -69,6 +69,7 @@ public class BattlegroundManager : MonoBehaviour
 
     public GameObject wizardShield;
     public GameObject wizardPulse;
+    public GameObject wizardAggro;
 
     public GameObject thunderGuy;
 
@@ -78,17 +79,17 @@ public class BattlegroundManager : MonoBehaviour
 
     int flyingShooter1Points = 2;
     int flyingShooter2Points = 4;
-    int flyingShooter3Points = 11;
+    int flyingShooter3Points = 7;
 
     int flyingSniper1Points = 3;
     int flyingSniper2Points = 5;
-    int flyingSniper3Points = 12;
+    int flyingSniper3Points = 8;
 
     int flyingKamikaze1Points = 2;
 
     int flyingShotgun1Points = 3;
     int flyingShotgun2Points = 5;
-    int flyingShotgun3Points = 12;
+    int flyingShotgun3Points = 8;
 
     int groundedVehicle1Points = 10;
     int groundedVehicle2Points = 14;
@@ -96,10 +97,11 @@ public class BattlegroundManager : MonoBehaviour
 
     int mountedTurret1Points = 7;
     int mountedTurret2Points = 12;
-    int mountedTurret3Points = 16;
+    int mountedTurret3Points = 13;
 
     int wizardShieldPoints = 7;
     int wizardPulsePoints = 7;
+    int wizardAggroPoints = 7;
 
     int thunderGuyPoints = 9;
 
@@ -131,6 +133,7 @@ public class BattlegroundManager : MonoBehaviour
 
     Enemy wizardLvl1;
     Enemy wizardLvl2;
+    Enemy wizardLvl3;
 
     Enemy thunderGuyLvl1;
 
@@ -159,8 +162,17 @@ public class BattlegroundManager : MonoBehaviour
     int boxLM;
     int enemyLM;
 
+    public static bool gameOver = false;
+    bool deathActive = false;
+    Box boxScript;
+
     void Start()
     {
+        UIManager.stopClock = false;
+        gameOver = false;
+        deathActive = false;
+        boxScript = GameObject.Find("Box").GetComponent<Box>();
+
         obstacleLM = LayerMask.GetMask("Obstacles");
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
         boxLM = LayerMask.GetMask("Box");
@@ -202,6 +214,7 @@ public class BattlegroundManager : MonoBehaviour
 
         wizardLvl1 = new Enemy(wizardShield, wizardShieldPoints);
         wizardLvl2 = new Enemy(wizardPulse, wizardPulsePoints);
+        wizardLvl3 = new Enemy(wizardAggro, wizardAggroPoints);
 
         thunderGuyLvl1 = new Enemy(thunderGuy, thunderGuyPoints);
 
@@ -212,7 +225,7 @@ public class BattlegroundManager : MonoBehaviour
         flyingShotgun = new EnemyType(flyingShotgunLvl1, flyingShotgunLvl2, flyingShotgunLvl3);
         groundedVehicle = new EnemyType(groundedVehicleLvl1, groundedVehicleLvl2, groundedVehicleLvl3);
         mountedTurret = new EnemyType(mountedTurretLvl1, mountedTurretLvl2, mountedTurretLvl3);
-        wizard = new EnemyType(wizardLvl1, wizardLvl2, wizardLvl1);
+        wizard = new EnemyType(wizardLvl1, wizardLvl2, wizardLvl3);
         thunder = new EnemyType(thunderGuyLvl1, thunderGuyLvl1, thunderGuyLvl1);
 
         enemies.Add(groundedEnemy); //0
@@ -231,6 +244,7 @@ public class BattlegroundManager : MonoBehaviour
         Box.boxHealth = 100;
         UIManager.initialHealth = 250; //250
 
+        addToHiScores = false;
         if ((wave == 0 && Box.boxHealth == 250) || (wave == 14 && Box.boxHealth == 100))
         {
             addToHiScores = true;
@@ -257,6 +271,12 @@ public class BattlegroundManager : MonoBehaviour
                 Debug.Log("Wave Finished");
                 StartCoroutine(RoundStart());
             }
+        }
+
+        if (Box.boxHealth <= 0 && deathActive == false)
+        {
+            deathActive = true;
+            StartCoroutine(Death());
         }
     }
 
@@ -351,7 +371,7 @@ public class BattlegroundManager : MonoBehaviour
             {
                 continue;
             }
-            //no wizards if below wave 17 or if it's the first enemy spawned. If there's already two shield wizards, turn them to pulse wizards.
+            //no wizards before wave 17, can't be the first enemy spawned, and can't be more than three. Will also randomly select difficulty irrespective of above
             if (enemyTypeSelected == 7)
             {
                 if (wave < 17 || wavePoints == (int)Mathf.Floor(wave * wavePointMult) || wizards > 2)
@@ -362,11 +382,24 @@ public class BattlegroundManager : MonoBehaviour
                 {
                     wizards++;
                 }
+                enemyDifficulty = Random.Range(1, 4);
+                if (enemyDifficulty == 1)
+                {
+                    enemySelected = enemies[enemyTypeSelected].enemylvl1;
+                }
+                if (enemyDifficulty == 2)
+                {
+                    enemySelected = enemies[enemyTypeSelected].enemylvl2;
+                }
+                else if (enemyDifficulty == 3)
+                {
+                    enemySelected = enemies[enemyTypeSelected].enemylvl3;
+                }
             }
-            //no grounded vehicles before wave 15 (besides scripted one on wave 10)
+            //no grounded vehicles before wave 15 (besides scripted one on wave 10), and max of one
             if (enemies[enemyTypeSelected] == groundedVehicle && wave < 15)
             {
-                if (wave < 15 || (wave < 25 && groundedVehicles > 0))
+                if (wave < 15 || (wave < 25 && groundedVehicles > 0 && groundedVehicles < 2))
                 {
                     continue;
                 }
@@ -453,6 +486,10 @@ public class BattlegroundManager : MonoBehaviour
             {
                 enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
                 if (spawnedEnemies.Count >= 3)
+                {
+                    enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                }
+                if (spawnedEnemies.Count >= 5)
                 {
                     wavePoints = 0;
                 }
@@ -698,5 +735,37 @@ public class BattlegroundManager : MonoBehaviour
 
             Instantiate(perk, spawnCoordinates, Quaternion.identity);
         }
+    }
+    IEnumerator Death()
+    {
+        UIManager.stopClock = true;
+        StartCoroutine(boxScript.DisableInputs(5));
+        float timer = 0;
+        float window = 0.4f;
+        boxScript.GetComponent<Renderer>().sortingLayerName = "Dead Enemy";
+        FindObjectOfType<CameraFollowBox>().overridePosition = true;
+        FindObjectOfType<CameraFollowBox>().forcedPosition = FindObjectOfType<CameraFollowBox>().transform.position;
+        while (timer < window)
+        {
+            boxScript.GetComponent<BoxCollider2D>().enabled = false;
+            boxScript.GetComponent<Rigidbody2D>().gravityScale = 0;
+            boxScript.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            boxScript.GetComponent<Rigidbody2D>().angularVelocity = 0;
+            BoxVelocity.velocitiesX[0] = 0;
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        boxScript.GetComponent<Rigidbody2D>().gravityScale = 6;
+        boxScript.GetComponent<Rigidbody2D>().velocity = Vector2.up * 17;
+        boxScript.GetComponent<Rigidbody2D>().angularVelocity = 1000;
+        boxScript.GetComponent<Rigidbody2D>().angularDrag = 0;
+        timer = 0;
+        window = 2f;
+        while (timer < window)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        gameOver = true;
     }
 }

@@ -4,8 +4,12 @@ using UnityEngine;
 
 public class Aura : MonoBehaviour
 {
-    [HideInInspector] public bool breakShield = false;
-    bool breakShieldActive = false;
+    [HideInInspector] public bool breakAura = false;
+    bool breakAuraActive = false;
+
+    public bool shield = false;
+    public bool aggro = false;
+
     EnemyManager enemyManager;
 
     // Start is called before the first frame update
@@ -17,7 +21,7 @@ public class Aura : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (breakShieldActive == false && breakShield == true)
+        if (breakAuraActive == false && (breakAura == true || enemyManager.enemyWasKilled == true))
         {
             StartCoroutine(BreakShield());
         }
@@ -25,7 +29,7 @@ public class Aura : MonoBehaviour
 
     IEnumerator BreakShield()
     {
-        breakShieldActive = true;
+        breakAuraActive = true;
         while (enemyManager.hitstopImpactActive == true)
         {
             yield return null;

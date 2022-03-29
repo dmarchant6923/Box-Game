@@ -43,7 +43,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     bool moveFromBox = false;
     bool isCornered = false;
     float corneredTime = 0;
-    float corneredTimeToDash = 0.5f;
+    float corneredTimeToDash = 0.4f;
     [HideInInspector] public float movingPlatformsExtraWalkSpeed = 0;
 
     float flippedTime = 0;
@@ -115,6 +115,8 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     int boxLM;
     int groundLM;
     int obstacleAndBoxLM;
+
+    bool aggroActive = false;
 
     public bool debugLinesEnabled = false;
 
@@ -235,10 +237,6 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             }
         }
 
-
-
-
-
         //flip vehicle back upright
         if (flippedTime >= timeTilFlip)
         {
@@ -251,6 +249,65 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             {
                 enemyRB.angularVelocity = -180 - (bodyRotationAngle - 100) * 1.5f;
             }
+        }
+
+        //aggro
+        if (EM.aggroCurrentlyActive && aggroActive == false)
+        {
+            aggroActive = true;
+
+            moveToBoxRadius *= EM.aggroIncreaseMult;
+            attackBoxRadius *= EM.aggroIncreaseMult;
+            moveFromBoxRadius *= EM.aggroIncreaseMult;
+
+            maxHorizSpeed *= EM.aggroIncreaseMult;
+            moveForce *= EM.aggroIncreaseMult;
+
+            dashAttackSpeed *= EM.aggroIncreaseMult;
+            dashAttackDamage *= EM.aggroIncreaseMult;
+            corneredTimeToDash *= EM.aggroDecreaseMult;
+
+            timeTilFlip *= EM.aggroDecreaseMult;
+
+            bulletsPerVolley += 2;
+            bulletDamage *= EM.aggroIncreaseMult;
+            bulletSpeed *= EM.aggroIncreaseMult;
+            bulletDespawnTime *= EM.aggroIncreaseMult;
+            shootTimeInterval *= EM.aggroDecreaseMult;
+            shootDelay *= EM.aggroDecreaseMult;
+            shootCoolDown *= EM.aggroDecreaseMult;
+
+            shootingAngularVelocity *= EM.aggroIncreaseMult;
+            regularAngularVelocity *= EM.aggroIncreaseMult;
+
+        }
+        if (EM.aggroCurrentlyActive == false && aggroActive)
+        {
+            aggroActive = false;
+
+            moveToBoxRadius /= EM.aggroIncreaseMult;
+            attackBoxRadius /= EM.aggroIncreaseMult;
+            moveFromBoxRadius /= EM.aggroIncreaseMult;
+
+            maxHorizSpeed /= EM.aggroIncreaseMult;
+            moveForce /= EM.aggroIncreaseMult;
+
+            dashAttackSpeed /= EM.aggroIncreaseMult;
+            dashAttackDamage /= EM.aggroIncreaseMult;
+            corneredTimeToDash /= EM.aggroDecreaseMult;
+
+            timeTilFlip /= EM.aggroDecreaseMult;
+
+            bulletsPerVolley -= 2;
+            bulletDamage /= EM.aggroIncreaseMult;
+            bulletSpeed /= EM.aggroIncreaseMult;
+            bulletDespawnTime /= EM.aggroIncreaseMult;
+            shootTimeInterval /= EM.aggroDecreaseMult;
+            shootDelay /= EM.aggroDecreaseMult;
+            shootCoolDown /= EM.aggroDecreaseMult;
+
+            shootingAngularVelocity /= EM.aggroIncreaseMult;
+            regularAngularVelocity /= EM.aggroIncreaseMult;
         }
     }
 
@@ -410,7 +467,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         }
 
         //attacks
-        if (canSeeBox == true && enemyRC_AttackBox.collider != null && explosionDeathActive == false)
+        if (canSeeBox == true && enemyRC_AttackBox.collider != null && explosionDeathActive == false && EM.initialDelay == false)
         {
             if (turretCRActive == false && isDashing == false && enemyIsGrounded)
             {
@@ -421,7 +478,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
                 StartCoroutine(PlaceMines());
             }
         }
-        if (canSeeBox && enraged && turretCRActive == false && isDashing == false && enemyIsGrounded)
+        if (canSeeBox && enraged && turretCRActive == false && isDashing == false && enemyIsGrounded && EM.initialDelay == false)
         {
             StartCoroutine(ShootTurret());
         }
@@ -483,7 +540,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
                 }
             }
             if (corneredTime >= corneredTimeToDash && (turretCoolDown == true || turretCRActive == false)
-                && isDashing == false && enemyRC_DashAttack.collider != null && dashAttack == true)
+                && isDashing == false && enemyRC_DashAttack.collider != null && dashAttack == true && EM.initialDelay == false)
             {
                 StartCoroutine(Dash());
                 isCornered = false;
@@ -805,6 +862,10 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             newBullet.GetComponent<BulletScript>().bulletDamage = bulletDamage;
             newBullet.GetComponent<Rigidbody2D>().velocity = (realTurretVector +
                 Vector2.Perpendicular(realTurretVector) * Mathf.Sin(bulletSpread * Mathf.PI / 180)).normalized * bulletSpeed;
+            if (aggroActive)
+            {
+                newBullet.GetComponent<BulletScript>().aggro = true;
+            }
 
             if (shootTimeInterval > 0.2f)
             {

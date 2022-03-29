@@ -5,6 +5,7 @@ using UnityEngine;
 public class BlastZone : MonoBehaviour
 {
     Box boxScript;
+    public bool normalRestart = true;
 
     // Start is called before the first frame update
     void Start()
@@ -16,7 +17,6 @@ public class BlastZone : MonoBehaviour
     {
         if (1 << collision.gameObject.layer == LayerMask.GetMask("Box"))
         {
-            StartCoroutine(boxScript.BlastZoneRestart());
             Box.boxHealth = 0;
             if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
             {
@@ -24,6 +24,14 @@ public class BlastZone : MonoBehaviour
                 camScript.startCamShake = true;
                 camScript.shakeInfo = new Vector2(20, 5);
             }
+            if (normalRestart)
+            {
+                StartCoroutine(boxScript.BlastZoneRestart());
+            }
+        }
+        if (collision.GetComponent<EnemyManager>() != null)
+        {
+            collision.GetComponent<EnemyManager>().startEnemyDeath = true;
         }
     }
 }

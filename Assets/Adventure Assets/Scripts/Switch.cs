@@ -14,8 +14,10 @@ public class Switch : MonoBehaviour
     float itemsInTrigger = 0;
 
     public bool pressToRelease = false;
+    public bool triggerOnRelease = true;
 
     public bool hitSwitch = false;
+    public bool groundSwitch = false;
 
     public bool boxCanActivate = true;
     public bool enemiesCanActivate = false;
@@ -34,7 +36,7 @@ public class Switch : MonoBehaviour
 
     void Start()
     {
-        if (hitSwitch == false)
+        if (hitSwitch == false && groundSwitch == false)
         {
             button = transform.GetChild(0);
             initialColor = button.GetComponent<SpriteRenderer>().color;
@@ -53,7 +55,7 @@ public class Switch : MonoBehaviour
     }
     public void Activate()
     {
-        if (hitSwitch == false)
+        if (hitSwitch == false && groundSwitch == false)
         {
             button.localScale = new Vector2(button.localScale.x, initialYScale * 0.4f);
             button.localPosition = new Vector2(button.localPosition.x, initialYPosition - 0.1f);
@@ -65,7 +67,7 @@ public class Switch : MonoBehaviour
 
     public void Deactivate()
     {
-        if (hitSwitch == false)
+        if (hitSwitch == false && groundSwitch == false)
         {
             button.localScale = new Vector2(button.localScale.x, initialYScale);
             button.localPosition = new Vector2(button.localPosition.x, initialYPosition);
@@ -73,6 +75,17 @@ public class Switch : MonoBehaviour
         }
         active = false;
         Action(-value);
+    }
+
+    void softRelease()
+    {
+        if (hitSwitch == false && groundSwitch == false)
+        {
+            button.localScale = new Vector2(button.localScale.x, initialYScale);
+            button.localPosition = new Vector2(button.localPosition.x, initialYPosition);
+            button.GetComponent<SpriteRenderer>().color = initialColor;
+        }
+        active = false;
     }
 
     public void Action(int value)
@@ -94,6 +107,14 @@ public class Switch : MonoBehaviour
             if (item != null && item.GetComponent<BattleSpawner>() != null)
             {
                 item.GetComponent<BattleSpawner>().Trigger();
+            }
+            if (item != null && item.GetComponent<GroundSwitch>() != null)
+            {
+                item.GetComponent<GroundSwitch>().Trigger(true);
+            }
+            if (item != null && item.GetComponent<Teleport>() != null)
+            {
+                item.GetComponent<Teleport>().Trigger();
             }
         }
     }
@@ -125,7 +146,14 @@ public class Switch : MonoBehaviour
             itemsInTrigger--;
             if (releaseOnExit && itemsInTrigger == 0)
             {
-                Deactivate();
+                if (triggerOnRelease)
+                {
+                    Deactivate();
+                }
+                else
+                {
+                    softRelease();
+                }
             }
         }
     }

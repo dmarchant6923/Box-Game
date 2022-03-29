@@ -64,7 +64,7 @@ public class BattlegroundUI : MonoBehaviour
         roundText.text = "Round: " + wave;
 
 
-        if (Box.boxHealth <= 0 && gameIsOver == false)
+        if (BattlegroundManager.gameOver && gameIsOver == false)
         {
             UIManager.canPause = false;
             gameIsOver = true;

@@ -164,11 +164,13 @@ public class BattlegroundManager : MonoBehaviour
 
     public static bool gameOver = false;
     bool deathActive = false;
+
     Box boxScript;
 
     void Start()
     {
         UIManager.stopClock = false;
+        UIManager.killToPulse = true;
         gameOver = false;
         deathActive = false;
         boxScript = GameObject.Find("Box").GetComponent<Box>();
@@ -264,6 +266,10 @@ public class BattlegroundManager : MonoBehaviour
                     spawnedEnemies.RemoveAt(i);
                     Debug.Log("Spawned enemies: " + spawnedEnemies.Count);
                     enemiesKilled++;
+                    if (UIManager.killToPulse)
+                    {
+                        UIManager.pulseNoKill = false;
+                    }
                 }
             }
             if (spawnedEnemies.Count == 0)

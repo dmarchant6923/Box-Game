@@ -55,7 +55,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
     Color initialAuraColor;
     bool auraCheck = false;
     float auraCheckColorSpeed = 2;
-    float auraRadius = 5.5f;
+    public float auraRadius = 5.5f;
     public float auraCheckPeriod = 3.5f;
     bool checkThisFrame = false;
     bool enemyFadeActive = false;

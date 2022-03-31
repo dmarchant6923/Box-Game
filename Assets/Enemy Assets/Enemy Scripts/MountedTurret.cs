@@ -421,7 +421,7 @@ public class MountedTurret : MonoBehaviour
             delayBeforeShooting *= EM.aggroDecreaseMult;
             restTime *= EM.aggroDecreaseMult;
 
-            bulletsPerAttack += 2;
+            Mathf.FloorToInt(bulletsPerAttack * EM.aggroIncreaseMult);
             bulletDamage *= EM.aggroIncreaseMult;
             bulletInterval *= EM.aggroDecreaseMult;
             bulletSpeed *= EM.aggroIncreaseMult;
@@ -433,6 +433,16 @@ public class MountedTurret : MonoBehaviour
 
             laserDuration *= EM.aggroIncreaseMult;
             laserDOT *= EM.aggroIncreaseMult;
+            if (fireLaserBeam)
+            {
+                Color centerColor = laserCenter.startColor;
+                centerColor.g *= 0.8f; centerColor.b *= 0.8f;
+                laserCenter.startColor = centerColor; laserCenter.endColor = centerColor;
+
+                Color beamColor = laserBeam.startColor;
+                beamColor.b *= 0.5f;
+                laserBeam.startColor = beamColor; laserBeam.endColor = beamColor;
+            }
 
         }
         if (EM.aggroCurrentlyActive == false && aggroActive == true)
@@ -446,7 +456,7 @@ public class MountedTurret : MonoBehaviour
             delayBeforeShooting /= EM.aggroDecreaseMult;
             restTime /= EM.aggroDecreaseMult;
 
-            bulletsPerAttack -= 2;
+            Mathf.CeilToInt(bulletsPerAttack / EM.aggroIncreaseMult);
             bulletDamage /= EM.aggroIncreaseMult;
             bulletInterval /= EM.aggroDecreaseMult;
             bulletSpeed /= EM.aggroIncreaseMult;
@@ -458,6 +468,16 @@ public class MountedTurret : MonoBehaviour
 
             laserDuration /= EM.aggroIncreaseMult;
             laserDOT /= EM.aggroIncreaseMult;
+            if (fireLaserBeam)
+            {
+                Color centerColor = laserCenter.startColor;
+                centerColor.g /= 0.8f; centerColor.b /= 0.8f;
+                laserCenter.startColor = centerColor; laserCenter.endColor = centerColor;
+
+                Color beamColor = laserBeam.startColor;
+                beamColor.b /= 0.5f;
+                laserBeam.startColor = beamColor; laserBeam.endColor = beamColor;
+            }
         }
     }
 

@@ -418,7 +418,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
 
             bulletSpeed *= EM.aggroIncreaseMult;
             bulletDamage *= EM.aggroIncreaseMult;
-            bulletsPerAttack += 2;
+            bulletsPerAttack = Mathf.FloorToInt(bulletsPerAttack * EM.aggroIncreaseMult);
             bulletDespawnTime *= EM.aggroIncreaseMult;
 
             shootTimeInterval *= EM.aggroDecreaseMult;
@@ -442,7 +442,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
 
             bulletSpeed /= EM.aggroIncreaseMult;
             bulletDamage /= EM.aggroIncreaseMult;
-            bulletsPerAttack -= 2;
+            bulletsPerAttack = Mathf.CeilToInt(bulletsPerAttack / EM.aggroIncreaseMult);
             bulletDespawnTime /= EM.aggroIncreaseMult;
 
             shootTimeInterval /= EM.aggroDecreaseMult;

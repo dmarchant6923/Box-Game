@@ -15,6 +15,14 @@ PrefabInstance:
       propertyPath: shield
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1711245105945069985, guid: 47291ce61936d6048adea8da1795d003, type: 3}
+      propertyPath: auraRadius
+      value: 6.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1711245105945069985, guid: 47291ce61936d6048adea8da1795d003, type: 3}
+      propertyPath: auraCheckPeriod
+      value: 2.5
+      objectReference: {fileID: 0}
     - target: {fileID: 3368789027889391536, guid: 47291ce61936d6048adea8da1795d003, type: 3}
       propertyPath: m_Color.b
       value: 0.2

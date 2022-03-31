@@ -48,8 +48,11 @@ public class UIManager : MonoBehaviour
 
     public GameObject pulse;
     public Image pulseBar;
+    public Image pulseBackgroundImage;
     float pulseBarInitialWidth;
     bool pulseBarRefill = false;
+    public static bool killToPulse = false;
+    public static bool pulseNoKill = false;
 
     public GameObject teleport;
     public Image teleportBar;
@@ -60,6 +63,7 @@ public class UIManager : MonoBehaviour
     Color starPowerColor;
     Color teleBarInitialColor;
     Color pulseBarInitialColor;
+    Color pulseBackgroundInitialColor;
     Color dashBarInitialColor;
     Color dashBackgroundInitialColor;
 
@@ -90,6 +94,7 @@ public class UIManager : MonoBehaviour
         starPowerColor = new Color(1, 1, 0.5f);
         teleBarInitialColor = teleportBar.color;
         pulseBarInitialColor = pulseBar.color;
+        pulseBackgroundInitialColor = pulseBackgroundImage.color;
         dashBarInitialColor = dashBar.color;
         dashBackgroundInitialColor = dashBackgroundImage.color;
 
@@ -220,6 +225,27 @@ public class UIManager : MonoBehaviour
             dashBar.color = new Color(dashBar.color.r / colorMult, dashBar.color.g / colorMult, dashBar.color.b / colorMult);
             dashBackgroundImage.color = new Color(dashBackgroundImage.color.r / colorMult, dashBackgroundImage.color.g / colorMult, dashBackgroundImage.color.b / colorMult);
         }
+
+        if (killToPulse)
+        {
+            if (Box.pulseActive)
+            {
+                pulseNoKill = true;
+                Box.pulseUnlocked = false;
+            }
+
+            pulseBackgroundImage.color = pulseBackgroundInitialColor;
+            if (pulseNoKill)
+            {
+                float colorMult = 2.5f;
+                pulseBar.color = new Color(pulseBar.color.r / colorMult, pulseBar.color.g / colorMult, pulseBar.color.b / colorMult);
+                pulseBackgroundImage.color = new Color(pulseBackgroundImage.color.r / colorMult, pulseBackgroundImage.color.g / colorMult, pulseBackgroundImage.color.b / colorMult);
+            }
+            else
+            {
+                Box.pulseUnlocked = true;
+            }
+        }
     }
 
     IEnumerator DashBarRefill()
@@ -298,6 +324,7 @@ public class UIManager : MonoBehaviour
         pulseBar.transform.localScale = new Vector2(pulseBarInitialWidth, pulseBar.transform.localScale.y);
         pulseBarRefill = false;
     }
+
     IEnumerator CycleSelect()
     {
         cycleCRActive = true;

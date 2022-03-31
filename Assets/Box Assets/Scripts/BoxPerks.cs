@@ -30,11 +30,11 @@ public class BoxPerks : MonoBehaviour
     [HideInInspector] public static bool activateSpeed = false;
     [HideInInspector] public static bool speedActive = false;
     float speedMult = 1.2f;
-    float speedActiveTime = 10;
+    float speedActiveTime = 12;
 
     [HideInInspector] public static bool activateShield = false;
     [HideInInspector] public static bool shieldActive = false;
-    float shieldActiveTime = 20;
+    float shieldActiveTime = 25;
 
     [HideInInspector] public static bool activateHeavy = false;
     [HideInInspector] public static bool heavyActive = false;
@@ -51,7 +51,7 @@ public class BoxPerks : MonoBehaviour
     [HideInInspector] public static bool starActive = false;
     float starMult = 1.15f;
     [HideInInspector] public static float starCDMult = 0.18f;
-    float starActiveTime = 8;
+    float starActiveTime = 10;
     [HideInInspector] public static bool starDeactivated = false;
 
     void Start()

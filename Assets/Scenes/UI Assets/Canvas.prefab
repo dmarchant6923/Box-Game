@@ -748,6 +748,7 @@ MonoBehaviour:
   dashBackgroundImage: {fileID: 307205296820675125}
   pulse: {fileID: 3311330948048598991}
   pulseBar: {fileID: 7258485822423738906}
+  pulseBackgroundImage: {fileID: 1478080576318929850}
   teleport: {fileID: 3399266802289634565}
   teleportBar: {fileID: 8839037915806437354}
 --- !u!114 &2576978001787236924

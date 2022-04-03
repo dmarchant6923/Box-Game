@@ -245,6 +245,12 @@ public class UIManager : MonoBehaviour
             {
                 Box.pulseUnlocked = true;
             }
+
+            if (BoxPerks.starActive)
+            {
+                pulseNoKill = false;
+                Box.pulseUnlocked = true;
+            }
         }
     }
 

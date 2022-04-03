@@ -244,14 +244,14 @@ public class BattlegroundManager : MonoBehaviour
         enemiesKilled = 0;
 
         Box.boxHealth = 100;
-        UIManager.initialHealth = 250; //250
+        UIManager.initialHealth = (int) maxHealth; //250
 
         addToHiScores = false;
         if ((wave == 0 && Box.boxHealth == 250) || (wave == 14 && Box.boxHealth == 100))
         {
             addToHiScores = true;
         }
-
+        
         StartCoroutine(RoundStart());
     }
 

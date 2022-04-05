@@ -35,7 +35,10 @@ public class OneWayObstacle : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Physics2D.IgnoreCollision(collision, boxCollider, true);
+        if ((collision.GetComponent<Box>() != null && Box.boxHitstopActive == false) || collision.GetComponent<Box>() == null)
+        {
+            Physics2D.IgnoreCollision(collision, boxCollider, true);
+        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)

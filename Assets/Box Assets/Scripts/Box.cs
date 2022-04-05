@@ -38,7 +38,6 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static bool isCrouching = false;
     float crouchScale = 0.6f;
     bool deactivateCrouch = false;
-    RaycastHit2D crouchRayCast;
     float crouchAccel = 25;
     Vector2 originalScale;
 
@@ -140,6 +139,7 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static float enemyHitstopDelay = 0.12f; //how long hitstop lasts for enemies
     [HideInInspector] public static float boxHitstopDelay;
     [HideInInspector] public static float boxHitstopDelayMult = 0.1f/30;
+    [HideInInspector] public static float shockHitstopMult = 2.5f;
     [System.NonSerialized] public static bool enemyHitstopActive = false; //whether or not histop from hitting the enemy is currently active
     [System.NonSerialized] public static bool boxHitstopActive = false; //whether or not hitstop from the box getting hit is currently active
     float hitstopRotationSlowDown = 30; //used for the still rotating effect during hitstop
@@ -340,7 +340,7 @@ public class Box : MonoBehaviour
                 transform.position = new Vector2(transform.position.x, transform.position.y - (originalScale.y * (1 - crouchScale)) / 2);
                 transform.localScale = new Vector2(originalScale.x, originalScale.y * crouchScale);
             }
-            if (inputs.leftStick.y > crouchThreshold && crouchRayCast.collider == null && isCrouching == true)
+            if (inputs.leftStick.y > crouchThreshold && isCrouching == true)
             {
                 deactivateCrouch = true;
             }
@@ -350,8 +350,6 @@ public class Box : MonoBehaviour
                 //crouch movements
                 if (isCrouching == true)
                 {
-                    crouchRayCast = Physics2D.BoxCast(new Vector2(transform.position.x, transform.position.y + originalScale.y / 2),
-                        new Vector2(originalScale.x / 2, originalScale.y / 4), 0, Vector2.down, 0f, LayerMask.GetMask("Obstacles"));
                     if (inputs.leftStick.x > 0.1f)
                     {
                         //set horizontal velocity to 0 when inputting right while moving left
@@ -459,7 +457,7 @@ public class Box : MonoBehaviour
             }
         }
         //turn crouch off when isGrounded = false
-        if (isCrouching == true && crouchRayCast.collider == null && (isGrounded == false || deactivateCrouch == true))
+        if (isCrouching == true && (isGrounded == false || deactivateCrouch == true))
         {
             transform.localScale = new Vector2(originalScale.x, originalScale.y);
             transform.position = new Vector2(transform.position.x, transform.position.y + (originalScale.y * (1 - crouchScale)) / 2);
@@ -738,7 +736,8 @@ public class Box : MonoBehaviour
         }
         //activate box hitbox
         if ((spinAttackActive && damageActive == false) || Mathf.Abs(BoxVelocity.velocitiesX[0]) >= dashSpeed * 0.95f ||
-            ((Mathf.Abs(rigidBody.velocity.x) >= 15 || rigidBody.velocity.y >= 15 || rigidBody.velocity.y < maxFallSpeed * 1.05f) && damageActive && ignoreProjectileDamage == false) || 
+            ((Mathf.Abs(rigidBody.velocity.x) >= 15 || rigidBody.velocity.y >= 15 || rigidBody.velocity.y < maxFallSpeed * 1.05f) && 
+            damageActive && boxHitstopActive == false && ignoreProjectileDamage == false) || 
             enemyHitstopActive == true || BoxPerks.spikesActive || BoxPerks.starActive)
         {
             boxHitboxActive = true;
@@ -809,7 +808,7 @@ public class Box : MonoBehaviour
                     boxHitstopDelay = 0.1f + Mathf.Min(damageTaken, 200) * boxHitstopDelayMult;
                     if (shockActive)
                     {
-                        boxHitstopDelay *= 2.5f;
+                        boxHitstopDelay *= shockHitstopMult;
                     }
                     StartCoroutine(HitstopImpact(damageTaken));
                     if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)

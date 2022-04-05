@@ -96,25 +96,29 @@ public class Switch : MonoBehaviour
             {
                 item.GetComponent<Door>().Trigger(value);
             }
-            if (item != null && item.GetComponent<MovingObjects>() != null)
+            else if (item != null && item.GetComponent<MovingObjects>() != null)
             {
                 item.GetComponent<MovingObjects>().Trigger();
             }
-            if (item != null && item.GetComponent<CommandMove>() != null)
+            else if (item != null && item.GetComponent<CommandMove>() != null)
             {
                 item.GetComponent<CommandMove>().Trigger();
             }
-            if (item != null && item.GetComponent<BattleSpawner>() != null)
+            else if (item != null && item.GetComponent<BattleSpawner>() != null)
             {
                 item.GetComponent<BattleSpawner>().Trigger();
             }
-            if (item != null && item.GetComponent<GroundSwitch>() != null)
+            else if (item != null && item.GetComponent<GroundSwitch>() != null)
             {
                 item.GetComponent<GroundSwitch>().Trigger(true);
             }
-            if (item != null && item.GetComponent<Teleport>() != null)
+            else if (item != null && item.GetComponent<Teleport>() != null)
             {
                 item.GetComponent<Teleport>().Trigger();
+            }
+            else if (item != null && item.GetComponent<OneWayObstacle>() != null)
+            {
+                item.GetComponent<OneWayObstacle>().Trigger();
             }
         }
     }

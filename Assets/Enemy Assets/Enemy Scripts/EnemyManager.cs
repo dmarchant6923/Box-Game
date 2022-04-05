@@ -135,6 +135,36 @@ public class EnemyManager : MonoBehaviour
             inBoxLOS = false;
         }
 
+        if (activateShock)
+        {
+            if (shockActive == false && canBeShocked && shockCoolDown == false)
+            {
+                shockCoolDown = true;
+                shockActive = true;
+                StartCoroutine(Shock());
+            }
+            activateShock = false;
+        }
+        if (shockActive && touchingThisEnemy && hitstopImpactActive == false)
+        {
+            if (physicalHitboxActive)
+            {
+                StartCoroutine(DelayShockDeactivate());
+            }
+            else if (Box.isInvulnerable == false)
+            {
+                Box.damageTaken = Lightning.contactDamage;
+                Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
+                Box.activateDamage = true;
+                Box.activateShock = true;
+                StartCoroutine(HitstopImpact(Lightning.contactDamage * Box.boxHitstopDelayMult * 2.5f));
+            }
+            else
+            {
+                shockActive = false;
+            }
+        }
+
         if ((enemyWasDamaged == true && shieldCurrentlyActive == false) || instantKill)
         {
             if (enemyIsInvulnerable == false || instantKill)
@@ -148,7 +178,10 @@ public class EnemyManager : MonoBehaviour
                         scriptsEnabled = false;
                     }
                 }
-                StartCoroutine(HitstopImpact(Box.enemyHitstopDelay));
+                if (hitstopImpactActive == false)
+                {
+                    StartCoroutine(HitstopImpact(Box.enemyHitstopDelay));
+                }
                 enemyIsInvulnerable = true;
             }
             enemyWasDamaged = false;
@@ -189,39 +222,6 @@ public class EnemyManager : MonoBehaviour
             }
             enemyIsInvulnerable = true;
             shieldCurrentlyActive = false;
-        }
-
-        if (activateShock)
-        {
-            if (shockActive == false && canBeShocked && shockCoolDown == false)
-            {
-                shockCoolDown = true;
-                shockActive = true;
-                StartCoroutine(Shock());
-            }
-            activateShock = false;
-        }
-        if (shockActive && touchingThisEnemy && hitstopImpactActive == false)
-        {
-            if (physicalHitboxActive)
-            {
-                StartCoroutine(DelayShockDeactivate());
-            }
-            else if (Box.isInvulnerable == false)
-            {
-                Box.damageTaken = Lightning.contactDamage;
-                Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
-                Box.activateDamage = true;
-                Box.activateShock = true;
-                if (enemyIsInvulnerable == false)
-                {
-                    StartCoroutine(HitstopImpact(Lightning.contactDamage * Box.boxHitstopDelayMult * 2.5f));
-                }
-            }
-            else
-            {
-                shockActive = false;
-            }
         }
 
         if (canSeeItem && exclamationActive == false && enemyWasKilled == false)

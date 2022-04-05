@@ -8,9 +8,10 @@ public class Duplicate : MonoBehaviour
     Transform boxTransform;
     Transform aura;
     SpriteRenderer sprite;
+    public EnemyManager sourceEM;
     public GameObject energy;
     GameObject newEnergy;
-    [System.NonSerialized] float secondsBehind = 2f;
+    public float secondsBehind = 6f;
     List<Vector2> boxPositionArray = new List<Vector2>();
     List<float> boxRotationArray = new List<float>();
     List<float> boxYScaleArray = new List<float>();
@@ -20,9 +21,11 @@ public class Duplicate : MonoBehaviour
     float aura1InitialScale;
     float aura2InitialScale;
 
-    public float damage = 30;
+    public float damage = 25;
     bool damagedBox = false;
     bool willDamageBox = false;
+
+    bool aggro = false;
 
     void Start()
     {
@@ -32,7 +35,7 @@ public class Duplicate : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
         int listSize = Mathf.CeilToInt(secondsBehind * 50);
 
-        boxInitialYScale = boxTransform.localScale.y;
+        boxInitialYScale = 0.5f;
         initialYScale = transform.localScale.y;
 
         aura1InitialScale = aura.transform.localScale.y;
@@ -45,7 +48,7 @@ public class Duplicate : MonoBehaviour
             boxYScaleArray.Add(boxTransform.localScale.y);
         }
 
-        Color newColor = new Color(0, 0, 0, 0);
+        Color newColor = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0);
         sprite.color = newColor;
         willDamageBox = false;
         StartCoroutine(InitialDelay());
@@ -55,6 +58,32 @@ public class Duplicate : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (boxRB == null)
+        {
+            death();
+        }
+
+        if (sourceEM.aggroCurrentlyActive && aggro == false)
+        {
+            aggro = true;
+            initialYScale *= 1.5f;
+            transform.localScale = new Vector2(transform.localScale.x * 1.5f, transform.localScale.y);
+            sprite.color = new Color(0.2f, 0, 0, sprite.color.a);
+            aura.GetComponent<SpriteRenderer>().color = new Color(1, 0.8f, 0.8f, aura.GetComponent<SpriteRenderer>().color.a);
+            aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(1, 0.8f, 0.8f, aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color.a);
+            Debug.Log(sprite.color);
+
+        }
+        else if (sourceEM.aggroCurrentlyActive == false && aggro)
+        {
+            aggro = false;
+            initialYScale /= 1.5f;
+            transform.localScale = new Vector2(aura.localScale.x / 1.5f, aura.localScale.y);
+            sprite.color = new Color(0, 0, 0, sprite.color.a);
+            aura.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, aura.GetComponent<SpriteRenderer>().color.a);
+            aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color.a);
+        }
+
         if (damagedBox == false)
         {
             boxPositionArray.Add(boxRB.position);
@@ -82,6 +111,30 @@ public class Duplicate : MonoBehaviour
         }
     }
 
+    void CreateEnergy()
+    {
+        newEnergy = Instantiate(energy);
+        newEnergy.transform.position = transform.position;
+        newEnergy.GetComponent<DuplicateEnergy>().parent = GetComponent<Rigidbody2D>();
+        newEnergy.GetComponent<DuplicateEnergy>().startPosition = Random.insideUnitCircle.normalized * Random.Range(1f, 3f);
+        newEnergy.GetComponent<DuplicateEnergy>().inwards = true;
+    }
+
+    public void death()
+    {
+        for (int i = 0; i < 14; i++)
+        {
+            newEnergy = Instantiate(energy);
+            newEnergy.transform.position = transform.position;
+            newEnergy.transform.localScale *= 1.2f;
+            newEnergy.GetComponent<DuplicateEnergy>().startPosition = Vector2.zero;
+            newEnergy.GetComponent<DuplicateEnergy>().maxDist = 4;
+            newEnergy.GetComponent<DuplicateEnergy>().inwards = false;
+            newEnergy.GetComponent<DuplicateEnergy>().slow = true;
+        }
+        Destroy(gameObject);
+    }
+
     private void OnTriggerStay2D(Collider2D collision)
     {
         if (1 << collision.gameObject.layer == LayerMask.GetMask("Box") && Box.isInvulnerable == false && willDamageBox)
@@ -101,11 +154,13 @@ public class Duplicate : MonoBehaviour
         Color color = sprite.color;
         while (timer < window)
         {
+            color = sprite.color;
             color.a += changeRate * Time.deltaTime;
             sprite.color = color;
             timer += Time.deltaTime;
             yield return null;
         }
+
         color.a = 1;
         sprite.color = color;
         willDamageBox = true;
@@ -113,11 +168,11 @@ public class Duplicate : MonoBehaviour
 
     IEnumerator EnergySpawn()
     {
-        float window = secondsBehind * 0.6f;
+        float window = secondsBehind * 0.8f;
         float timer = 0;
         while (timer < window)
         {
-            float window2 = 0.08f;
+            float window2 = 0.06f;
             float timer2 = 0;
             while (timer2 < window2)
             {
@@ -125,11 +180,23 @@ public class Duplicate : MonoBehaviour
                 timer2 += Time.deltaTime;
                 yield return null;
             }
-            newEnergy = Instantiate(energy, transform);
-            newEnergy.transform.localPosition = Random.insideUnitCircle.normalized * Random.Range(0.8f, 2f);
-            newEnergy.GetComponent<DuplicateEnergy>().inwards = true;
-            Debug.Log("you are here");
+            CreateEnergy();
+        }
+        StartCoroutine(EnergyRelease());
+    }
 
+    IEnumerator EnergyRelease()
+    {
+        while (true)
+        {
+            float window = 0.2f;
+            float timer = 0;
+            while (timer < window)
+            {
+                timer += Time.deltaTime;
+                yield return null;
+            }
+            CreateEnergy();
         }
     }
 
@@ -142,5 +209,36 @@ public class Duplicate : MonoBehaviour
             yield return null;
         }
         damagedBox = false;
+    }
+
+    public IEnumerator DamageFlicker()
+    {
+        Debug.Log("you are here");
+        yield return null;
+        if (sourceEM.enemyWasKilled == false)
+        {
+            while (sourceEM.enemyIsInvulnerable == true)
+            {
+                GetComponent<SpriteRenderer>().enabled = true;
+                aura.GetComponent<SpriteRenderer>().enabled = true;
+                aura.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+
+                if (sourceEM.enemyIsInvulnerable == true)
+                {
+                    yield return new WaitForSeconds(0.12f);
+                }
+                GetComponent<SpriteRenderer>().enabled = false;
+                aura.GetComponent<SpriteRenderer>().enabled = false;
+                aura.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+
+                if (sourceEM.enemyIsInvulnerable == true)
+                {
+                    yield return new WaitForSeconds(0.04f);
+                }
+            }
+            GetComponent<SpriteRenderer>().enabled = true;
+            aura.GetComponent<SpriteRenderer>().enabled = true;
+            aura.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+        }
     }
 }

@@ -5,16 +5,26 @@ using UnityEngine;
 public class DuplicateEnergy : MonoBehaviour
 {
     public bool inwards = true;
-    Vector2 destination;
-    float velocity = 3;
+    float velocity;
+    float initialVelocity;
     int rotateDirection = 1;
     float rotateVelocity = 400;
     SpriteRenderer sprite;
     Color color;
+
+    public Rigidbody2D parent;
+    public Vector2 startPosition;
+    public float maxDist = 2;
+    Transform energy;
+    Vector2 destination;
+    Vector2 randomVector;
+
+    public bool slow = false;
+
     void Start()
     {
-        //transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, Random.Range(0, 90f));
-        sprite = GetComponent<SpriteRenderer>();
+        energy = transform.GetChild(0);
+        sprite = energy.GetComponent<SpriteRenderer>();
         color = sprite.color;
         int rand = Random.Range(0, 2);
         if (rand == 1)
@@ -23,29 +33,50 @@ public class DuplicateEnergy : MonoBehaviour
         }
         rotateVelocity += Random.Range(0, 400f);
         rotateVelocity *= rotateDirection;
+        energy.transform.localPosition = startPosition;
 
-        destination = Random.insideUnitCircle.normalized * Random.Range(0.8f, 2f);
+        destination = Random.insideUnitCircle.normalized * maxDist * Random.Range(0.3f, 1);
+        if (inwards)
+        {
+            initialVelocity = startPosition.magnitude / 0.5f;
+        }
+        else
+        {
+            initialVelocity = destination.magnitude / 0.5f;
+        }
+        if (slow)
+        {
+            initialVelocity *= 0.4f;
+        }
+        velocity = initialVelocity;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (parent != null)
+        {
+            transform.position = parent.position;
+        }
+
         if (inwards)
         {
-            transform.localPosition = Vector2.MoveTowards(transform.localPosition, Vector2.zero, velocity * Time.deltaTime);
+            energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, Vector2.zero, velocity * Time.deltaTime);
         }
         else
         {
-            transform.localPosition = Vector2.MoveTowards(transform.localPosition, destination, velocity * Time.deltaTime);
+
+            energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, destination, velocity * Time.deltaTime);
         }
-        velocity -= Time.deltaTime;
 
-        //transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z + rotateVelocity * Time.deltaTime);
-
-        color.a -= Time.deltaTime;
+        color.a -= Time.deltaTime * 0.25f;
+        if (slow == false)
+        {
+            color.a -= Time.deltaTime * 0.45f;
+        }
         sprite.color = color;
 
-        if (color.a <= 0.05f)
+        if (color.a <= 0.005f)
         {
             Destroy(gameObject);
         }

@@ -73,6 +73,8 @@ public class BattlegroundManager : MonoBehaviour
 
     public GameObject thunderGuy;
 
+    public GameObject dupeWizard;
+
     int groundedEnemy1Points = 1;
     int groundedEnemy2Points = 1;
     int groundedEnemy3Points = 1;
@@ -104,6 +106,8 @@ public class BattlegroundManager : MonoBehaviour
     int wizardAggroPoints = 7;
 
     int thunderGuyPoints = 9;
+
+    int dupeWizardPoints = 9;
 
     Enemy groundedEnemyLvl1;
     Enemy groundedEnemyLvl2;
@@ -137,6 +141,8 @@ public class BattlegroundManager : MonoBehaviour
 
     Enemy thunderGuyLvl1;
 
+    Enemy dupeWizardLvl1;
+
     EnemyType groundedEnemy;
     EnemyType flyingShooter;
     EnemyType flyingSniper;
@@ -146,6 +152,7 @@ public class BattlegroundManager : MonoBehaviour
     EnemyType mountedTurret;
     EnemyType wizard;
     EnemyType thunder;
+    EnemyType duplicate;
 
     List<EnemyType> enemies = new List<EnemyType>();
     List<GameObject> spawnedEnemies = new List<GameObject>();
@@ -220,6 +227,8 @@ public class BattlegroundManager : MonoBehaviour
 
         thunderGuyLvl1 = new Enemy(thunderGuy, thunderGuyPoints);
 
+        dupeWizardLvl1 = new Enemy(dupeWizard, dupeWizardPoints);
+
         groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemylvl3);
         flyingShooter = new EnemyType(flyingShooterLvl1, flyingShooterLvl2, flyingShooterLvl3);
         flyingSniper = new EnemyType(flyingSniperLvl1, flyingSniperLvl2, flyingSniperLvl3);
@@ -229,6 +238,7 @@ public class BattlegroundManager : MonoBehaviour
         mountedTurret = new EnemyType(mountedTurretLvl1, mountedTurretLvl2, mountedTurretLvl3);
         wizard = new EnemyType(wizardLvl1, wizardLvl2, wizardLvl3);
         thunder = new EnemyType(thunderGuyLvl1, thunderGuyLvl1, thunderGuyLvl1);
+        duplicate = new EnemyType(dupeWizardLvl1, dupeWizardLvl1, dupeWizardLvl1);
 
         enemies.Add(groundedEnemy); //0
         enemies.Add(flyingShooter); //1
@@ -239,8 +249,9 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(mountedTurret); //6
         enemies.Add(wizard); //7
         enemies.Add(thunder); //8
+        enemies.Add(duplicate); //9
 
-        wave = 14;
+        wave = 24;
         enemiesKilled = 0;
 
         Box.boxHealth = 100;
@@ -297,6 +308,7 @@ public class BattlegroundManager : MonoBehaviour
         float wavePointMult = 1.5f;
         wavePoints = (int) Mathf.Floor(wave * wavePointMult);
         int wizards = 0;
+        int dupeWizards = 0;
         int groundedVehicles = 0;
 
         while (wavePoints > 0)
@@ -432,6 +444,19 @@ public class BattlegroundManager : MonoBehaviour
             if (enemies[enemyTypeSelected] == thunder && (wave < 20 || wavePoints > 26))
             {
                 continue;
+            }
+            //no duplicate wizards before wave 25
+            if (enemies[enemyTypeSelected] == duplicate)
+            { 
+                if (wave < 25 || dupeWizards >= 1 || wavePoints == (int)Mathf.Floor(wave * wavePointMult))
+                {
+                    Debug.Log("you are here");
+                    continue;
+                }
+                else
+                {
+                    dupeWizards++;
+                }
             }
 
 
@@ -628,7 +653,7 @@ public class BattlegroundManager : MonoBehaviour
 
             RaycastHit2D enemyCircleCheck = Physics2D.CircleCast(spawnCoordinates, 8f, Vector2.zero, 0f, enemyLM);
             RaycastHit2D insideEnemyCirclecheck = Physics2D.CircleCast(spawnCoordinates, 1f, Vector2.zero, 0f, enemyLM);
-            if (enemies[enemyTypeSelected] == wizard || enemies[enemyTypeSelected] == thunder)
+            if (enemies[enemyTypeSelected] == wizard || enemies[enemyTypeSelected] == thunder || enemies[enemyTypeSelected] == duplicate)
             {
                 while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null || 
                     enemyCircleCheck.collider == null || insideEnemyCirclecheck.collider != null)
@@ -684,7 +709,6 @@ public class BattlegroundManager : MonoBehaviour
             newEnemy = Instantiate(enemySelected.enemyObject, spawnCoordinates, Quaternion.identity);
             if (newEnemy.GetComponent<MountedTurret>() != null)
             {
-                Debug.Log("you are here");
                 SpriteRenderer[] sprites = newEnemy.GetComponentsInChildren<SpriteRenderer>();
                 foreach (SpriteRenderer item in sprites)
                 {

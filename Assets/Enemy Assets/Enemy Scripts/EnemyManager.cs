@@ -71,8 +71,6 @@ public class EnemyManager : MonoBehaviour
     List<SpriteRenderer> enemyObjects;
     List<Color> enemyColors;
 
-    [HideInInspector] public bool enemyHitstopActive = false;
-
     public float enemyHealth = 1; //all damage from Box will deal 1 damage
     float invulnerabilityPeriod = 2f;
     float invulnerabilityTime = 0;
@@ -157,7 +155,7 @@ public class EnemyManager : MonoBehaviour
                 Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
                 Box.activateDamage = true;
                 Box.activateShock = true;
-                StartCoroutine(HitstopImpact(Lightning.contactDamage * Box.boxHitstopDelayMult * 2.5f));
+                StartCoroutine(HitstopImpact(0.1f + (Lightning.contactDamage * Box.boxHitstopDelayMult * Box.shockHitstopMult)));
             }
             else
             {
@@ -262,7 +260,7 @@ public class EnemyManager : MonoBehaviour
         float angularVelocityBeforeHitstop = 0;
         if (multipleParts == false)
         {
-            gameObject.GetComponent<Collider2D>().enabled = false;
+            //gameObject.GetComponent<Collider2D>().enabled = false;
             angularVelocityBeforeHitstop = enemyRB.angularVelocity;
             enemyRB.angularVelocity = 0;
             enemyRB.isKinematic = true;
@@ -275,7 +273,7 @@ public class EnemyManager : MonoBehaviour
             {
                 if (transform.GetComponent<Collider2D>() != null)
                 {
-                    foreach (Collider2D c in transform.GetComponents<Collider2D>()){ c.enabled = false; }
+                    //foreach (Collider2D c in transform.GetComponents<Collider2D>()){ c.enabled = false; }
                 }
                 if (transform.GetComponent<Rigidbody2D>() != null) 
                 {
@@ -347,7 +345,7 @@ public class EnemyManager : MonoBehaviour
                 {
                     if (transform.GetComponent<Collider2D>() != null)
                     {
-                        foreach (Collider2D c in transform.GetComponents<Collider2D>()) { c.enabled = true; }
+                        //foreach (Collider2D c in transform.GetComponents<Collider2D>()) { c.enabled = true; }
                     }
                     if (transform.GetComponent<Rigidbody2D>() != null && keepAsKinematic == false)
                     {
@@ -415,6 +413,10 @@ public class EnemyManager : MonoBehaviour
                 if (transform.GetComponent<Renderer>() != null)
                 {
                     transform.GetComponent<Renderer>().sortingLayerName = "Dead Enemy";
+                }
+                if (transform.GetComponent<Collider2D>() != null)
+                {
+                    foreach (Collider2D c in transform.GetComponents<Collider2D>()) { c.enabled = false; }
                 }
             }
             enemyRB.isKinematic = false;

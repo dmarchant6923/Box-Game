@@ -181,7 +181,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d47e55d80cbfab545b6b6b04a45475ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sourceEM: {fileID: 0}
   energy: {fileID: 1311365314659820998, guid: 6f056af0e40660342abb593da219cf0f, type: 3}
+  secondsBehind: 6
   damage: 30
 --- !u!61 &5260329030342198318
 BoxCollider2D:
@@ -228,7 +230,7 @@ Rigidbody2D:
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!1 &4354436186861476237
 GameObject:

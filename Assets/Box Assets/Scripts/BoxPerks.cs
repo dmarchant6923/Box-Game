@@ -54,6 +54,11 @@ public class BoxPerks : MonoBehaviour
     float starActiveTime = 10;
     [HideInInspector] public static bool starDeactivated = false;
 
+    [HideInInspector] public static bool activateJump = false;
+    [HideInInspector] public static bool jumpActive = false;
+    float jumpActiveTime = 12;
+    [HideInInspector] public static bool unlimitedJumps = true;
+
     void Start()
     {
         boxScript = GetComponent<Box>();
@@ -67,6 +72,7 @@ public class BoxPerks : MonoBehaviour
         heavyActive = false;
         spikesActive = false;
         starActive = false;
+        jumpActive = false;
 
         initialDashSpeed = boxScript.dashSpeed;
         initialGravityMult = boxScript.gravityMult;
@@ -94,6 +100,7 @@ public class BoxPerks : MonoBehaviour
             activateHeavy = false;
             activateSpikes = false;
             activateStar = false;
+            activateJump = false;
         }
         if (activateShield)
         {
@@ -106,6 +113,7 @@ public class BoxPerks : MonoBehaviour
             activateHeavy = false;
             activateSpikes = false;
             activateStar = false;
+            activateJump = false;
         }
         if (activateHeavy)
         {
@@ -117,6 +125,7 @@ public class BoxPerks : MonoBehaviour
             activateHeavy = false;
             activateSpikes = false;
             activateStar = false;
+            activateJump = false;
         }
         if (activateSpikes)
         {
@@ -127,6 +136,7 @@ public class BoxPerks : MonoBehaviour
             StartCoroutine(Spikes());
             activateSpikes = false;
             activateStar = false;
+            activateJump = false;
         }
         if (activateStar)
         {
@@ -136,6 +146,16 @@ public class BoxPerks : MonoBehaviour
             }
             StartCoroutine(Star());
             activateStar = false;
+            activateJump = false;
+        }
+        if (activateJump)
+        {
+            if (buffActive)
+            {
+                buffActive = false;
+            }
+            StartCoroutine(Jump());
+            activateJump = false;
         }
     }
 
@@ -298,6 +318,18 @@ public class BoxPerks : MonoBehaviour
         yield return null;
         starDeactivated = false;
         starActive = false;
+    }
+
+    IEnumerator Jump()
+    {
+        yield return null;
+        jumpActive = true;
+        StartCoroutine(SpawnBuff(jumpActiveTime, new Color(0, 1, 0.85f)));
+        while (buffActive == true)
+        {
+            yield return null;
+        }
+        jumpActive = false;
     }
 
     IEnumerator SpawnBuff(float activeTime, Color color)

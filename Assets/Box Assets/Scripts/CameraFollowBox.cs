@@ -221,8 +221,8 @@ public class CameraFollowBox : MonoBehaviour
     IEnumerator CameraShake(float damage, float distance)
     {
         if (distance < 2) { distance = 2; }
-        float shakeDistance = Mathf.Sqrt(damage) / (Mathf.Sqrt(distance) * 4);
-        if (shakeDistance > 1) { shakeDistance = 1f; }
+        float shakeDistance = Mathf.Sqrt(damage) / (Mathf.Sqrt(distance) * 3);
+        if (shakeDistance > 0.8f) { shakeDistance = 0.8f; }
         if (shakeDistance < 0.1f) { shakeDistance = 0.1f; }
         //Debug.Log(shakeDistance);
         float currentDistance = shakeDistance;

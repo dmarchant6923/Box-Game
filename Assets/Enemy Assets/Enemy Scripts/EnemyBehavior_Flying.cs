@@ -55,7 +55,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
     float diveAcceleration = 30;
     [HideInInspector] public bool kamikazeExplode = false;
     float kamikazeExplosionRadius = 5;
-    float kamikazeDamage = 40;
+    float kamikazeDamage = 30;
     public GameObject explosion;
     GameObject newExplosion;
     Color kamikazeColor;
@@ -428,7 +428,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
             diveDelay *= EM.aggroDecreaseMult;
             diveAcceleration *= EM.aggroIncreaseMult;
             kamikazeExplosionRadius *= EM.aggroIncreaseMult;
-            kamikazeDamage *= EM.aggroDecreaseMult;
+            kamikazeDamage *= EM.aggroIncreaseMult;
         }
         if (EM.aggroCurrentlyActive == false && aggroActive)
         {
@@ -452,7 +452,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
             diveDelay /= EM.aggroDecreaseMult;
             diveAcceleration /= EM.aggroIncreaseMult;
             kamikazeExplosionRadius /= EM.aggroIncreaseMult;
-            kamikazeDamage /= EM.aggroDecreaseMult;
+            kamikazeDamage /= EM.aggroIncreaseMult;
         }
     }
 

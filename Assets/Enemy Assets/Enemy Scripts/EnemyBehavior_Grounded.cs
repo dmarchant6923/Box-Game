@@ -224,6 +224,15 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                         }
                         enemyWasRebounded = true;
                         Box.activateRebound = true;
+                        if (EM.shockActive)
+                        {
+                            Box.activateShock = true;
+                            Box.activateDamage = true;
+                            Box.damageTaken = Lightning.contactDamage;
+                            Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
+                            Box.activateRebound = false;
+                            StartCoroutine(EnemyHitstop());
+                        }
                     }
                     else
                     {
@@ -599,6 +608,10 @@ public class EnemyBehavior_Grounded : MonoBehaviour
     }
     IEnumerator EnemyRebound()
     {
+        while (enemyHitstopActive)
+        {
+            yield return null;
+        }
         isInvulnerable = true;
         int reboundDirection;
         if (enemyWasReboundedDash == true)

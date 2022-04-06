@@ -25,7 +25,12 @@ public class Duplicate : MonoBehaviour
     bool damagedBox = false;
     bool willDamageBox = false;
 
+    int i = 0;
+
     bool aggro = false;
+    int targetIndex = 0;
+    int aggroIndex;
+    float aggroMult = 0.6f;
 
     void Start()
     {
@@ -34,6 +39,7 @@ public class Duplicate : MonoBehaviour
         aura = transform.GetChild(0);
         sprite = GetComponent<SpriteRenderer>();
         int listSize = Mathf.CeilToInt(secondsBehind * 50);
+        aggroIndex = Mathf.FloorToInt(listSize * (1 - aggroMult));
 
         boxInitialYScale = 0.5f;
         initialYScale = transform.localScale.y;
@@ -48,6 +54,8 @@ public class Duplicate : MonoBehaviour
             boxYScaleArray.Add(boxTransform.localScale.y);
         }
 
+        targetIndex = 0;
+
         Color newColor = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0);
         sprite.color = newColor;
         willDamageBox = false;
@@ -58,7 +66,7 @@ public class Duplicate : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (boxRB == null)
+        if (boxRB == null || boxRB.GetComponent<Collider2D>().enabled == false)
         {
             death();
         }
@@ -71,7 +79,12 @@ public class Duplicate : MonoBehaviour
             sprite.color = new Color(0.2f, 0, 0, sprite.color.a);
             aura.GetComponent<SpriteRenderer>().color = new Color(1, 0.8f, 0.8f, aura.GetComponent<SpriteRenderer>().color.a);
             aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(1, 0.8f, 0.8f, aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color.a);
-            Debug.Log(sprite.color);
+            damage *= sourceEM.aggroIncreaseMult;
+            if (willDamageBox == false)
+            {
+                secondsBehind *= aggroMult;
+                targetIndex = aggroIndex;
+            }
 
         }
         else if (sourceEM.aggroCurrentlyActive == false && aggro)
@@ -82,32 +95,69 @@ public class Duplicate : MonoBehaviour
             sprite.color = new Color(0, 0, 0, sprite.color.a);
             aura.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, aura.GetComponent<SpriteRenderer>().color.a);
             aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color.a);
+            damage /= sourceEM.aggroIncreaseMult;
+            if (willDamageBox == false)
+            {
+                secondsBehind /= aggroMult;
+                targetIndex = 0;
+            }
         }
 
         if (damagedBox == false)
         {
             boxPositionArray.Add(boxRB.position);
             boxPositionArray.RemoveAt(0);
-            transform.position = boxPositionArray[0];
+            
+            if (aggro == false)
+            {
+                transform.position = boxPositionArray[targetIndex] + Vector2.up * 0.1f;
+            }
+            else
+            {
+                transform.position = boxPositionArray[targetIndex] + Vector2.up * 0.3f;
+            }
 
             boxRotationArray.Add(boxRB.rotation);
             boxRotationArray.RemoveAt(0);
-            transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, boxRotationArray[0]);
+            transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, boxRotationArray[targetIndex]);
 
             boxYScaleArray.Add(boxTransform.localScale.y);
             boxYScaleArray.RemoveAt(0);
-            float newScale = initialYScale * (boxYScaleArray[0] / boxInitialYScale);
+            float newScale = initialYScale * (boxYScaleArray[targetIndex] / boxInitialYScale);
             transform.localScale = new Vector2(transform.localScale.x, newScale);
-            if (boxYScaleArray[0] != boxInitialYScale)
+            if (boxYScaleArray[targetIndex] != boxInitialYScale)
             {
-                aura.localScale = new Vector2(aura.localScale.x, aura1InitialScale + ((boxYScaleArray[0] / boxInitialYScale) * 0.2222222f));
-                aura.GetChild(0).localScale = new Vector2(aura.localScale.x, aura2InitialScale + ((boxYScaleArray[0] / boxInitialYScale) * 0.1666666f));
+                aura.localScale = new Vector2(aura.localScale.x, aura1InitialScale + ((boxYScaleArray[targetIndex] / boxInitialYScale) * 0.2222222f));
+                aura.GetChild(0).localScale = new Vector2(aura.localScale.x, aura2InitialScale + ((boxYScaleArray[targetIndex] / boxInitialYScale) * 0.1666666f));
             }
             else
             {
                 aura.localScale = new Vector2(aura.localScale.x, aura1InitialScale);
                 aura.GetChild(0).localScale = new Vector2(aura.localScale.x, aura2InitialScale);
             }
+        }
+
+        i++;
+        if (aggro && willDamageBox && targetIndex < aggroIndex && i % 3 == 0)
+        {
+            targetIndex += 1;
+        }
+        if (aggro == false && willDamageBox && targetIndex > 0)
+        {
+            targetIndex -= 1;
+        }
+
+
+
+        if (i % 8 == 0 && willDamageBox)
+        {
+            int trailIndex = 40;
+            newEnergy = Instantiate(energy);
+            newEnergy.transform.position = boxPositionArray[targetIndex + trailIndex];
+            newEnergy.transform.eulerAngles = new Vector3(newEnergy.transform.eulerAngles.x, newEnergy.transform.eulerAngles.y, boxRotationArray[targetIndex + trailIndex]);
+            newEnergy.GetComponent<DuplicateEnergy>().trail = true;
+            newEnergy.GetComponent<DuplicateEnergy>().trailIndex = trailIndex;
+            newEnergy.GetComponent<DuplicateEnergy>().parent = GetComponent<Rigidbody2D>();
         }
     }
 
@@ -116,7 +166,15 @@ public class Duplicate : MonoBehaviour
         newEnergy = Instantiate(energy);
         newEnergy.transform.position = transform.position;
         newEnergy.GetComponent<DuplicateEnergy>().parent = GetComponent<Rigidbody2D>();
-        newEnergy.GetComponent<DuplicateEnergy>().startPosition = Random.insideUnitCircle.normalized * Random.Range(1f, 3f);
+        if (aggro == false)
+        {
+            newEnergy.GetComponent<DuplicateEnergy>().startPosition = Random.insideUnitCircle.normalized * Random.Range(1f, 3f);
+        }
+        else
+        {
+            newEnergy.GetComponent<DuplicateEnergy>().startPosition = Random.insideUnitCircle.normalized * Random.Range(1.5f, 4f);
+            newEnergy.transform.localScale *= 1.2f;
+        }
         newEnergy.GetComponent<DuplicateEnergy>().inwards = true;
     }
 
@@ -154,6 +212,7 @@ public class Duplicate : MonoBehaviour
         Color color = sprite.color;
         while (timer < window)
         {
+            window = secondsBehind;
             color = sprite.color;
             color.a += changeRate * Time.deltaTime;
             sprite.color = color;
@@ -168,20 +227,23 @@ public class Duplicate : MonoBehaviour
 
     IEnumerator EnergySpawn()
     {
-        float window = secondsBehind * 0.8f;
+        float mult = 0.3f;
+        float window = secondsBehind * mult;
         float timer = 0;
         while (timer < window)
         {
-            float window2 = 0.06f;
+            float window2 = 0.03f;
             float timer2 = 0;
             while (timer2 < window2)
             {
+                window = secondsBehind * mult;
                 timer += Time.deltaTime;
                 timer2 += Time.deltaTime;
                 yield return null;
             }
             CreateEnergy();
         }
+        yield return new WaitForSeconds(secondsBehind * (1 - mult));
         StartCoroutine(EnergyRelease());
     }
 
@@ -190,6 +252,10 @@ public class Duplicate : MonoBehaviour
         while (true)
         {
             float window = 0.2f;
+            if (aggro)
+            {
+                window = 0.16f;
+            }
             float timer = 0;
             while (timer < window)
             {
@@ -213,7 +279,6 @@ public class Duplicate : MonoBehaviour
 
     public IEnumerator DamageFlicker()
     {
-        Debug.Log("you are here");
         yield return null;
         if (sourceEM.enemyWasKilled == false)
         {

@@ -634,7 +634,7 @@ MonoBehaviour:
   area: {fileID: 3573258572965793749}
   duplicate: {fileID: 2053397880633726008, guid: 3e38c765f39dcc8469680ec603c7ef48, type: 3}
   energy: {fileID: 1311365314659820998, guid: 6f056af0e40660342abb593da219cf0f, type: 3}
-  secondsBehind: 2
+  secondsBehind: 1.5
   flipTime: 4
   damage: 25
   radius: 4
@@ -1208,7 +1208,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 3fcfdf5bd5339f84d9a11bd707f6b8fb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1291,7 +1291,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 3fcfdf5bd5339f84d9a11bd707f6b8fb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

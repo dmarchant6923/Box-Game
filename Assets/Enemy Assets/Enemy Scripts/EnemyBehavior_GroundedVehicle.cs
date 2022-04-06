@@ -687,7 +687,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             enraged = true;
             enemyRB.transform.GetComponent<Renderer>().material.color = new Color(5, 0, 0, 1);
             shootTimeInterval = 0.02f;
-            shootCoolDown = 0.7f;
+            shootCoolDown = 0.9f;
             bulletSpreadMax *= 0.6f;
             maxHorizSpeed *= 1.1f;
             brakeSpeed *= 1.2f;

@@ -36,7 +36,7 @@ public class HitSwitch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Box.boxHitboxActive)
+        if (Box.boxHitboxActive && Box.attackRayCast.Length > 0)
         {
             foreach (RaycastHit2D item in Box.attackRayCast)
             {

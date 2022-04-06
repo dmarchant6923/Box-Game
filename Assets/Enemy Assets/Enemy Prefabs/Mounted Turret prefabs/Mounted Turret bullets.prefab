@@ -143,7 +143,7 @@ MonoBehaviour:
   fireLaserBeam: 0
   shootBoxRadius: 25
   delayBeforeShooting: 0.75
-  restTime: 2.75
+  restTime: 3
   bullet: {fileID: 2892679346137748594, guid: c54f77fc2f6fbac4cb0d826d63837112, type: 3}
   bulletsPerAttack: 5
   bulletSpreadMax: 7
@@ -189,14 +189,16 @@ MonoBehaviour:
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
   canReceiveShield: 1
+  aggroCurrentlyActive: 0
+  canReceiveAggro: 1
   initialDelay: 1
   touchingThisEnemy: 0
+  physicalHitboxActive: 0
   canBeShocked: 1
   activateShock: 0
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
-  enemyHitstopActive: 0
   enemyHealth: 1
   startEnemyDeath: 0
   respawn: 0

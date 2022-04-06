@@ -62,6 +62,7 @@ public class Box : MonoBehaviour
 
     [System.NonSerialized] public float djumpSpeed = 12; //vertical double jump velocity
     bool canDoubleJump = true; //whether or not a double jump is available
+    bool doubleJumpUsed = false;
     [System.NonSerialized] public float maxFallSpeed = -20; //maximum fall speed and fast fall speed
 
     [System.NonSerialized] public float airFriction = 30; //time based, friction value while airborne
@@ -212,6 +213,7 @@ public class Box : MonoBehaviour
         canTeleport = true;
         shockActive = false;
         inShockRadius = false;
+        doubleJumpUsed = false;
 
         initialGroundFriction = groundFriction;
         stickyFriction = initialGroundFriction * 4;
@@ -258,6 +260,7 @@ public class Box : MonoBehaviour
             airTime = 0;
             wallJumpCounter = 0;
             canDoubleJump = true;
+            doubleJumpUsed = false;
             if (ground.tag == "Ice" && BoxPerks.spikesActive == false)
             {
                 isOnIce = true;
@@ -560,6 +563,19 @@ public class Box : MonoBehaviour
             }
             rigidBody.velocity = new Vector2(rigidBody.velocity.x, djumpSpeed);
             canDoubleJump = false;
+            if (BoxPerks.jumpActive && BoxPerks.unlimitedJumps == false && doubleJumpUsed == false)
+            {
+                canDoubleJump = true;
+                doubleJumpUsed = true;
+            }
+            else if (BoxPerks.jumpActive && BoxPerks.unlimitedJumps == false && doubleJumpUsed)
+            {
+                BoxPerks.buffActive = false;
+            }
+        }
+        if (BoxPerks.jumpActive && BoxPerks.unlimitedJumps)
+        {
+            canDoubleJump = true;
         }
         //fastfall condition and action and buffer
         if (rigidBody.velocity.y > maxFallSpeed && rigidBody.gravityScale > 0 && inputs.leftSmashD && canWallJump == false && isGrounded == false)

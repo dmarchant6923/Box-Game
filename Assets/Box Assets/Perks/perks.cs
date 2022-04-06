@@ -17,6 +17,9 @@ public class perks : MonoBehaviour
 
     public bool star;
 
+    public bool jump;
+    public bool unlimitedJumps = true;
+
     public bool willDespawn = true;
     float activeTime = 12;
     void Start()
@@ -65,6 +68,12 @@ public class perks : MonoBehaviour
             if (star)
             {
                 BoxPerks.activateStar = true;
+                Destroy(gameObject);
+            }
+            if (jump)
+            {
+                BoxPerks.activateJump = true;
+                BoxPerks.unlimitedJumps = unlimitedJumps;
                 Destroy(gameObject);
             }
         }

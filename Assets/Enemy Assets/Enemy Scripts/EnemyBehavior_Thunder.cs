@@ -153,7 +153,7 @@ public class EnemyBehavior_Thunder : MonoBehaviour
                 thunderGuyInRadius = true;
             }
         }
-        if (thunderGuyInRadius) { Box.inShockRadius = true; }
+        if (thunderGuyInRadius && EM.enemyWasKilled == false) { Box.inShockRadius = true; }
         else { Box.inShockRadius = false; }
 
         if (shockPrepared && shockCRActive == false)

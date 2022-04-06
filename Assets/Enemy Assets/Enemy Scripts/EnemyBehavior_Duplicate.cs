@@ -55,6 +55,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     int obstacleLM;
     int boxLM;
 
+    bool aggro = false;
+
     bool debugEnabled = false;
 
 
@@ -138,6 +140,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 StartCoroutine(MaskMovementMid());
                 StartCoroutine(MaskMovement2());
                 StartCoroutine(SandMovement());
+                StartCoroutine(DisableArea());
             }
             else
             {
@@ -174,7 +177,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             }
         }
 
-        if (EM.enemyWasDamaged && duplicateSpawned)
+        if (EM.enemyWasDamaged && duplicateSpawned && newDuplicate != null)
         {
             StartCoroutine(newDuplicate.GetComponent<Duplicate>().DamageFlicker());
         }
@@ -194,6 +197,19 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             newDuplicate.GetComponent<Duplicate>().death();
             Destroy(gameObject);
         }
+
+        if (EM.aggroCurrentlyActive && aggro == false)
+        {
+            aggro = true;
+            radius *= EM.aggroIncreaseMult;
+            area.localScale *= EM.aggroIncreaseMult;
+        }
+        if (EM.aggroCurrentlyActive == false && aggro)
+        {
+            aggro = false;
+            radius /= EM.aggroIncreaseMult;
+            area.localScale /= EM.aggroIncreaseMult;
+        }
     }
 
     void CreateEnergy()
@@ -204,21 +220,26 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         newEnergy.GetComponent<DuplicateEnergy>().parent = GetComponent<Rigidbody2D>();
         newEnergy.GetComponent<DuplicateEnergy>().startPosition = Vector2.zero;
         newEnergy.GetComponent<DuplicateEnergy>().maxDist = 4;
+        if (aggro)
+        {
+            newEnergy.GetComponent<DuplicateEnergy>().maxDist = 5;
+        }
         newEnergy.GetComponent<DuplicateEnergy>().inwards = false;
     }
 
     IEnumerator SpawnDuplicate()
     {
+        duplicateSpawned = true;
+        yield return new WaitForSeconds(0.2f);
         newDuplicate = Instantiate(duplicate, boxRB.position, Quaternion.identity);
         newDuplicate.GetComponent<Duplicate>().secondsBehind = secondsBehind;
         newDuplicate.GetComponent<Duplicate>().damage = damage;
         newDuplicate.GetComponent<Duplicate>().sourceEM = EM;
-        duplicateSpawned = true;
         float window = secondsBehind * 0.8f;
         float timer = 0;
         while (timer < window)
         {
-            float window2 = 0.06f;
+            float window2 = 0.05f;
             float timer2 = 0;
             while (timer2 < window2)
             {
@@ -237,6 +258,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         while (true)
         {
             float window = 0.2f;
+            if (aggro)
+            {
+                window = 0.15f;
+            }
             float timer = 0;
             while (timer < window)
             {
@@ -499,5 +524,17 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         {
             body.eulerAngles = new Vector3(body.eulerAngles.x, body.eulerAngles.y, 0);
         }
+    }
+    IEnumerator DisableArea()
+    {
+        SpriteRenderer areaSprite = area.GetComponent<SpriteRenderer>();
+        Color areaColor = areaSprite.color;
+        while (areaSprite.color.a > 0.01f)
+        {
+            areaColor.a -= Time.deltaTime / 3;
+            areaSprite.color = areaColor;
+            yield return null;
+        }
+        area.gameObject.SetActive(false);
     }
 }

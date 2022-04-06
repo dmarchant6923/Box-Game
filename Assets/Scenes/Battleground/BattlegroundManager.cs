@@ -163,6 +163,7 @@ public class BattlegroundManager : MonoBehaviour
     public GameObject heavy;
     public GameObject spikes;
     public GameObject star;
+    public GameObject doubleJump;
 
     int obstacleLM;
     int groundLM;
@@ -251,10 +252,10 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(thunder); //8
         enemies.Add(duplicate); //9
 
-        wave = 24;
+        wave = 50;
         enemiesKilled = 0;
 
-        Box.boxHealth = 100;
+        Box.boxHealth = 250;
         UIManager.initialHealth = (int) maxHealth; //250
 
         addToHiScores = false;
@@ -275,7 +276,6 @@ public class BattlegroundManager : MonoBehaviour
                 if ((spawnedEnemies[i] != null && spawnedEnemies[i].GetComponent<EnemyManager>().enemyWasKilled == true) || spawnedEnemies[i] == null)
                 {
                     spawnedEnemies.RemoveAt(i);
-                    Debug.Log("Spawned enemies: " + spawnedEnemies.Count);
                     enemiesKilled++;
                     if (UIManager.killToPulse)
                     {
@@ -285,7 +285,6 @@ public class BattlegroundManager : MonoBehaviour
             }
             if (spawnedEnemies.Count == 0)
             {
-                Debug.Log("Wave Finished");
                 StartCoroutine(RoundStart());
             }
         }
@@ -306,6 +305,12 @@ public class BattlegroundManager : MonoBehaviour
         wave++;
         yield return new WaitForSeconds(timeBetweenWaves * 3/4);
         float wavePointMult = 1.5f;
+        Debug.Log((int)Mathf.Floor(wave * wavePointMult));
+        if (wave >= 40)
+        {
+            wavePointMult += (wave - 39) * 1.5f / 20;
+        }
+        Debug.Log((int)Mathf.Floor(wave * wavePointMult));
         wavePoints = (int) Mathf.Floor(wave * wavePointMult);
         int wizards = 0;
         int dupeWizards = 0;
@@ -450,7 +455,6 @@ public class BattlegroundManager : MonoBehaviour
             { 
                 if (wave < 25 || dupeWizards >= 1 || wavePoints == (int)Mathf.Floor(wave * wavePointMult))
                 {
-                    Debug.Log("you are here");
                     continue;
                 }
                 else
@@ -723,10 +727,11 @@ public class BattlegroundManager : MonoBehaviour
     }
     IEnumerator SpawnPerks()
     {
-        GameObject[] list = new GameObject[] {speed, speed, speed, speed, speed, speed,
+        GameObject[] list = new GameObject[] {speed, speed, speed, speed,
                                                 shield, shield, shield,
-                                                heavy, heavy, heavy, heavy,
-                                                spikes, spikes, spikes,
+                                                heavy, heavy,
+                                                spikes, spikes,
+                                                doubleJump, doubleJump,
                                                 star};
         GameObject perk = list[Random.Range(0, list.Length)];
         int rand = Random.Range(0, 3);
@@ -739,7 +744,6 @@ public class BattlegroundManager : MonoBehaviour
         {
             spawnPerk = false;
         }
-        Debug.Log(rand);
 
         if (wave % 5 == 0)
         {
@@ -748,7 +752,6 @@ public class BattlegroundManager : MonoBehaviour
         }
         if (spawnPerk)
         {
-            Debug.Log("spawn perk");
             Vector2 spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
                 spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
             RaycastHit2D spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 3f, Vector2.zero, 0f, groundLM);
@@ -769,12 +772,16 @@ public class BattlegroundManager : MonoBehaviour
     IEnumerator Death()
     {
         UIManager.stopClock = true;
-        StartCoroutine(boxScript.DisableInputs(5));
+        StartCoroutine(boxScript.DisableInputs(20));
         float timer = 0;
         float window = 0.4f;
         boxScript.GetComponent<Renderer>().sortingLayerName = "Dead Enemy";
         FindObjectOfType<CameraFollowBox>().overridePosition = true;
         FindObjectOfType<CameraFollowBox>().forcedPosition = FindObjectOfType<CameraFollowBox>().transform.position;
+        while (Box.boxHitstopActive)
+        {
+            yield return null;
+        }
         while (timer < window)
         {
             boxScript.GetComponent<BoxCollider2D>().enabled = false;

@@ -5,6 +5,9 @@ using UnityEngine;
 public class DuplicateEnergy : MonoBehaviour
 {
     public bool inwards = true;
+    public bool trail = false;
+    public int trailIndex = 0;
+    int initialIndex = 0;
     float velocity;
     float initialVelocity;
     int rotateDirection = 1;
@@ -49,36 +52,63 @@ public class DuplicateEnergy : MonoBehaviour
             initialVelocity *= 0.4f;
         }
         velocity = initialVelocity;
+
+        if (trail)
+        {
+            initialVelocity = 0;
+            startPosition = Vector2.zero;
+            sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0);
+            initialIndex = trailIndex;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (parent != null)
+        if (trail == false)
         {
-            transform.position = parent.position;
-        }
+            if (parent != null)
+            {
+                transform.position = parent.position;
+            }
 
-        if (inwards)
-        {
-            energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, Vector2.zero, velocity * Time.deltaTime);
-        }
-        else
-        {
+            if (inwards)
+            {
+                energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, Vector2.zero, velocity * Time.deltaTime);
+            }
+            else
+            {
 
-            energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, destination, velocity * Time.deltaTime);
-        }
+                energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, destination, velocity * Time.deltaTime);
+            }
 
-        color.a -= Time.deltaTime * 0.25f;
-        if (slow == false)
-        {
-            color.a -= Time.deltaTime * 0.45f;
-        }
-        sprite.color = color;
+            color.a -= Time.deltaTime * 0.25f;
+            if (slow == false)
+            {
+                color.a -= Time.deltaTime * 0.45f;
+            }
+            sprite.color = color;
 
-        if (color.a <= 0.005f)
+            if (color.a <= 0.005f)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (trail)
         {
-            Destroy(gameObject);
+            Color color = sprite.color;
+            color.a += (50 / initialIndex) * Time.deltaTime / 2;
+            sprite.color = color;
+            trailIndex -= 1;
+
+            if (trailIndex <= 0 || parent == null)
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }

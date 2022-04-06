@@ -216,7 +216,6 @@ public class EnemyManager : MonoBehaviour
                 {
                     item.GetComponent<Aura>().breakAura = true;
                 }
-                Debug.Log(item.gameObject);
             }
             enemyIsInvulnerable = true;
             shieldCurrentlyActive = false;

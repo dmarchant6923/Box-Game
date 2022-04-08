@@ -25,10 +25,11 @@ public class Duplicate : MonoBehaviour
     bool damagedBox = false;
     bool willDamageBox = false;
 
-    int i = 0;
+    int i;
+    [HideInInspector] public int currentIndex = 0;
 
     bool aggro = false;
-    int targetIndex = 0;
+    [HideInInspector] public int targetIndex = 0;
     int aggroIndex;
     float aggroMult = 0.6f;
 
@@ -103,6 +104,15 @@ public class Duplicate : MonoBehaviour
             }
         }
 
+        if (aggro && willDamageBox && targetIndex < aggroIndex && i % 3 == 0)
+        {
+            targetIndex += 1;
+        }
+        if (aggro == false && willDamageBox && targetIndex > 0)
+        {
+            targetIndex -= 1;
+        }
+
         if (damagedBox == false)
         {
             boxPositionArray.Add(boxRB.position);
@@ -137,28 +147,20 @@ public class Duplicate : MonoBehaviour
             }
         }
 
-        i++;
-        if (aggro && willDamageBox && targetIndex < aggroIndex && i % 3 == 0)
-        {
-            targetIndex += 1;
-        }
-        if (aggro == false && willDamageBox && targetIndex > 0)
-        {
-            targetIndex -= 1;
-        }
 
-
-
-        if (i % 8 == 0 && willDamageBox)
+        if (currentIndex % 8 == 0 && willDamageBox)
         {
             int trailIndex = 40;
             newEnergy = Instantiate(energy);
             newEnergy.transform.position = boxPositionArray[targetIndex + trailIndex];
             newEnergy.transform.eulerAngles = new Vector3(newEnergy.transform.eulerAngles.x, newEnergy.transform.eulerAngles.y, boxRotationArray[targetIndex + trailIndex]);
             newEnergy.GetComponent<DuplicateEnergy>().trail = true;
-            newEnergy.GetComponent<DuplicateEnergy>().trailIndex = trailIndex;
+            newEnergy.GetComponent<DuplicateEnergy>().trailIndex = trailIndex + currentIndex;
             newEnergy.GetComponent<DuplicateEnergy>().parent = GetComponent<Rigidbody2D>();
         }
+
+        i++;
+        currentIndex = i + targetIndex;
     }
 
     void CreateEnergy()

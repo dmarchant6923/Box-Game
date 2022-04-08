@@ -182,7 +182,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             StartCoroutine(newDuplicate.GetComponent<Duplicate>().DamageFlicker());
         }
 
-        if (EM.enemyWasKilled && duplicateSpawned && EM.hitstopImpactActive == false)
+        if (EM.enemyWasKilled && EM.hitstopImpactActive == false)
         {
             for (int i = 0; i < 14; i++)
             {
@@ -194,7 +194,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 newEnergy.GetComponent<DuplicateEnergy>().inwards = false;
                 newEnergy.GetComponent<DuplicateEnergy>().slow = true;
             }
-            newDuplicate.GetComponent<Duplicate>().death();
+            if (newDuplicate != null)
+            {
+                newDuplicate.GetComponent<Duplicate>().death();
+            }
             Destroy(gameObject);
         }
 

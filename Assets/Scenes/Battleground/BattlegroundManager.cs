@@ -10,6 +10,7 @@ public class BattlegroundManager : MonoBehaviour
     int wavePoints;
     float timeBetweenWaves = 3;
     float maxHealth = 250;
+    bool firstWave = true;
 
     Vector2[] spawnLimits = new Vector2[2]; // [0] is transform position, [1] is transform half size
 
@@ -181,6 +182,7 @@ public class BattlegroundManager : MonoBehaviour
         UIManager.killToPulse = true;
         gameOver = false;
         deathActive = false;
+        firstWave = true;
         boxScript = GameObject.Find("Box").GetComponent<Box>();
 
         obstacleLM = LayerMask.GetMask("Obstacles");
@@ -252,14 +254,14 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(thunder); //8
         enemies.Add(duplicate); //9
 
-        wave = 50;
+        wave = 15;
         enemiesKilled = 0;
 
-        Box.boxHealth = 250;
+        Box.boxHealth = 100;
         UIManager.initialHealth = (int) maxHealth; //250
 
         addToHiScores = false;
-        if ((wave == 0 && Box.boxHealth == 250) || (wave == 14 && Box.boxHealth == 100))
+        if ((wave == 1 && Box.boxHealth == 250) || (wave == 15 && Box.boxHealth == 100))
         {
             addToHiScores = true;
         }
@@ -301,16 +303,18 @@ public class BattlegroundManager : MonoBehaviour
         currentWaveActive = false;
         spawnedEnemies.Clear();
         yield return new WaitForSeconds(timeBetweenWaves / 4);
-        Box.boxHealth += 10;
-        wave++;
+        if (firstWave == false)
+        {
+            Box.boxHealth += 10;
+            wave++;
+        }
+        firstWave = false;
         yield return new WaitForSeconds(timeBetweenWaves * 3/4);
         float wavePointMult = 1.5f;
-        Debug.Log((int)Mathf.Floor(wave * wavePointMult));
         if (wave >= 40)
         {
             wavePointMult += (wave - 39) * 1.5f / 20;
         }
-        Debug.Log((int)Mathf.Floor(wave * wavePointMult));
         wavePoints = (int) Mathf.Floor(wave * wavePointMult);
         int wizards = 0;
         int dupeWizards = 0;
@@ -721,6 +725,7 @@ public class BattlegroundManager : MonoBehaviour
             }
             spawnedEnemies.Add(newEnemy);
             wavePoints -= enemySelected.enemyPoints;
+            yield return null;
         }
         StartCoroutine(SpawnPerks());
         currentWaveActive = true;

@@ -216,13 +216,16 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                         }
                     }
                     //...and if the enemy is currently attacking, rebound box and enemy. Cause a stronger enemy rebound if it was a dash attack.
-                    else if (lvl3 == false)
+                    else
                     {
-                        if (Box.dashActive == true)
+                        if (lvl3 == false)
                         {
-                            enemyWasReboundedDash = true;
+                            if (Box.dashActive == true)
+                            {
+                                enemyWasReboundedDash = true;
+                            }
+                            enemyWasRebounded = true;
                         }
-                        enemyWasRebounded = true;
                         Box.activateRebound = true;
                         if (EM.shockActive)
                         {
@@ -233,21 +236,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                             Box.activateRebound = false;
                             StartCoroutine(EnemyHitstop());
                         }
-                    }
-                    else
-                    {
-                        if (EM.shockActive)
-                        {
-                            Box.activateShock = true;
-                        }
-                        Box.activateDamage = true;
-                        Box.damageTaken = damage;
-                        if (avgYVelocity <= groundpoundYVel && willDamageEnemies == false)
-                        {
-                            Box.damageTaken = damage * 2.5f;
-                        }
-                        Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - enemyRB.position.x), 1).normalized;
-                        StartCoroutine(EnemyHitstop());
                     }
                 }
                 //...and if the box is NOT currently attacking, but the enemy is currently attacking, damage the box.

@@ -197,7 +197,7 @@ public class MountedTurret : MonoBehaviour
     {
         //disable script when enemy is killed (not currently working properly)
         scriptEnabled = EM.scriptsEnabled;
-        if (scriptEnabled == false)
+        if (EM.enemyWasKilled)
         {
             StopAllCoroutines();
             if (fireLaserBeam)

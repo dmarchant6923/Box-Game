@@ -7,15 +7,15 @@ public class DuplicateEnergy : MonoBehaviour
     public bool inwards = true;
     public bool trail = false;
     public int trailIndex = 0;
+    int parentIndex = 0;
     int initialIndex = 0;
     float velocity;
     float initialVelocity;
-    int rotateDirection = 1;
-    float rotateVelocity = 400;
     SpriteRenderer sprite;
     Color color;
 
     public Rigidbody2D parent;
+    public Duplicate parentScript;
     public Vector2 startPosition;
     public float maxDist = 2;
     Transform energy;
@@ -29,13 +29,6 @@ public class DuplicateEnergy : MonoBehaviour
         energy = transform.GetChild(0);
         sprite = energy.GetComponent<SpriteRenderer>();
         color = sprite.color;
-        int rand = Random.Range(0, 2);
-        if (rand == 1)
-        {
-            rotateDirection *= -1;
-        }
-        rotateVelocity += Random.Range(0, 400f);
-        rotateVelocity *= rotateDirection;
         energy.transform.localPosition = startPosition;
 
         destination = Random.insideUnitCircle.normalized * maxDist * Random.Range(0.3f, 1);
@@ -58,7 +51,9 @@ public class DuplicateEnergy : MonoBehaviour
             initialVelocity = 0;
             startPosition = Vector2.zero;
             sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0);
-            initialIndex = trailIndex;
+            parentScript = parent.GetComponent<Duplicate>();
+            parentIndex = parentScript.currentIndex;
+            initialIndex = trailIndex - parentIndex;
         }
     }
 
@@ -100,12 +95,15 @@ public class DuplicateEnergy : MonoBehaviour
     {
         if (trail)
         {
-            Color color = sprite.color;
-            color.a += (50 / initialIndex) * Time.deltaTime / 2;
-            sprite.color = color;
-            trailIndex -= 1;
+            parentIndex = parentScript.currentIndex;
+            float difference = trailIndex - parentIndex;
+            float percentDifference = (difference / initialIndex);
 
-            if (trailIndex <= 0 || parent == null)
+            Color color = sprite.color;
+            color.a = 0.5f * (1 - percentDifference);
+            sprite.color = color;
+
+            if (difference <= 0 || parent == null)
             {
                 Destroy(gameObject);
             }

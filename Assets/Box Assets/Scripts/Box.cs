@@ -890,7 +890,7 @@ public class Box : MonoBehaviour
             }
             else
             {
-                StartCoroutine(Invulnerability(1.5f, true));
+                StartCoroutine(Invulnerability(1.5f));
             }
         }
 
@@ -1615,6 +1615,7 @@ public class Box : MonoBehaviour
         BoxVelocity.velocitiesX[0] = reboundDirection*reboundMagnitude*horizMaxSpeed;
         rigidBody.angularVelocity = -950*reboundDirection;
         rigidBody.velocity = new Vector2(rigidBody.velocity.x, jumpSpeed * 0.7f * reboundMagnitude);
+        StartCoroutine(Invulnerability(0.1f));
         yield return new WaitForSeconds(reboundTime*0.8f*reboundMagnitude);
         if (damageActive == false && boxEnemyPulseActive == false)
         {
@@ -1973,11 +1974,10 @@ public class Box : MonoBehaviour
         airAccel = initialAirAccel;
         iceCRActive = false;
     }
-    IEnumerator Invulnerability(float time, bool starInvul)
+    IEnumerator Invulnerability(float time)
     {
         float timer = 0;
         yield return null;
-        if (starInvul == false || (starInvul && BoxPerks.buffActive == false))
         while (timer <= time)
         {
             isInvulnerable = true;

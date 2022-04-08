@@ -55,7 +55,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
     float diveAcceleration = 30;
     [HideInInspector] public bool kamikazeExplode = false;
     float kamikazeExplosionRadius = 5;
-    float kamikazeDamage = 30;
+    float kamikazeDamage = 35;
     public GameObject explosion;
     GameObject newExplosion;
     Color kamikazeColor;
@@ -635,7 +635,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         }
         isAttacking = true;
         int bulletsShot = 0;
-        float bulletSpread;
+        float bulletSpread = 0;
         isCurrentlyShooting = true;
         isWaitingToShoot = true;
         float delayBeforeShootingTimer = 0;
@@ -661,14 +661,6 @@ public class EnemyBehavior_Flying : MonoBehaviour
                     }
                 }
                 laserScope.SetPosition(1, enemyRB.position + realBarrelVector * (transform.localScale.x * 2/3 + targetDist));
-                //if (laserRC.collider != null)
-                //{
-                //    laserScope.SetPosition(1, laserRC.point);
-                //}
-                //else
-                //{
-                //    laserScope.SetPosition(1, enemyRB.position + realBarrelVector * 100);
-                //}
             }
             if (EM.hitstopImpactActive == false)
             {
@@ -684,9 +676,17 @@ public class EnemyBehavior_Flying : MonoBehaviour
         int volleysFired = 0;
         while (volleysFired < numberOfVolleys && EM.enemyWasKilled == false)
         {
-            while (bulletsShot < bulletsPerAttack && scriptEnabled == true)
+            while (bulletsShot < bulletsPerAttack && EM.enemyWasKilled == false)
             {
-                bulletSpread = (-bulletSpreadMax / 2) + Random.value * bulletSpreadMax;
+                if (shootTimeInterval == 0 && bulletsPerAttack > 1) //only for shotguns
+                {
+                    bulletSpread = (-bulletSpreadMax / 2) + (bulletSpreadMax * ((float)bulletsShot / (bulletsPerAttack - 1)));
+                    bulletSpread += (-0.5f + Random.value) * (bulletSpreadMax * (1f / (bulletsPerAttack - 1)));
+                }
+                else
+                {
+                    bulletSpread = (-bulletSpreadMax / 2) + Random.value * bulletSpreadMax;
+                }
                 Quaternion bulletRotation = Quaternion.Euler(0, 0, realBarrelAngle + bulletSpread);
                 newBullet = Instantiate(bullet, enemyRB.position + realBarrelVector * 0.8f, bulletRotation);
                 newBullet.GetComponent<BulletScript>().bulletDespawnWindow = bulletDespawnTime;

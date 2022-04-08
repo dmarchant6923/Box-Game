@@ -31,6 +31,10 @@ PrefabInstance:
       propertyPath: enemyDifficulty
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
+      propertyPath: bulletsPerAttack
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 2361387401203103686, guid: b53d418e0d922244b9df336709c25f54, type: 3}
       propertyPath: m_RootOrder
       value: 0

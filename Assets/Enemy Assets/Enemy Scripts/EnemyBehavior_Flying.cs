@@ -460,14 +460,13 @@ public class EnemyBehavior_Flying : MonoBehaviour
     {
         //disable script when enemy is killed (not currently working properly)
         scriptEnabled = EM.scriptsEnabled;
-        if (scriptEnabled == false)
+        if (EM.enemyWasKilled)
         {
             StopAllCoroutines();
             if (laserScopeEnabled)
             {
                 laserScope.enabled = false;
             }
-            gameObject.GetComponent<EnemyBehavior_Flying>().enabled = false;
         }
 
         //turretVectorToBox
@@ -814,15 +813,27 @@ public class EnemyBehavior_Flying : MonoBehaviour
         }
         if (getOffGround == true)
         {
+
             float moveWindow = 0.35f;
             float moveTimer = 0;
+
+            float stepWindow = 0.5f;
+            float stepTimer = 0;
             while (moveTimer <= moveWindow)
             {
                 if (enemyRC_Grounded.collider != null)
                 {
                     moveTimer = 0;
                 }
-                truePosition = new Vector2(truePosition.x, truePosition.y + truePositionVelocity / 2 * Time.deltaTime);
+                if (stepTimer > stepWindow)
+                {
+                    truePosition = new Vector2(truePosition.x, truePosition.y + truePositionVelocity / 2 * Time.deltaTime);
+                }
+                if (stepTimer > stepWindow * 3)
+                {
+                    stepTimer = 0;
+                }
+                stepTimer += Time.deltaTime;
                 moveTimer += Time.deltaTime;
                 yield return null;
             }

@@ -68,8 +68,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1921311325
+  m_SortingLayer: -1
   m_SortingOrder: -1
   m_Sprite: {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
   m_Color: {r: 1, g: 0.09728515, b: 0, a: 1}
@@ -155,8 +155,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1921311325
+  m_SortingLayer: -1
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
   m_Color: {r: 1, g: 1, b: 0, a: 1}
@@ -267,6 +267,7 @@ MonoBehaviour:
   enemyIsInvulnerable: 0
   enemyWasDamaged: 0
   enemyWasKilled: 0
+  instantKill: 0
   hitstopImpactActive: 0
   scriptsEnabled: 1
   normalPulse: 1
@@ -278,13 +279,16 @@ MonoBehaviour:
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
   canReceiveShield: 1
+  aggroCurrentlyActive: 0
+  canReceiveAggro: 1
   initialDelay: 1
   touchingThisEnemy: 0
+  physicalHitboxActive: 0
   canBeShocked: 1
   activateShock: 0
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
-  enemyHitstopActive: 0
   enemyHealth: 1
   startEnemyDeath: 0
+  respawn: 0

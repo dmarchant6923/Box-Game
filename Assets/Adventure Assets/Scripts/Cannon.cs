@@ -108,12 +108,18 @@ public class Cannon : MonoBehaviour
         boxRB.velocity = new Vector2(boxRB.velocity.x, launchVector.y);
         active = false;
         cannonInputs.enabled = false;
-        float window = 0.02f * launchVel;
-        float timer = 0;
+        if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+        {
+            CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
+            camScript.startCamShake = true;
+            camScript.shakeInfo = new Vector2(10, 4);
+        }
         yield return null;
         Box.forceEndInvul = true;
         StartCoroutine(boxRB.GetComponent<Box>().ReduceDrag());
         int frames = 0;
+        float window = 0.02f * launchVel;
+        float timer = 0;
         while (timer < window && Box.damageActive == false && Box.boxEnemyPulseActive == false)
         {
             Debug.Log(Box.airFriction);
@@ -142,7 +148,7 @@ public class Cannon : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.GetComponent<Box>() != null && Box.damageActive == false)
+        if (collision.GetComponent<Box>() != null && Box.damageActive == false && active == false)
         {
             StartCoroutine(collision.GetComponent<Box>().DisableInputs(0));
             StartCoroutine(Activate());

@@ -205,7 +205,6 @@ public class MountedTurret : MonoBehaviour
                 laserBeam.enabled = false;
                 laserCenter.enabled = false;
             }
-            gameObject.GetComponent<MountedTurret>().enabled = false;
         }
 
         //barrelVector
@@ -593,7 +592,7 @@ public class MountedTurret : MonoBehaviour
         float laserTimer = 0;
         laserBeam.gameObject.SetActive(true);
         laserCenter.gameObject.SetActive(true);
-        while (laserTimer <= laserDuration && EM.enemyWasDamaged == false)
+        while (laserTimer <= laserDuration && EM.hitstopImpactActive == false)
         {
             laserBeam.SetPosition(0, enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3);
             laserCenter.SetPosition(0, enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3);
@@ -671,13 +670,14 @@ public class MountedTurret : MonoBehaviour
 
             yield return null;
         }
+        float fuelUsed = laserTimer / laserDuration;
         laserHittingBox = false;
         laserBeam.gameObject.SetActive(false);
         laserCenter.gameObject.SetActive(false);
 
         isOnCooldown = true;
         float coolDownTimer = 0;
-        while (coolDownTimer <= restTime)
+        while (coolDownTimer <= restTime * fuelUsed)
         {
             if (EM.hitstopImpactActive == false)
             {

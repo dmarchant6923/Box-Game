@@ -130,14 +130,14 @@ public class Explosion : MonoBehaviour
                     Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - transform.position.x), 1).normalized;
                 }
             }
-        }
-        float distToBox = new Vector2(boxRB.position.x - transform.position.x, boxRB.position.y - transform.position.y).magnitude;
-        if (distToBox <= 20 && GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
-        {
-            CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-            camScript.startCamShake = true;
-            camScript.shakeInfo = new Vector2(explosionDamage,
-                new Vector2(transform.position.x - boxRB.position.x, transform.position.y - boxRB.position.y).magnitude);
+            float distToBox = new Vector2(boxRB.position.x - transform.position.x, boxRB.position.y - transform.position.y).magnitude;
+            if (distToBox <= 30 && GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+            {
+                CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
+                camScript.startCamShake = true;
+                camScript.shakeInfo = new Vector2(explosionDamage,
+                    new Vector2(transform.position.x - boxRB.position.x, transform.position.y - boxRB.position.y).magnitude);
+            }
         }
     }
 

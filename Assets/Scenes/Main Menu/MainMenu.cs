@@ -58,7 +58,7 @@ public class MainMenu : MonoBehaviour
     string TTInfoMedium;
     string TTInfoHard;
 
-    bool subMenu3;
+    //bool subMenu3;
 
 
     void Start()
@@ -67,7 +67,7 @@ public class MainMenu : MonoBehaviour
         UIInputs = GetComponent<InputBroker>();
         UITools = GetComponent<UITools>();
 
-        mainMenu = true; subMenu1 = false; subMenu2 = false; subMenuTT = false; subMenu3 = false;
+        mainMenu = true; subMenu1 = false; subMenu2 = false; subMenuTT = false; //subMenu3 = false;
         subMenu2Options.SetActive(false); subMenuTTOptions.SetActive(false); infoBox.SetActive(false);
 
         Time.timeScale = 1;

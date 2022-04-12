@@ -7,7 +7,6 @@ public class WindBox : MonoBehaviour
     Vector2 windDirection;
     public float windMagnitude = 2;
     float mult;
-    bool wallNearby = false;
 
     Transform background;
     Rigidbody2D boxRB;

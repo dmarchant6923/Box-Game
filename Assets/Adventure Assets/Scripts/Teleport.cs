@@ -13,7 +13,6 @@ public class Teleport : MonoBehaviour
     public bool startActive = true;
 
     bool cooldown = false;
-    bool currentlyTeleporting = false;
 
     GameObject box;
 
@@ -58,7 +57,6 @@ public class Teleport : MonoBehaviour
             Box.boxHitstopActive == false && cooldown == false)
         {
             StartCoroutine(BeginTeleport());
-            currentlyTeleporting = true;
         }
     }
     

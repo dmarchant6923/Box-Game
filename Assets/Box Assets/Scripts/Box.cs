@@ -7,6 +7,7 @@ using Random = UnityEngine.Random;
 public class Box : MonoBehaviour
 {
     InputBroker inputs;
+    [HideInInspector] public static bool endForcedDisable = false;
 
     private Rigidbody2D rigidBody; //this box rigidbody properties
     private BoxCollider2D boxCollider; //this box boxcollider properties
@@ -65,7 +66,7 @@ public class Box : MonoBehaviour
     bool doubleJumpUsed = false;
     [System.NonSerialized] public float maxFallSpeed = -20; //maximum fall speed and fast fall speed
 
-    [System.NonSerialized] public float airFriction = 30; //time based, friction value while airborne
+    [System.NonSerialized] public static float airFriction = 30; //time based, friction value while airborne
     [System.NonSerialized] public float initialAirFriction = 30;
     [System.NonSerialized] public float airAccel = 50; //time based, horizontal acceleration value when holding a direction while airborne
     [System.NonSerialized] public float initialAirAccel = 50;
@@ -133,7 +134,7 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static float projectilePulseMagnitude = 1.2f;
 
     [System.NonSerialized] public static bool boxWasPulsed = false;
-    bool boxEnemyPulseActive = false;
+    [System.NonSerialized] public static bool boxEnemyPulseActive = false;
     [System.NonSerialized] public static float boxEnemyPulseMagnitude;
     [System.NonSerialized] public static Vector2 boxEnemyPulseDirection;
 
@@ -161,6 +162,7 @@ public class Box : MonoBehaviour
     [HideInInspector] public static Vector2 boxDamageDirection;
     [System.NonSerialized] public static bool damageActive = false;
     [HideInInspector] public static bool isInvulnerable = false;
+    [HideInInspector] public static bool forceEndInvul = false;
     float damageAirFrictionMult = 10;
     float damageTime = 0;
     bool isCurrentlyFlashing = false;
@@ -503,7 +505,7 @@ public class Box : MonoBehaviour
             airTime += Time.deltaTime;
         }
         //air acceleration L/R and air friction + larger air friction if moving faster than horiz max speed
-        if ((isGrounded == false || isOnIce == true) && ceilingCling == false)
+        if ((isGrounded == false || isOnIce == true) && ceilingCling == false && enemyHitstopActive == false)
         {
             if (Mathf.Abs(BoxVelocity.velocitiesX[0]) > horizMaxSpeed)
             {
@@ -1372,7 +1374,7 @@ public class Box : MonoBehaviour
         }
         if (damageActive == false || projectileDamage == true)
         {
-            BoxVelocity.velocitiesX[0] = hitstopHorizontalVelocity;
+            BoxVelocity.velocitiesX[0] = hitstopHorizontalVelocity * 0.96f;
             rigidBody.velocity = new Vector2(rigidBody.velocity.x, hitstopVerticalVelocity);
             rigidBody.angularVelocity = hitstopAngularVelocity;
             if (dashActive == false && damageActive == false)
@@ -1974,18 +1976,6 @@ public class Box : MonoBehaviour
         airAccel = initialAirAccel;
         iceCRActive = false;
     }
-    IEnumerator Invulnerability(float time)
-    {
-        float timer = 0;
-        yield return null;
-        while (timer <= time)
-        {
-            isInvulnerable = true;
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        isInvulnerable = false;
-    }
     IEnumerator Shock(bool damaged)
     {
         float window = 0.1f;
@@ -2034,17 +2024,79 @@ public class Box : MonoBehaviour
         shockActive = false;
         yield return new WaitForSeconds(2);
     }
+    public IEnumerator Invulnerability(float window)
+    {
+        float timer = 0;
+        yield return null;
+        if (window > 0)
+        {
+            while (timer <= window)
+            {
+                isInvulnerable = true;
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+        else
+        {
+            while (forceEndInvul == false)
+            {
+                isInvulnerable = true;
+                yield return null;
+            }
+            forceEndInvul = false;
+        }
+        isInvulnerable = false;
+    }
     public IEnumerator DisableInputs(float window)
     {
         float timer = 0;
         inputs.inputsEnabled = false;
-        while (timer < window)
+        if (window > 0)
         {
-            inputs.inputsEnabled = false;
-            forceInputsDisabled = true;
-            timer += Time.deltaTime;
-            yield return null;
+            while (timer < window)
+            {
+                inputs.inputsEnabled = false;
+                forceInputsDisabled = true;
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+        else
+        {
+            while (endForcedDisable == false)
+            {
+                inputs.inputsEnabled = false;
+                forceInputsDisabled = true;
+                yield return null;
+            }
+            endForcedDisable = false;
         }
         forceInputsDisabled = false;
+    }
+    public IEnumerator ReduceDrag()
+    {
+        airFriction = initialAirFriction / damageAirFrictionMult;
+        int frames = 0;
+        while (true)
+        {
+            if (damageActive == true || boxEnemyPulseActive == true | inputs.inputsEnabled == true)
+            {
+                frames++;
+            }
+            else
+            {
+                frames = 0;
+            }
+
+            if (frames > 1)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+        Debug.Log(inputs.inputsEnabled);
+        airFriction = initialAirFriction;
     }
 }

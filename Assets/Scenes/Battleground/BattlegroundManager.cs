@@ -16,6 +16,12 @@ public class BattlegroundManager : MonoBehaviour
 
     [HideInInspector] public static bool addToHiScores = false;
 
+    public GameObject perkSpawns;
+    public GameObject enemySpawns;
+    GameObject flyingSpawns;
+    GameObject groundedSpawns;
+    GameObject turretSpawns;
+
     public class Enemy
     {
         public GameObject enemyObject;
@@ -265,7 +271,19 @@ public class BattlegroundManager : MonoBehaviour
         {
             addToHiScores = true;
         }
-        
+
+        flyingSpawns = enemySpawns.transform.GetChild(0).gameObject;
+        groundedSpawns = enemySpawns.transform.GetChild(1).gameObject;
+        turretSpawns = enemySpawns.transform.GetChild(2).gameObject;
+        foreach (SpriteRenderer sprite in perkSpawns.GetComponentsInChildren<SpriteRenderer>())
+        {
+            sprite.enabled = false;
+        }
+        foreach (SpriteRenderer sprite in enemySpawns.GetComponentsInChildren<SpriteRenderer>())
+        {
+            sprite.enabled = false;
+        }
+
         StartCoroutine(RoundStart());
     }
 
@@ -727,10 +745,10 @@ public class BattlegroundManager : MonoBehaviour
             wavePoints -= enemySelected.enemyPoints;
             yield return null;
         }
-        StartCoroutine(SpawnPerks());
+        SpawnPerks();
         currentWaveActive = true;
     }
-    IEnumerator SpawnPerks()
+    void SpawnPerks()
     {
         GameObject[] list = new GameObject[] {speed, speed, speed, speed,
                                                 shield, shield, shield,
@@ -757,19 +775,22 @@ public class BattlegroundManager : MonoBehaviour
         }
         if (spawnPerk)
         {
-            Vector2 spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
-                spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
-            RaycastHit2D spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 3f, Vector2.zero, 0f, groundLM);
-            RaycastHit2D spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+            //Vector2 spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
+            //    spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
+            //RaycastHit2D spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 3f, Vector2.zero, 0f, groundLM);
+            //RaycastHit2D spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
 
-            while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null)
-            {
-                spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
-                    spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
-                spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 3f, Vector2.zero, 0f, groundLM);
-                spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
-            }
-            yield return null;
+            //while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null)
+            //{
+            //    spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
+            //        spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
+            //    spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 3f, Vector2.zero, 0f, groundLM);
+            //    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+            //}
+            //yield return null;
+
+            rand = Random.Range(0, perkSpawns.transform.childCount);
+            Vector2 spawnCoordinates = perkSpawns.transform.GetChild(rand).transform.position;
 
             Instantiate(perk, spawnCoordinates, Quaternion.identity);
         }

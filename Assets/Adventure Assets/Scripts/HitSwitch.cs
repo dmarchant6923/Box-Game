@@ -10,7 +10,6 @@ public class HitSwitch : MonoBehaviour
 
     public bool timedDeactivate = false;
     public float timeToDeactivate = 5f;
-    bool timerActive = false;
     float hitTimer = 0;
 
     Transform diamond;

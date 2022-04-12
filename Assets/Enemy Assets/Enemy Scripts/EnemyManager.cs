@@ -423,7 +423,7 @@ public class EnemyManager : MonoBehaviour
             enemyRB.velocity = new Vector2(0, 18);
             enemyRB.angularVelocity = (Mathf.Abs(boxRB.position.x - enemyRB.position.x) / (boxRB.position.x - enemyRB.position.x)) * 800;
         }
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2.5f);
         if (multipleParts == true)
         {
             foreach (Transform transform in enemyChildren)

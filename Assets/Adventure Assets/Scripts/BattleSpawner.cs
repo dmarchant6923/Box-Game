@@ -11,7 +11,6 @@ public class BattleSpawner : MonoBehaviour
     public bool triggerOnce = true;
     bool triggered = false;
     public int numEnemies;
-    bool enemiesAlive = true;
 
     Switch switchScript;
 
@@ -44,7 +43,6 @@ public class BattleSpawner : MonoBehaviour
     {
         if (spawnedEnemies.Count > 0)
         {
-            enemiesAlive = true;
             for (int i = 0; i < spawnedEnemies.Count; i++)
             {
                 if (spawnedEnemies[i] == null || spawnedEnemies[i].GetComponent<EnemyManager>().enemyWasKilled == true)
@@ -63,10 +61,6 @@ public class BattleSpawner : MonoBehaviour
                     }
                 }
             }
-        }
-        else
-        {
-            enemiesAlive = false;
         }
     }
 

@@ -502,7 +502,7 @@ public class MountedTurret : MonoBehaviour
         {
             bulletSpread = (-bulletSpreadMax / 2) + Random.value * bulletSpreadMax;
             Quaternion bulletRotation = Quaternion.Euler(0, 0, realBarrelAngle + bulletSpread);
-            newBullet = Instantiate(bullet, enemyRB.position + realBarrelVector * 0.8f, bulletRotation);
+            newBullet = Instantiate(bullet, enemyRB.position + realBarrelVector * transform.lossyScale.x * 0.8f, bulletRotation);
             newBullet.GetComponent<BulletScript>().bulletDespawnWindow = bulletDespawnTime;
             newBullet.GetComponent<BulletScript>().bulletDamage = bulletDamage;
             newBullet.GetComponent<Rigidbody2D>().velocity = (realBarrelVector +
@@ -598,41 +598,21 @@ public class MountedTurret : MonoBehaviour
             laserCenter.SetPosition(0, enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3);
             RaycastHit2D laserRC = Physics2D.Raycast(enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3, realBarrelVector, 100,
                 LayerMask.GetMask("Obstacles", "Box", "Pulse"));
+            if (Box.dodgeInvulActive)
+            {
+                laserRC = Physics2D.Raycast(enemyRB.position + realBarrelVector * transform.localScale.x * 2 / 3, realBarrelVector, 100,
+                    LayerMask.GetMask("Obstacles", "Pulse"));
+            }
             if (laserRC.collider != null)
             {
-                if (1 << laserRC.collider.gameObject.layer == LayerMask.GetMask("Pulse"))
+                laserBeam.SetPosition(1, laserRC.point + realBarrelVector * 0.25f);
+                if (1 << laserRC.collider.gameObject.layer == boxLM)
                 {
-                    Vector2 vectorToCenter = new Vector2(laserRC.collider.transform.position.x - laserRC.point.x, laserRC.collider.transform.position.y - laserRC.point.y);
-                    RaycastHit2D pulseToRay = Physics2D.Raycast(laserRC.point, vectorToCenter.normalized, vectorToCenter.magnitude, obstacleLM);
-                    if (pulseToRay.collider == null)
-                    {
-                        laserBeam.SetPosition(1, laserRC.point + realBarrelVector * 0.25f);
-                    }
-                    else
-                    {
-                        RaycastHit2D continueLaser = Physics2D.Raycast(laserRC.point, realBarrelVector, 100, LayerMask.GetMask("Obstacles", "Box", "Hazards"));
-                        if (continueLaser.collider != null)
-                        {
-                            laserBeam.SetPosition(1, continueLaser.point + realBarrelVector * 0.25f);
-                        }
-                        else
-                        {
-                            laserBeam.SetPosition(1, enemyRB.position + realBarrelVector * 100);
-                        }
-                    }
-                    laserHittingBox = false;
+                    laserHittingBox = true;
                 }
                 else
                 {
-                    laserBeam.SetPosition(1, laserRC.point + realBarrelVector * 0.25f);
-                    if (1 << laserRC.collider.gameObject.layer == boxLM)
-                    {
-                        laserHittingBox = true;
-                    }
-                    else
-                    {
-                        laserHittingBox = false;
-                    }
+                    laserHittingBox = false;
                 }
             }
             else

@@ -325,7 +325,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
                 }
                 RaycastHit2D detectBox = Physics2D.CircleCast(enemyRB.position, transform.lossyScale.x / 2,
                     new Vector2(0, 0), 0f, boxLM);
-                if (detectBox.collider != null)
+                if (detectBox.collider != null && Box.dodgeInvulActive == false)
                 {
                     kamikazeExplode = true;
                 }

@@ -65,7 +65,7 @@ public class WindBox : MonoBehaviour
             BoxVelocity.windVelocity = windDirection.x * windMagnitude * mult;
 
 
-            if (Box.dashActive)
+            if (Box.dashActive || Box.dodgeInvulActive)
             {
                 Box.windGravity = 0;
             }

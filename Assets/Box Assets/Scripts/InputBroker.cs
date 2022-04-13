@@ -95,6 +95,10 @@ public class InputBroker : MonoBehaviour
     public bool pulseButtonUp { get; private set; }
     public bool pulseButton { get; private set; }
 
+    public bool dodgeButtonDown { get; private set; }
+    public bool dodgeButtonUp { get; private set; }
+    public bool dodgeButton { get; private set; }
+
     public bool rightShiftKeyDown { get; private set; }
     public bool rightShiftKeyUp { get; private set; }
     public bool rightShiftKey { get; private set; }
@@ -113,6 +117,7 @@ public class InputBroker : MonoBehaviour
     bool bufferedTeleportButtonDown = false;
     bool bufferedDashButtonDown = false;
     bool bufferedPulseButtonDown = false;
+    bool bufferedDodgeButtonDown = false;
     Vector2 bufferedLeftStick = Vector2.zero;
     bool bufferInputs = false;
 
@@ -179,6 +184,10 @@ public class InputBroker : MonoBehaviour
                     pulseButtonDown = Input.GetButtonDown("GC B");
                     pulseButtonUp = Input.GetButtonUp("GC B");
                     pulseButton = Input.GetButton("GC B");
+
+                    dodgeButtonDown = Input.GetButtonDown("GC ");
+                    dodgeButtonUp = Input.GetButtonUp("GC ");
+                    dodgeButton = Input.GetButton("GC ");
 
                     // upDpad = Input.GetButton("GC Dpad U"); always active
 
@@ -248,6 +257,10 @@ public class InputBroker : MonoBehaviour
                     pulseButtonUp = Input.GetButtonUp("Xbox X");
                     pulseButton = Input.GetButton("Xbox X");
 
+                    dodgeButtonDown = Input.GetButtonDown("Xbox ");
+                    dodgeButtonUp = Input.GetButtonUp("Xbox ");
+                    dodgeButton = Input.GetButton("Xbox ");
+
                     // upDpad always active
 
                     // downDpad always active
@@ -302,6 +315,10 @@ public class InputBroker : MonoBehaviour
                 pulseButtonUp = Input.GetKeyUp(KeyCode.S);
                 pulseButton = Input.GetKey(KeyCode.S);
 
+                dodgeButtonDown = Input.GetKeyDown(KeyCode.A);
+                dodgeButtonUp = Input.GetKeyUp(KeyCode.A);
+                dodgeButton = Input.GetKey(KeyCode.A);
+
                 // upDpad = Input.GetKey(KeyCode.Alpha2); always active
 
                 // downDpad = Input.GetKey(KeyCode.W); always active
@@ -351,6 +368,10 @@ public class InputBroker : MonoBehaviour
             pulseButtonUp = false;
             pulseButton = false;
 
+            dodgeButtonDown = false;
+            dodgeButtonUp = false;
+            dodgeButton = false;
+
             rightShiftKeyDown = false;
             rightShiftKeyUp = false;
             rightShiftKey = false;
@@ -367,6 +388,7 @@ public class InputBroker : MonoBehaviour
             startButtonUp = false;
             startButton = false;
         }
+
         // list of inputs that are always active.
         if (Controller)
         {
@@ -437,6 +459,10 @@ public class InputBroker : MonoBehaviour
                     {
                         bufferedPulseButtonDown = true;
                     }
+                    if (Input.GetButtonDown("GC "))
+                    {
+                        bufferedDodgeButtonDown = true;
+                    }
                     bufferedLeftStick = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
                 }
                 if (Xbox)
@@ -450,6 +476,7 @@ public class InputBroker : MonoBehaviour
                     if (XboxR > smashInputLimit) { bufferedTeleportButtonDown = true; }
                     if (XboxL > smashInputLimit) { bufferedDashButtonDown = true; }
                     if (Input.GetButtonDown("Xbox X")) { bufferedPulseButtonDown = true; }
+                    if (Input.GetButtonDown("Xbox ")) { bufferedDodgeButtonDown = true; }
                     bufferedLeftStick = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
                 }
             }
@@ -485,6 +512,10 @@ public class InputBroker : MonoBehaviour
                 {
                     bufferedPulseButtonDown = true;
                 }
+                if (Input.GetKeyDown(KeyCode.A))
+                {
+                    bufferedDodgeButtonDown = true;
+                }
                 bufferedLeftStick = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             }
             bufferInputs = true;
@@ -501,6 +532,7 @@ public class InputBroker : MonoBehaviour
                 teleportButtonDown = bufferedTeleportButtonDown;
                 dashButtonDown = bufferedDashButtonDown;
                 pulseButtonDown = bufferedPulseButtonDown;
+                dodgeButtonDown = bufferedDodgeButtonDown;
                 leftStick = bufferedLeftStick;
             }
 
@@ -514,6 +546,7 @@ public class InputBroker : MonoBehaviour
             bufferedTeleportButtonDown = false;
             bufferedDashButtonDown = false;
             bufferedPulseButtonDown = false;
+            bufferedDodgeButtonDown = false;
             bufferedLeftStick = Vector2.zero;
         }
     }

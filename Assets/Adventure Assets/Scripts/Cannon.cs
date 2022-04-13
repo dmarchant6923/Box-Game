@@ -50,7 +50,8 @@ public class Cannon : MonoBehaviour
                     cannon.eulerAngles = new Vector3(cannon.eulerAngles.x, cannon.eulerAngles.y, Mathf.MoveTowardsAngle(cannon.eulerAngles.z, angleLimits.x, rotateVel * Time.deltaTime));
                 }
             }
-            if ((cannonInputs.attackButtonDown || cannonInputs.dashButtonDown || cannonInputs.teleportButtonDown || cannonInputs.pulseButtonDown) && autoShoot == false)
+            if ((cannonInputs.attackButtonDown || cannonInputs.dashButtonDown || cannonInputs.teleportButtonDown || cannonInputs.pulseButtonDown || cannonInputs.dodgeButtonDown)
+                && autoShoot == false)
             {
                 StartCoroutine(Launch());
             }

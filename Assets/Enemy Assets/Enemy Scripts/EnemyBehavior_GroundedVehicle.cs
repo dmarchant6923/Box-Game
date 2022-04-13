@@ -918,7 +918,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         float dashTimer = 0;
         EM.physicalHitboxActive = true;
         //continue dashing as long as the timer isn't up and there's no reason to brake
-        while (dashTimer <= maxDashAttackTime && isDashing && explosionDeathActive == false &&
+        while (dashTimer <= maxDashAttackTime && isDashing && explosionDeathActive == false && EM.hitstopImpactActive == false && 
             ((dashDirection == 1 && walkFloorCheckRightRC.collider != null && walkObstacleCheckRightRC.collider == null) ||
             (dashDirection == -1 && walkFloorCheckLeftRC.collider != null && walkObstacleCheckLeftRC.collider == null)))
         {

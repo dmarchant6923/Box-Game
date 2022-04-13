@@ -326,7 +326,6 @@ public class BattlegroundManager : MonoBehaviour
             Box.boxHealth += 10;
             wave++;
         }
-        firstWave = false;
         yield return new WaitForSeconds(timeBetweenWaves * 3/4);
         float wavePointMult = 1.5f;
         if (wave >= 40)
@@ -746,6 +745,7 @@ public class BattlegroundManager : MonoBehaviour
             yield return null;
         }
         SpawnPerks();
+        firstWave = false;
         currentWaveActive = true;
     }
     void SpawnPerks()
@@ -768,7 +768,7 @@ public class BattlegroundManager : MonoBehaviour
             spawnPerk = false;
         }
 
-        if (wave % 5 == 0)
+        if (wave % 5 == 0 && firstWave == false)
         {
             spawnPerk = true;
             perk = heart;

@@ -138,6 +138,12 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static float boxEnemyPulseMagnitude;
     [System.NonSerialized] public static Vector2 boxEnemyPulseDirection;
 
+    [System.NonSerialized] public static bool canDodge = true;
+    [System.NonSerialized] public static bool dodgeActive = false;
+    [System.NonSerialized] public static float dodgeDuration = 0.55f;
+    [System.NonSerialized] public static float dodgeInvulDuration = 0.4f;
+    [System.NonSerialized] public static bool dodgeInvulActive = false;
+
     [System.NonSerialized] public static float enemyHitstopDelay = 0.12f; //how long hitstop lasts for enemies
     [HideInInspector] public static float boxHitstopDelay;
     [HideInInspector] public static float boxHitstopDelayMult = 0.1f/30;
@@ -216,6 +222,7 @@ public class Box : MonoBehaviour
         shockActive = false;
         inShockRadius = false;
         doubleJumpUsed = false;
+        canDodge = true;
 
         initialGroundFriction = groundFriction;
         stickyFriction = initialGroundFriction * 4;
@@ -263,6 +270,7 @@ public class Box : MonoBehaviour
             wallJumpCounter = 0;
             canDoubleJump = true;
             doubleJumpUsed = false;
+            canDodge = true;
             if (ground.tag == "Ice" && BoxPerks.spikesActive == false)
             {
                 isOnIce = true;
@@ -301,7 +309,7 @@ public class Box : MonoBehaviour
         }
         //list of all possible states that could cause inputs to be disabled
         else if (damageActive == false && dashActive == false && teleportActive == false && enemyHitstopActive == false && wallBounceActive == false
-            && reboundActive == false && boxEnemyPulseActive == false && blastZoneCRActive == false && forceInputsDisabled == false)
+            && reboundActive == false && boxEnemyPulseActive == false && blastZoneCRActive == false && forceInputsDisabled == false && dodgeActive == false)
         {
             inputs.inputsEnabled = true;
         }
@@ -591,7 +599,7 @@ public class Box : MonoBehaviour
                 StartCoroutine(FastFallBuffer());
             }
         }
-        if (rigidBody.velocity.y < maxFallSpeed)
+        if (rigidBody.velocity.y < maxFallSpeed && dodgeInvulActive == false)
         {
             //rigidBody.velocity = new Vector2(rigidBody.velocity.x, maxFallSpeed);
             if (rigidBody.gravityScale >= 0)
@@ -725,6 +733,11 @@ public class Box : MonoBehaviour
             }
             boxWasPulsed = false;
         }
+        //dodge
+        if (inputs.dodgeButtonDown && canDodge)
+        {
+            StartCoroutine(Dodge());
+        }
 
         //
         //enemy interactions to activate when boxcast covering player body encounters an enemy. Mostly used in other scripts.
@@ -753,10 +766,10 @@ public class Box : MonoBehaviour
             activatePushBack = false;
         }
         //activate box hitbox
-        if ((spinAttackActive && damageActive == false) || Mathf.Abs(BoxVelocity.velocitiesX[0]) >= dashSpeed * 0.95f ||
+        if (((spinAttackActive && damageActive == false) || Mathf.Abs(BoxVelocity.velocitiesX[0]) >= dashSpeed * 0.95f ||
             ((Mathf.Abs(rigidBody.velocity.x) >= 15 || rigidBody.velocity.y >= 15 || rigidBody.velocity.y < maxFallSpeed * 1.05f) && 
             damageActive && boxHitstopActive == false && ignoreProjectileDamage == false) || 
-            enemyHitstopActive == true || BoxPerks.spikesActive || BoxPerks.starActive)
+            enemyHitstopActive == true || BoxPerks.spikesActive || BoxPerks.starActive) && dodgeInvulActive == false)
         {
             boxHitboxActive = true;
         }
@@ -845,11 +858,11 @@ public class Box : MonoBehaviour
         }
         if (damageActive == true || boxEnemyPulseActive)
         {
-            if (InputBroker.Keyboard && Input.GetKey(KeyCode.Z) == false) { canTech = true; }
+            if (InputBroker.Keyboard && Input.GetKey(KeyCode.Z) == false && Input.GetKey(KeyCode.A) == false) { canTech = true; }
             if (InputBroker.GameCube && Input.GetButton("GC L") == false && Input.GetButton("GC R") == false) { canTech = true; }
             if (InputBroker.Xbox && Input.GetAxisRaw("Xbox L") > -0.9f && Input.GetAxisRaw("Xbox R") > -0.9f) { canTech = true; }
 
-            if (InputBroker.Keyboard && canTech && techCRActive == false && Input.GetKeyDown(KeyCode.Z))
+            if (InputBroker.Keyboard && canTech && techCRActive == false && (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.A)))
                 { StartCoroutine(TechBuffer()); }
             if (InputBroker.GameCube && canTech && techCRActive == false && (Input.GetButtonDown("GC L") || Input.GetButtonDown("GC R")))
                 { StartCoroutine(TechBuffer()); }
@@ -1262,7 +1275,7 @@ public class Box : MonoBehaviour
         float bufferTime = 0;
         while (bufferTime <= bufferWindow)
         {
-            if (rigidBody.velocity.y < 0)
+            if (rigidBody.velocity.y < 0 && dodgeActive == false)
             {
                 rigidBody.velocity = new Vector2(rigidBody.velocity.x, maxFallSpeed);
                 break;
@@ -1569,6 +1582,82 @@ public class Box : MonoBehaviour
         }
         canPulse = true;
     }
+    IEnumerator Dodge()
+    {
+        dodgeActive = true;
+        dodgeInvulActive = true;
+        isInvulnerable = true;
+        canDodge = false;
+        inputs.inputsEnabled = false;
+        bool startsGrounded = isGrounded;
+        bool waveland = false;
+        //GetComponent<Collider2D>().isTrigger = true;
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Projectiles"), true);
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Enemy Device"), true);
+        SpriteRenderer sprite = GetComponent<SpriteRenderer>();
+        sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0.4f);
+        Vector2 initialPosition = rigidBody.position;
+        Vector2 target = inputs.leftStick.normalized;
+        float startVelocity = 18;
+        if (BoxPerks.speedActive || BoxPerks.starActive)
+        {
+            startVelocity *= 1.2f;
+        }
+        float velocityX = startVelocity * target.x * 1.3f;
+        float velocityY = startVelocity * target.y;
+        BoxVelocity.velocitiesX[0] = velocityX;
+        rigidBody.velocity = new Vector2(rigidBody.velocity.x, velocityY);
+        rigidBody.angularVelocity = 0;
+        gravityScale = 0;
+        float window = dodgeInvulDuration;
+        float timer = 0;
+        while (timer < window && damageActive == false && boxEnemyPulseActive == false)
+        {
+            gravityScale = 0;
+            if (debugEnabled)
+            {
+                Debug.DrawRay(initialPosition, target * 4);
+            }
+            if (startsGrounded == false && isGrounded)
+            {
+                yield return new WaitForSeconds(0.08f);
+                waveland = true;
+                break;
+            }
+            velocityX = Mathf.MoveTowards(velocityX, 0, Mathf.Abs(velocityX * 3) / window * Time.deltaTime);
+            BoxVelocity.velocitiesX[0] = velocityX;
+
+            velocityY = Mathf.MoveTowards(velocityY, 0, Mathf.Abs(velocityY * 3) / window * Time.deltaTime);
+            rigidBody.velocity = new Vector2(rigidBody.velocity.x, Mathf.MoveTowards(rigidBody.velocity.y, 0, Mathf.Abs(velocityY * 3) / window * Time.deltaTime));
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 1);
+        gravityScale = initialGravityScale;
+        isInvulnerable = false;
+        dodgeInvulActive = false;
+        //GetComponent<Collider2D>().isTrigger = false;
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Projectiles"), false);
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Enemy Device"), false);
+        window = dodgeDuration;
+        bool startsGrounded2 = isGrounded;
+        while (timer < window && damageActive == false && boxEnemyPulseActive == false)
+        {
+            if ((startsGrounded2 == false && isGrounded) || waveland)
+            {
+                break;
+            }
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        dodgeActive = false;
+        if (damageActive == false && boxEnemyPulseActive == false)
+        {
+            inputs.inputsEnabled = true;
+        }
+
+    }
     IEnumerator HoldToWall(GameObject wall)
     {
         holdToWallActive = true;
@@ -1792,7 +1881,10 @@ public class Box : MonoBehaviour
         inputs.inputsEnabled = true;
         damageActive = false;
         yield return new WaitForSeconds(1.5f);
-        isInvulnerable = false;
+        if (dodgeInvulActive == false)
+        {
+            isInvulnerable = false;
+        }
         damageTime = 0;
     }
     IEnumerator TechBuffer()

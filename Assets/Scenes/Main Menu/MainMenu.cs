@@ -42,7 +42,6 @@ public class MainMenu : MonoBehaviour
     public Image seasonArrow;
     public Image episodeArrowUp;
     public Image episodeArrowDown;
-
     public Transform stickers;
     public Transform locks;
 
@@ -57,6 +56,16 @@ public class MainMenu : MonoBehaviour
     string TTInfoEasy;
     string TTInfoMedium;
     string TTInfoHard;
+
+    bool subMenuBG;
+    public GameObject subMenuBGOptions;
+    GameObject stages;
+    int numStages;
+    public Image BGArrowLeft;
+    public Image BGArrowRight;
+    bool stageSelectCRActive = false;
+    float initBGLArrowX;
+    float initBGRArrowX;
 
     //bool subMenu3;
 
@@ -87,6 +96,9 @@ public class MainMenu : MonoBehaviour
         TTInfoMedium =  TTHSUpdate(DataManager.TTHighScoreMed, 1);
         TTInfoHard =  TTHSUpdate(DataManager.TTHighScoreHard, 2);
 
+        stages = subMenuBGOptions.transform.GetChild(0).gameObject;
+        numStages = stages.transform.childCount;
+
         seasonsOptions = adventureModeMenu.transform.GetChild(0).gameObject;
         episodesOptions = adventureModeMenu.transform.GetChild(1).gameObject;
         episodeInfo = adventureModeMenu.transform.GetChild(2).gameObject;
@@ -102,6 +114,9 @@ public class MainMenu : MonoBehaviour
         initSeasonArrowX = seasonArrow.transform.position.x;
         initEpUArrowY = episodeArrowUp.transform.position.y;
         initEpDArrowY = episodeArrowDown.transform.position.y;
+
+        initBGLArrowX = BGArrowLeft.transform.position.x;
+        initBGRArrowX = BGArrowRight.transform.position.x;
 
         if (DataManager.exitFromAdventureMode)
         {
@@ -165,6 +180,7 @@ public class MainMenu : MonoBehaviour
             adventureModeMenu.SetActive(false);
             subMenu2Options.SetActive(false);
             subMenuTTOptions.SetActive(false);
+            subMenuBGOptions.SetActive(false);
         }
         else if (subMenu1 == true)
         {
@@ -173,6 +189,7 @@ public class MainMenu : MonoBehaviour
             adventureModeMenu.SetActive(true);
             subMenu2Options.SetActive(false);
             subMenuTTOptions.SetActive(false);
+            subMenuBGOptions.SetActive(false);
         }
         else if (subMenu2 == true)
         {
@@ -181,6 +198,7 @@ public class MainMenu : MonoBehaviour
             adventureModeMenu.SetActive(false);
             subMenu2Options.SetActive(true);
             subMenuTTOptions.SetActive(false);
+            subMenuBGOptions.SetActive(false);
         }
         else if (subMenuTT == true)
         {
@@ -189,11 +207,21 @@ public class MainMenu : MonoBehaviour
             adventureModeMenu.SetActive(false);
             subMenu2Options.SetActive(false);
             subMenuTTOptions.SetActive(true);
+            subMenuBGOptions.SetActive(false);
+        }
+        else if (subMenuBG == true)
+        {
+            SubMenuBGScreen();
+            mainMenuOptions.SetActive(false);
+            adventureModeMenu.SetActive(false);
+            subMenu2Options.SetActive(false);
+            subMenuTTOptions.SetActive(false);
+            subMenuBGOptions.SetActive(true);
         }
 
-        if ((UIInputs.leftStick.y > 0.8 || UIInputs.leftStick.y < -0.8) && cycleCRActive == false && inputsEnabled == true)
+        if ((UIInputs.leftStick.y > 0.8 || UIInputs.leftStick.y < -0.8) && cycleCRActive == false && inputsEnabled == true && subMenuBG == false)
         {
-            StartCoroutine(CycleSelect());
+            StartCoroutine(CycleSelect(true));
         }
     }
 
@@ -400,7 +428,13 @@ public class MainMenu : MonoBehaviour
             //battleground
             if (currentSelection == 1 && UITools.actionButton)
             {
-                StartCoroutine(LoadScreen("Battleground"));
+                subMenu2 = false;
+                subMenuBG = true;
+                currentSelection = 1;
+                infoBox.SetActive(false);
+                arrow.enabled = false;
+                StartCoroutine(IgnoreInputs());
+                //StartCoroutine(LoadScreen("Battleground"));
                 return;
             }
             //targetRB test
@@ -512,6 +546,39 @@ public class MainMenu : MonoBehaviour
         }
     }
 
+    void SubMenuBGScreen()
+    {
+        infoBox.SetActive(false);
+        if ((UIInputs.leftStick.x > 0.8 || UIInputs.leftStick.x < -0.8) && cycleCRActive == false && inputsEnabled == true)
+        {
+            StartCoroutine(CycleSelect(false));
+        }
+
+        if (currentSelection > numStages)
+        {
+            currentSelection = 1;
+        }
+        if (currentSelection < 1)
+        {
+            currentSelection = numStages;
+        }
+
+        if (stageSelectCRActive == false)
+        {
+            StartCoroutine(StageSelectCR());
+        }
+
+        if (UITools.backButton)
+        {
+            subMenuBG = false;
+            subMenu2 = true;
+            currentSelection = 1;
+            infoBox.SetActive(true);
+            arrow.enabled = true;
+            StartCoroutine(IgnoreInputs());
+            return;
+        }
+    }
 
 
 
@@ -641,21 +708,50 @@ public class MainMenu : MonoBehaviour
         selectedEpisode.GetComponent<Shadow>().effectColor = shadowColor;
         episodeHighlightCR = false;
     }
-    IEnumerator CycleSelect()
+    IEnumerator StageSelectCR()
     {
+        stageSelectCRActive = true;
+        BGArrowLeft.rectTransform.position = new Vector2(initBGLArrowX, BGArrowLeft.rectTransform.position.y);
+        BGArrowRight.rectTransform.position = new Vector2(initBGRArrowX, BGArrowRight.rectTransform.position.y);
+        IEnumerator CRLeft = UITools.SelectArrowOsc(BGArrowLeft, true, false);
+        IEnumerator CRRight = UITools.SelectArrowOsc(BGArrowRight, true, true);
+        StartCoroutine(CRLeft); StartCoroutine(CRRight);
+        while (subMenuBG == true)
+        {
+            float xPosition = (currentSelection - 1) * -300;
+            xPosition = Mathf.Max(xPosition, 0);
+            stages.GetComponent<RectTransform>().localPosition =
+                new Vector2(Mathf.MoveTowards(stages.GetComponent<RectTransform>().localPosition.x, xPosition, 2000 * Time.unscaledDeltaTime),
+                stages.GetComponent<RectTransform>().localPosition.y);
+            Debug.Log(stages.GetComponent<RectTransform>().localPosition.x);
+            yield return null;
+        }
+        StopCoroutine(CRLeft); StopCoroutine(CRRight);
+
+        episodeSelectCRActive = false;
+    }
+    IEnumerator CycleSelect(bool vertical)
+    {
+        Debug.Log(currentSelection);
         cycleCRActive = true;
         int direction = -(int)Mathf.Sign(UIInputs.leftStick.y);
+        if (vertical == false)
+        {
+            direction = (int)Mathf.Sign(UIInputs.leftStick.x);
+        }
         currentSelection += direction;
         float window1 = 0.3f;
         float timer = 0;
-        while ((UIInputs.leftStick.y > 0.8 || UIInputs.leftStick.y < -0.8) && timer <= window1)
+        while ((((UIInputs.leftStick.y > 0.8 || UIInputs.leftStick.y < -0.8) && vertical) || ((UIInputs.leftStick.x > 0.8 || UIInputs.leftStick.x < -0.8) && vertical == false))
+            && timer <= window1)
         {
             timer += Time.unscaledDeltaTime;
             yield return null;
         }
         float window2 = 0.12f;
         timer = 0;
-        while ((UIInputs.leftStick.y > 0.8 || UIInputs.leftStick.y < -0.8) && inputsEnabled == true)
+        while ((((UIInputs.leftStick.y > 0.8 || UIInputs.leftStick.y < -0.8) && vertical) || ((UIInputs.leftStick.x > 0.8 || UIInputs.leftStick.x < -0.8) && vertical == false))
+            && inputsEnabled == true)
         {
             timer += Time.unscaledDeltaTime;
             if (timer > window2)

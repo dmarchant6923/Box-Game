@@ -31,6 +31,9 @@ public class WindBox : MonoBehaviour
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
         boxTransform = GameObject.Find("Box").GetComponent<Transform>();
 
+        Box.windGravity = 0;
+        BoxVelocity.windVelocity = 0;
+
         StartCoroutine(Glow());
     }
 

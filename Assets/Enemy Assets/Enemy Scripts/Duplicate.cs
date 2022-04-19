@@ -286,21 +286,27 @@ public class Duplicate : MonoBehaviour
         {
             while (sourceEM.enemyIsInvulnerable == true)
             {
-                GetComponent<SpriteRenderer>().enabled = true;
-                aura.GetComponent<SpriteRenderer>().enabled = true;
-                aura.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
-
-                if (sourceEM.enemyIsInvulnerable == true)
+                if (gameObject != null)
                 {
-                    yield return new WaitForSeconds(0.12f);
+                    GetComponent<SpriteRenderer>().enabled = true;
+                    aura.GetComponent<SpriteRenderer>().enabled = true;
+                    aura.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+
+                    if (sourceEM.enemyIsInvulnerable == true)
+                    {
+                        yield return new WaitForSeconds(0.12f);
+                    }
                 }
-                GetComponent<SpriteRenderer>().enabled = false;
-                aura.GetComponent<SpriteRenderer>().enabled = false;
-                aura.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
-
-                if (sourceEM.enemyIsInvulnerable == true)
+                if (gameObject != null)
                 {
-                    yield return new WaitForSeconds(0.04f);
+                    GetComponent<SpriteRenderer>().enabled = false;
+                    aura.GetComponent<SpriteRenderer>().enabled = false;
+                    aura.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
+
+                    if (sourceEM.enemyIsInvulnerable == true)
+                    {
+                        yield return new WaitForSeconds(0.04f);
+                    }
                 }
             }
             GetComponent<SpriteRenderer>().enabled = true;

@@ -123,7 +123,6 @@ public class Cannon : MonoBehaviour
         float timer = 0;
         while (timer < window && Box.damageActive == false && Box.boxEnemyPulseActive == false)
         {
-            Debug.Log(Box.airFriction);
             if (boxRB.velocity.magnitude < 25 && Box.enemyHitstopActive == false)
             {
                 frames++;
@@ -134,7 +133,6 @@ public class Cannon : MonoBehaviour
             }
             if (frames > 2)
             {
-                //Debug.Log("asdfa " + timer + " " + window);
                 break;
             }
             if (Box.enemyHitstopActive == false)

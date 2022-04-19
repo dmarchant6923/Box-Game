@@ -261,6 +261,10 @@ public class Box : MonoBehaviour
         {
             groundTime = 0;
         }
+        if (dodgeActive && rigidBody.velocity.y == 0 && ground != null && ground.GetComponent<OneWayObstacle>() != null && ground.transform.eulerAngles.z % 180 != 0)
+        {
+            groundTime = 0;
+        }
         float isGroundedWindow = 0.01f;
         if (ground != null && groundTime > isGroundedWindow) 
         {
@@ -858,16 +862,8 @@ public class Box : MonoBehaviour
         }
         if (damageActive == true || boxEnemyPulseActive)
         {
-            if (InputBroker.Keyboard && Input.GetKey(KeyCode.Z) == false && Input.GetKey(KeyCode.A) == false) { canTech = true; }
-            if (InputBroker.GameCube && Input.GetButton("GC L") == false && Input.GetButton("GC R") == false) { canTech = true; }
-            if (InputBroker.Xbox && Input.GetAxisRaw("Xbox L") > -0.9f && Input.GetAxisRaw("Xbox R") > -0.9f) { canTech = true; }
-
-            if (InputBroker.Keyboard && canTech && techCRActive == false && (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.A)))
-                { StartCoroutine(TechBuffer()); }
-            if (InputBroker.GameCube && canTech && techCRActive == false && (Input.GetButtonDown("GC L") || Input.GetButtonDown("GC R")))
-                { StartCoroutine(TechBuffer()); }
-            if (InputBroker.Xbox && canTech && techCRActive == false && (Input.GetAxisRaw("Xbox L") < -0.9f || Input.GetAxisRaw("Xbox R") < -0.9f))
-                { StartCoroutine(TechBuffer()); }
+            if (inputs.techButton == false) { canTech = true; }
+            if (canTech && techCRActive == false && inputs.techButtonDown) { StartCoroutine(TechBuffer()); }
 
             if (damageActive && enemyHitstopActive == false)
             {
@@ -1237,11 +1233,11 @@ public class Box : MonoBehaviour
             rigidBody.rotation = 0;
         }
 
-        if ((touchingLeftWall || touchingRightWall || touchingCeiling) && damageActive && damageTime > boxHitstopDelay + 0.05f && techWindowActive)
+        if ((touchingLeftWall || touchingRightWall || touchingCeiling || touchingGround) && damageActive && damageTime > boxHitstopDelay + 0.05f && techWindowActive)
         {
             techSuccessful = true;
-            if ((touchingLeftWall && (Input.GetAxisRaw("Left Stick X") > 0.8f || Input.GetAxisRaw("Horizontal") > 0.8f)) ||
-                (touchingRightWall && (Input.GetAxisRaw("Left Stick X") < -0.8f || Input.GetAxisRaw("Horizontal") < -0.8f)))
+            if ((touchingLeftWall && inputs.leftStickDisabled.x > 0.8f) ||
+                (touchingRightWall && inputs.leftStickDisabled.x < -0.8f))
             {
                 techWalljump = true;
             }
@@ -1590,15 +1586,20 @@ public class Box : MonoBehaviour
         canDodge = false;
         inputs.inputsEnabled = false;
         bool startsGrounded = isGrounded;
+        if (startsGrounded)
+        {
+            transform.position = new Vector2(transform.position.x, transform.position.y - (originalScale.y * (1 - crouchScale)) / 2);
+            transform.localScale = new Vector2(originalScale.x, originalScale.y * crouchScale);
+        }
         bool waveland = false;
-        //GetComponent<Collider2D>().isTrigger = true;
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Projectiles"), true);
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Enemy Device"), true);
         SpriteRenderer sprite = GetComponent<SpriteRenderer>();
         sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0.4f);
         Vector2 initialPosition = rigidBody.position;
         Vector2 target = inputs.leftStick.normalized;
-        float startVelocity = 18;
+        float startVelocity = 30;
+        float slowMult = 5f;
         if (BoxPerks.speedActive || BoxPerks.starActive)
         {
             startVelocity *= 1.2f;
@@ -1616,7 +1617,7 @@ public class Box : MonoBehaviour
             gravityScale = 0;
             if (debugEnabled)
             {
-                Debug.DrawRay(initialPosition, target * 4);
+                Debug.DrawRay(initialPosition, target * 3);
             }
             if (startsGrounded == false && isGrounded)
             {
@@ -1624,26 +1625,56 @@ public class Box : MonoBehaviour
                 waveland = true;
                 break;
             }
-            velocityX = Mathf.MoveTowards(velocityX, 0, Mathf.Abs(velocityX * 3) / window * Time.deltaTime);
-            BoxVelocity.velocitiesX[0] = velocityX;
+            if (startsGrounded && isGrounded == false && transform.localScale.y != originalScale.y)
+            {
+                transform.localScale = new Vector2(originalScale.x, originalScale.y);
+                transform.position = new Vector2(transform.position.x, transform.position.y + (originalScale.y * (1 - crouchScale)) / 2);
+            }
 
-            velocityY = Mathf.MoveTowards(velocityY, 0, Mathf.Abs(velocityY * 3) / window * Time.deltaTime);
-            rigidBody.velocity = new Vector2(rigidBody.velocity.x, Mathf.MoveTowards(rigidBody.velocity.y, 0, Mathf.Abs(velocityY * 3) / window * Time.deltaTime));
+            velocityX = Mathf.MoveTowards(velocityX, 0, Mathf.Abs(velocityX * slowMult) / window * Time.deltaTime);
+            BoxVelocity.velocitiesX[0] = velocityX;
+            if (Mathf.Abs(velocityY) > 0.05f)
+            {
+                velocityY = Mathf.MoveTowards(velocityY, 0, Mathf.Abs(velocityY * slowMult) / window * Time.deltaTime);
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, Mathf.MoveTowards(rigidBody.velocity.y, 0, Mathf.Abs(velocityY * slowMult) / window * Time.deltaTime));
+            }
+            else
+            {
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, 0);
+            }
 
             timer += Time.deltaTime;
             yield return null;
+        }
+        if (startsGrounded && isGrounded && transform.localScale.y != originalScale.y)
+        {
+            transform.localScale = new Vector2(originalScale.x, originalScale.y);
+            transform.position = new Vector2(transform.position.x, transform.position.y + (originalScale.y * (1 - crouchScale)) / 2);
         }
         sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 1);
         gravityScale = initialGravityScale;
         isInvulnerable = false;
         dodgeInvulActive = false;
-        //GetComponent<Collider2D>().isTrigger = false;
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Projectiles"), false);
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Enemy Device"), false);
         window = dodgeDuration;
         bool startsGrounded2 = isGrounded;
+        bool canfastfall = false;
         while (timer < window && damageActive == false && boxEnemyPulseActive == false)
         {
+            if (inputs.leftStickDisabled.x != 0 && Mathf.Abs(BoxVelocity.velocitiesX[0]) < horizMaxSpeed && isGrounded == false)
+            {
+                BoxVelocity.velocitiesX[0] = Mathf.MoveTowards(BoxVelocity.velocitiesX[0], inputs.leftStickDisabled.x * horizMaxSpeed, airAccel * Time.deltaTime);
+            }
+            if (inputs.leftStickDisabled.y < -0.8f && canfastfall == true)
+            {
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, maxFallSpeed);
+            }
+            if (inputs.leftStickDisabled.y > -0.8f)
+            {
+                canfastfall = true;
+            }
+
             if ((startsGrounded2 == false && isGrounded) || waveland)
             {
                 break;
@@ -1780,7 +1811,7 @@ public class Box : MonoBehaviour
             damageTime = 0;
             BoxVelocity.velocitiesX[0] = currentHorizVelocity;
             rigidBody.velocity = new Vector2(rigidBody.velocity.x, currentVertVelocity);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1.5f);
             isInvulnerable = false;
             shockActive = false;
         }
@@ -1791,25 +1822,15 @@ public class Box : MonoBehaviour
         float maxDamageStunTime = 0.4f + damageTaken * 0.014f + boxHitstopDelay;
         float launchSpeed = 7 + damageTaken / 2.5f;
         rigidBody.angularDrag /= 3;
-        //DI overrides inputs, may be necessary to change later
-        Vector2 DI = Vector2.zero;
         float DIMult = 0.25f;
-        if (InputBroker.Controller)
+        Vector2 DI = inputs.leftStickDisabled;
+        if (DI.magnitude < 0.1f)
         {
-            DI = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
-            DI = inputs.joystickCalibrate(DI, "Left");
-            if (DI.magnitude < 0.1f)
-            {
-                DI = Vector2.zero;
-            }
+            DI = Vector2.zero;
         }
-        else if (InputBroker.Keyboard)
+        if (DI.magnitude > 1)
         {
-            DI = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-            if (DI.magnitude > 1)
-            {
-                DI = DI.normalized;
-            }
+            DI = DI.normalized;
         }
         DI *= DIMult;
         Vector2 perpVector = Vector2.Perpendicular(boxDamageDirection).normalized * Vector2.Dot(DI, Vector2.Perpendicular(boxDamageDirection).normalized);
@@ -1865,7 +1886,7 @@ public class Box : MonoBehaviour
             if (techWalljump == false)
             {
                 BoxVelocity.velocitiesX[0] = 0;
-                rigidBody.velocity = new Vector2(rigidBody.velocity.x, 2);
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, 0);
             }
             else
             {
@@ -1951,26 +1972,15 @@ public class Box : MonoBehaviour
             yield return null;
         }
         yield return null;
-
-
-        Vector2 DI = Vector2.zero;
         float DIMult = 0.75f;
-        if (InputBroker.Controller)
+        Vector2 DI = inputs.leftStickDisabled;
+        if (DI.magnitude < 0.1f)
         {
-            DI = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
-            DI = inputs.joystickCalibrate(DI, "Left");
-            if (DI.magnitude < 0.1f)
-            {
-                DI = Vector2.zero;
-            }
+            DI = Vector2.zero;
         }
-        else if (InputBroker.Keyboard)
+        if (DI.magnitude > 1)
         {
-            DI = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-            if (DI.magnitude > 1)
-            {
-                DI = DI.normalized;
-            }
+            DI = DI.normalized;
         }
         DI *= DIMult;
         Vector2 perpVector = Vector2.Perpendicular(boxEnemyPulseDirection) * Vector2.Dot(DI, Vector2.Perpendicular(boxEnemyPulseDirection));
@@ -2188,7 +2198,6 @@ public class Box : MonoBehaviour
 
             yield return null;
         }
-        Debug.Log(inputs.inputsEnabled);
         airFriction = initialAirFriction;
     }
 }

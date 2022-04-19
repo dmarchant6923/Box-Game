@@ -6,14 +6,15 @@ public class InputBroker : MonoBehaviour
 {
     [HideInInspector] public bool inputsEnabled;
 
-    public static bool Keyboard { get; private set; } = true;
-    public static bool Controller { get; private set; } = false;
+    public static bool Keyboard { get; private set; } = false;
+    public static bool Controller { get; private set; } = true;
 
-    public static bool GameCube { get; private set; } = false;
+    public static bool GameCube { get; private set; } = true;
     public static bool Xbox { get; private set; } = false;
 
     public Vector2 leftStick { get; private set; } //calibration for sticks is done in this script, not with input manager
     public Vector2 rightStick { get; private set; }
+    public Vector2 leftStickDisabled { get; private set; } // for reading stick inputs while inputs are disabled
 
     Vector2 leftStick1f;
     Vector2 rightStick1f;
@@ -99,6 +100,10 @@ public class InputBroker : MonoBehaviour
     public bool dodgeButtonUp { get; private set; }
     public bool dodgeButton { get; private set; }
 
+    public bool techButtonDown { get; private set; }
+    public bool techButtonUp { get; private set; }
+    public bool techButton { get; private set; }
+
     public bool rightShiftKeyDown { get; private set; }
     public bool rightShiftKeyUp { get; private set; }
     public bool rightShiftKey { get; private set; }
@@ -138,7 +143,6 @@ public class InputBroker : MonoBehaviour
                 Keyboard = false;
                 if (GameCube)
                 {
-                    Keyboard = false;
                     Xbox = false;
 
                     leftStick = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
@@ -178,16 +182,16 @@ public class InputBroker : MonoBehaviour
                     teleportButtonDown = Input.GetButtonDown("GC R");
                     teleportButton = Input.GetButton("GC R");
 
-                    dashButtonDown = Input.GetButtonDown("GC L");
-                    dashButton = Input.GetButton("GC L");
+                    dashButtonDown = Input.GetButtonDown("GC B");
+                    dashButton = Input.GetButton("GC B");
 
-                    pulseButtonDown = Input.GetButtonDown("GC B");
-                    pulseButtonUp = Input.GetButtonUp("GC B");
-                    pulseButton = Input.GetButton("GC B");
+                    pulseButtonDown = Input.GetButtonDown("GC Z");
+                    pulseButtonUp = Input.GetButtonUp("GC Z");
+                    pulseButton = Input.GetButton("GC Z");
 
-                    dodgeButtonDown = Input.GetButtonDown("GC ");
-                    dodgeButtonUp = Input.GetButtonUp("GC ");
-                    dodgeButton = Input.GetButton("GC ");
+                    dodgeButtonDown = Input.GetButtonDown("GC L");
+                    dodgeButtonUp = Input.GetButtonUp("GC L");
+                    dodgeButton = Input.GetButton("GC L");
 
                     // upDpad = Input.GetButton("GC Dpad U"); always active
 
@@ -400,6 +404,12 @@ public class InputBroker : MonoBehaviour
                 rightDpad = Input.GetButton("GC Dpad R");
 
                 startButtonDown = Input.GetButtonDown("GC Start");
+
+                leftStickDisabled = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
+                leftStickDisabled = joystickCalibrate(leftStickDisabled, "Left");
+
+                techButtonDown = Input.GetButtonDown("GC L") || Input.GetButtonDown("GC R");
+                techButton = Input.GetButton("GC L") || Input.GetButton("GC R");
             }
             if (Xbox)
             {
@@ -419,6 +429,12 @@ public class InputBroker : MonoBehaviour
                 else { rightDpad = false; }
 
                 startButtonDown = Input.GetButtonDown("Xbox Start");
+
+                leftStickDisabled = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
+                leftStickDisabled = joystickCalibrate(leftStick, "Left");
+
+                techButtonDown = XboxSmashL || XboxSmashR;
+                techButton = XboxL > smashInputLimit || XboxR > smashInputLimit;
             }
         }
         else if (Keyboard)
@@ -429,6 +445,11 @@ public class InputBroker : MonoBehaviour
             rightDpad = Input.GetKey(KeyCode.E);
 
             startButtonDown = Input.GetKeyDown(KeyCode.Return);
+
+            leftStickDisabled = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+
+            techButtonDown = Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.A);
+            techButton = Input.GetKey(KeyCode.Z) || Input.GetKey(KeyCode.A);
         }
 
         //the following is a white list of inputs that will be buffered during hitstop. Any changes in control scheme will have to be made here too.
@@ -451,19 +472,20 @@ public class InputBroker : MonoBehaviour
                     {
                         bufferedTeleportButtonDown = true;
                     }
-                    if (Input.GetButtonDown("GC L"))
+                    if (Input.GetButtonDown("GC B"))
                     {
                         bufferedDashButtonDown = true;
                     }
-                    if (Input.GetButtonDown("GC B"))
+                    if (Input.GetButtonDown("GC Z"))
                     {
                         bufferedPulseButtonDown = true;
                     }
-                    if (Input.GetButtonDown("GC "))
+                    if (Input.GetButtonDown("GC L"))
                     {
                         bufferedDodgeButtonDown = true;
                     }
                     bufferedLeftStick = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
+                    bufferedLeftStick = joystickCalibrate(bufferedLeftStick, "Left");
                 }
                 if (Xbox)
                 {
@@ -478,6 +500,7 @@ public class InputBroker : MonoBehaviour
                     if (Input.GetButtonDown("Xbox X")) { bufferedPulseButtonDown = true; }
                     if (Input.GetButtonDown("Xbox ")) { bufferedDodgeButtonDown = true; }
                     bufferedLeftStick = new Vector2(Input.GetAxisRaw("Left Stick X"), Input.GetAxisRaw("Left Stick Y"));
+                    bufferedLeftStick = joystickCalibrate(bufferedLeftStick, "Left");
                 }
             }
             else if (Keyboard)

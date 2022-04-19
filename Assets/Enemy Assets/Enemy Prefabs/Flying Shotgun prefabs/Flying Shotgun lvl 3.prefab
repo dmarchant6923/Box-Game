@@ -21,7 +21,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
       propertyPath: restTime
-      value: 3
+      value: 3.4
       objectReference: {fileID: 0}
     - target: {fileID: 2361387401203103682, guid: b53d418e0d922244b9df336709c25f54, type: 3}
       propertyPath: debugLines

@@ -775,22 +775,21 @@ public class BattlegroundManager : MonoBehaviour
         }
         if (spawnPerk)
         {
-            //Vector2 spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
-            //    spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
-            //RaycastHit2D spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 3f, Vector2.zero, 0f, groundLM);
-            //RaycastHit2D spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+            Vector2 spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
+                spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
+            RaycastHit2D spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
+            RaycastHit2D spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
 
-            //while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null)
-            //{
-            //    spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
-            //        spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
-            //    spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 3f, Vector2.zero, 0f, groundLM);
-            //    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
-            //}
-            //yield return null;
+            while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null)
+            {
+                spawnCoordinates = new Vector2(spawnLimits[0].x + Random.Range(-1f, 1f) * spawnLimits[1].x,
+                    spawnLimits[0].y + Random.Range(-1f, 1f) * spawnLimits[1].y);
+                spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
+                spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+            }
 
-            rand = Random.Range(0, perkSpawns.transform.childCount);
-            Vector2 spawnCoordinates = perkSpawns.transform.GetChild(rand).transform.position;
+            //rand = Random.Range(0, perkSpawns.transform.childCount);
+            //Vector2 spawnCoordinates = perkSpawns.transform.GetChild(rand).transform.position;
 
             Instantiate(perk, spawnCoordinates, Quaternion.identity);
         }

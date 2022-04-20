@@ -1586,6 +1586,8 @@ public class Box : MonoBehaviour
         canDodge = false;
         inputs.inputsEnabled = false;
         bool startsGrounded = isGrounded;
+        Vector2 target = inputs.leftStick.normalized;
+        yield return null;
         if (startsGrounded)
         {
             transform.position = new Vector2(transform.position.x, transform.position.y - (originalScale.y * (1 - crouchScale)) / 2);
@@ -1597,9 +1599,8 @@ public class Box : MonoBehaviour
         SpriteRenderer sprite = GetComponent<SpriteRenderer>();
         sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0.4f);
         Vector2 initialPosition = rigidBody.position;
-        Vector2 target = inputs.leftStick.normalized;
-        float startVelocity = 30;
-        float slowMult = 5f;
+        float startVelocity = 35;
+        float slowMult = 6.5f;
         if (BoxPerks.speedActive || BoxPerks.starActive)
         {
             startVelocity *= 1.2f;
@@ -1633,10 +1634,10 @@ public class Box : MonoBehaviour
 
             velocityX = Mathf.MoveTowards(velocityX, 0, Mathf.Abs(velocityX * slowMult) / window * Time.deltaTime);
             BoxVelocity.velocitiesX[0] = velocityX;
-            if (Mathf.Abs(velocityY) > 0.05f)
+            if (Mathf.Abs(velocityY) > 0.08f)
             {
                 velocityY = Mathf.MoveTowards(velocityY, 0, Mathf.Abs(velocityY * slowMult) / window * Time.deltaTime);
-                rigidBody.velocity = new Vector2(rigidBody.velocity.x, Mathf.MoveTowards(rigidBody.velocity.y, 0, Mathf.Abs(velocityY * slowMult) / window * Time.deltaTime));
+                rigidBody.velocity = new Vector2(rigidBody.velocity.x, Mathf.MoveTowards(rigidBody.velocity.y, 0, Mathf.Abs(rigidBody.velocity.y * slowMult) / window * Time.deltaTime));
             }
             else
             {

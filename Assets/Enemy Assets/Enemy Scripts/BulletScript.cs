@@ -172,7 +172,7 @@ public class BulletScript : MonoBehaviour
     {
         RaycastHit2D boxRC = Physics2D.Raycast(bulletRB.position - bulletRB.velocity.normalized * transform.lossyScale.y, 
             bulletRB.velocity.normalized, transform.lossyScale.y * 2, boxLM);
-        if ((1 << collision.gameObject.layer == boxLM || boxRC.collider != null) && bulletWasReflected == false)
+        if ((1 << collision.gameObject.layer == boxLM || boxRC.collider != null) && bulletWasReflected == false && Box.dodgeInvulActive == false)
         {
             Box.damageTaken = bulletDamage;
             Box.boxDamageDirection = new Vector2(Mathf.Sign(bulletRB.velocity.x), 1).normalized;

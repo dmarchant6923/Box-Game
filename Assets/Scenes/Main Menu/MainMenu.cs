@@ -63,7 +63,9 @@ public class MainMenu : MonoBehaviour
     int numStages;
     public Image BGArrowLeft;
     public Image BGArrowRight;
+    public Text BGInfoText;
     bool stageSelectCRActive = false;
+    bool stageHighlightCR = false;
     float initBGLArrowX;
     float initBGRArrowX;
 
@@ -81,15 +83,15 @@ public class MainMenu : MonoBehaviour
 
         Time.timeScale = 1;
 
-        BGInfo = "I do not know where I am or why I am here.\n\n<i>All I know is that I must kill.</i>\n\nHigh Score: ";
-        if (DataManager.BGHighScore != 0)
-        {
-            BGInfo += "Round " + DataManager.BGHighScore;
-        }
-        else
-        {
-            BGInfo += "---";
-        }
+        BGInfo = "I do not know where I am or why I am here.\n\n<i>All I know is that I must kill.</i>";//\n\nHigh Score: ";
+        //if (DataManager.BGHighScore != 0)
+        //{
+        //    BGInfo += "Round " + DataManager.BGHighScore;
+        //}
+        //else
+        //{
+        //    BGInfo += "---";
+        //}
 
         TTInfo = "Break the targets!\n\nSmash all targets in the arena as quick as you can.\n\n Pick from easy, medium, and hard difficulties.";
         TTInfoEasy = TTHSUpdate(DataManager.TTHighScoreEasy, 0);
@@ -433,6 +435,8 @@ public class MainMenu : MonoBehaviour
                 currentSelection = 1;
                 infoBox.SetActive(false);
                 arrow.enabled = false;
+                title.enabled = false;
+                BGArrowLeft.enabled = false;
                 StartCoroutine(IgnoreInputs());
                 //StartCoroutine(LoadScreen("Battleground"));
                 return;
@@ -556,18 +560,42 @@ public class MainMenu : MonoBehaviour
 
         if (currentSelection > numStages)
         {
-            currentSelection = 1;
+            currentSelection = numStages;
         }
         if (currentSelection < 1)
         {
-            currentSelection = numStages;
+            currentSelection = 1;
+        }
+
+        string text = "Stage " + currentSelection + "\nHigh Score: Round ";
+        if (currentSelection == 1)
+        {
+            BGInfoText.text = text + DataManager.BGHighScore1;
+        }
+        if (currentSelection == 2)
+        {
+            BGInfoText.text = text + DataManager.BGHighScore2;
+        }
+        if (currentSelection == 3)
+        {
+            BGInfoText.text = text + DataManager.BGHighScore3;
         }
 
         if (stageSelectCRActive == false)
         {
             StartCoroutine(StageSelectCR());
         }
+        if (stageHighlightCR == false)
+        {
+            StartCoroutine(StageHighlight());
+        }
 
+        if (UITools.actionButton)
+        {
+            StartCoroutine(LoadScreen("Stage " + currentSelection));
+            BattlegroundManager.stage = currentSelection;
+            return;
+        }
         if (UITools.backButton)
         {
             subMenuBG = false;
@@ -575,6 +603,7 @@ public class MainMenu : MonoBehaviour
             currentSelection = 1;
             infoBox.SetActive(true);
             arrow.enabled = true;
+            title.enabled = true;
             StartCoroutine(IgnoreInputs());
             return;
         }
@@ -719,20 +748,56 @@ public class MainMenu : MonoBehaviour
         while (subMenuBG == true)
         {
             float xPosition = (currentSelection - 1) * -300;
-            xPosition = Mathf.Max(xPosition, 0);
+            xPosition = Mathf.Min(xPosition, 0);
             stages.GetComponent<RectTransform>().localPosition =
-                new Vector2(Mathf.MoveTowards(stages.GetComponent<RectTransform>().localPosition.x, xPosition, 2000 * Time.unscaledDeltaTime),
+                new Vector2(Mathf.MoveTowards(stages.GetComponent<RectTransform>().localPosition.x, xPosition, 4000 * Time.unscaledDeltaTime),
                 stages.GetComponent<RectTransform>().localPosition.y);
-            Debug.Log(stages.GetComponent<RectTransform>().localPosition.x);
             yield return null;
         }
         StopCoroutine(CRLeft); StopCoroutine(CRRight);
 
         episodeSelectCRActive = false;
     }
+    IEnumerator StageHighlight()
+    {
+        Debug.Log("you are here");
+        stageHighlightCR = true;
+        GameObject selectedStage = stages.transform.GetChild(currentSelection - 1).gameObject;
+        Color color = selectedStage.GetComponent<Image>().color;
+        Color newColor = new Color(color.r, color.g, color.b, 1);
+        Vector2 initialSize = selectedStage.transform.localScale;
+        float scale = 1.6f;
+        Vector2 newSize = selectedStage.transform.localScale * scale;
+        Color shadowColor = selectedStage.GetComponent<Shadow>().effectColor;
+        selectedStage.GetComponent<Shadow>().effectColor = new Color(shadowColor.r, shadowColor.g, shadowColor.b, 0.8f);
+        int stageSelected = currentSelection;
+        int modCurrentSelection = currentSelection;
+        yield return null;
+        while (modCurrentSelection == stageSelected)
+        {
+            yield return null;
+            modCurrentSelection = Mathf.Min(currentSelection, numStages);
+            modCurrentSelection = Mathf.Max(modCurrentSelection, 1);
+            if (modCurrentSelection != 1)
+            {
+                BGArrowLeft.enabled = true;
+            }
+            if (modCurrentSelection != numStages)
+            {
+                BGArrowRight.enabled = true;
+            }
+            selectedStage.transform.localScale = Vector2.MoveTowards(selectedStage.transform.localScale, newSize, 10 * Time.deltaTime);
+            selectedStage.GetComponent<Image>().color = Color.Lerp(selectedStage.GetComponent<Image>().color, newColor, 10 * Time.deltaTime);
+        }
+        BGArrowLeft.enabled = false;
+        BGArrowRight.enabled = false;
+        selectedStage.GetComponent<Image>().color = color;
+        selectedStage.transform.localScale = initialSize;
+        selectedStage.GetComponent<Shadow>().effectColor = shadowColor;
+        stageHighlightCR = false;
+    }
     IEnumerator CycleSelect(bool vertical)
     {
-        Debug.Log(currentSelection);
         cycleCRActive = true;
         int direction = -(int)Mathf.Sign(UIInputs.leftStick.y);
         if (vertical == false)

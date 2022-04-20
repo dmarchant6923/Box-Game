@@ -117,6 +117,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     int obstacleAndBoxLM;
 
     bool aggroActive = false;
+    float maxFallSpeed;
 
     public bool debugLinesEnabled = false;
 
@@ -149,6 +150,8 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         }
 
         enemyComponents = transform.GetComponentsInChildren<Transform>();
+
+        maxFallSpeed = enemyRB.gravityScale * -5;
     }
 
     void FixedUpdate()
@@ -156,6 +159,11 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         if (EM.scriptsEnabled == false)
         {
             this.enabled = false;
+        }
+
+        if (enemyRB.velocity.y < maxFallSpeed && EM.enemyWasKilled == false)
+        {
+            enemyRB.velocity = new Vector2(enemyRB.velocity.x, maxFallSpeed);
         }
 
 

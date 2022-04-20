@@ -169,6 +169,7 @@ MonoBehaviour:
   shockActive: 0
   endShock: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
+  active: 1
 --- !u!114 &-2088875313082826883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,15 +184,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialDelay: 0
   randomInitialDelay: 0
+  distance: 5
+  horizontal: 1
   movementType1: 0
-  type1Horizontal: 0
   type1Velocity1: 2.6
   type1Velocity2: 2.6
-  type1Distance: 5
   type1StayTime1: 1
   type1StayTime2: 1
   movementType2: 0
-  type2Horizontal: 0
   type2Period: 1
-  type2Distance: 1
   isMoving: 0
+  startReverse: 0
+  activateBySwitch: 0
+  startActive: 0
+  stayActive: 0
+  active: 1
+  pauseOnDeactivate: 0
+  bufferDeactivate: 0

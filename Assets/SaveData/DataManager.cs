@@ -9,7 +9,9 @@ public class DataManager : MonoBehaviour
 
     public static BGStats BGStats = new BGStats();
     string BGFileName = SaveManager.BattlegroundFile;
-    public static int BGHighScore;
+    public static int BGHighScore1;
+    public static int BGHighScore2;
+    public static int BGHighScore3;
 
     public static TargetStats TTStats = new TargetStats();
     string TTFileName = SaveManager.TargetTestFile;
@@ -60,7 +62,9 @@ public class DataManager : MonoBehaviour
 
     void AnalyzeData()
     {
-        BGHighScore = BGStats.wavesReached[0];
+        BGHighScore1 = BGStats.wavesReached[0];
+        BGHighScore2 = BGStats.wavesReached[6];
+        BGHighScore3 = BGStats.wavesReached[12];
         TTHighScoreEasy = TTStats.easyTimes[0];
         TTHighScoreMed = TTStats.medTimes[0];
         TTHighScoreHard = TTStats.hardTimes[0];

@@ -5,9 +5,9 @@ using System.IO;
 [System.Serializable]
 public class BGStats
 {
-    public int[] wavesReached = new int[6];
-    public float[] times = new float[6];
-    public int[] enemiesKilled = new int[6];
+    public int[] wavesReached = new int[18];
+    public float[] times = new float[18];
+    public int[] enemiesKilled = new int[18];
 }
 
 [System.Serializable]
@@ -43,7 +43,7 @@ public static class SaveManager
     //SaveManager.episodeDirectory + "S" + i + "E" + j + SaveManager.extension. For season 3 episode 4 this would search for the following file:
     // /Savedata/text files/episodes/S3E4.txt
 
-    //final build should be using persistentDataPath, not dataPath
+    //***************   final build should be using persistentDataPath, not dataPath   ****************************8
 
     public static void SaveEpisode(int season, int episode, EpisodeStats episodeStats)
     {

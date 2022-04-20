@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class BattlegroundUI : MonoBehaviour
 {
+    int stage;
     InputBroker UIInputs;
     UITools UITools;
 
@@ -37,6 +38,7 @@ public class BattlegroundUI : MonoBehaviour
 
     private void Start()
     {
+        stage = BattlegroundManager.stage;
         UIInputs = GetComponent<InputBroker>();
         UITools = GetComponent<UITools>();
         if (SaveManager.FileExists(fileName))
@@ -49,9 +51,21 @@ public class BattlegroundUI : MonoBehaviour
         HiScores.SetActive(false);
         Time.timeScale = 1;
 
-        HSRounds = stats.wavesReached;
-        HSTime = stats.times;
-        HSEnemies = stats.enemiesKilled;
+        for (int i = 0; i < 6; i++)
+        {
+            HSRounds[i] = stats.wavesReached[i + (stage - 1) * 6];
+            HSTime[i] = stats.times[i + (stage - 1) * 6];
+            HSEnemies[i] = stats.enemiesKilled[i + (stage - 1) * 6];
+        }
+    }
+
+    object[] GetColumn(object[,] source, object[] result)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            result[i] = source[i, stage];
+        }
+        return result;
     }
 
     private void Update()
@@ -158,9 +172,12 @@ public class BattlegroundUI : MonoBehaviour
 
     private void SaveHS()
     {
-        stats.wavesReached = HSRounds;
-        stats.times = HSTime;
-        stats.enemiesKilled = HSEnemies;
+        for (int i = 0; i < 6; i++)
+        {
+            stats.wavesReached[i + (stage - 1) * 6] = HSRounds[i];
+            stats.times[i + (stage - 1) * 6] = HSTime[i];
+            stats.enemiesKilled[i + (stage - 1) * 6] = HSEnemies[i];
+        }
 
         string jsonString = JsonUtility.ToJson(stats);
         SaveManager.Save(jsonString, fileName);

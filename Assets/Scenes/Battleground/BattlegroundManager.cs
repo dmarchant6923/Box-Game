@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BattlegroundManager : MonoBehaviour
 {
+    [HideInInspector] public static int stage = 1;
     [HideInInspector] public static int wave = 1;
     [HideInInspector] public static int enemiesKilled = 0;
     bool currentWaveActive = false;
@@ -15,12 +16,6 @@ public class BattlegroundManager : MonoBehaviour
     Vector2[] spawnLimits = new Vector2[2]; // [0] is transform position, [1] is transform half size
 
     [HideInInspector] public static bool addToHiScores = false;
-
-    public GameObject perkSpawns;
-    public GameObject enemySpawns;
-    GameObject flyingSpawns;
-    GameObject groundedSpawns;
-    GameObject turretSpawns;
 
     public class Enemy
     {
@@ -272,18 +267,6 @@ public class BattlegroundManager : MonoBehaviour
             addToHiScores = true;
         }
 
-        flyingSpawns = enemySpawns.transform.GetChild(0).gameObject;
-        groundedSpawns = enemySpawns.transform.GetChild(1).gameObject;
-        turretSpawns = enemySpawns.transform.GetChild(2).gameObject;
-        foreach (SpriteRenderer sprite in perkSpawns.GetComponentsInChildren<SpriteRenderer>())
-        {
-            sprite.enabled = false;
-        }
-        foreach (SpriteRenderer sprite in enemySpawns.GetComponentsInChildren<SpriteRenderer>())
-        {
-            sprite.enabled = false;
-        }
-
         StartCoroutine(RoundStart());
     }
 
@@ -321,7 +304,7 @@ public class BattlegroundManager : MonoBehaviour
         currentWaveActive = false;
         spawnedEnemies.Clear();
         yield return new WaitForSeconds(timeBetweenWaves / 4);
-        if (firstWave == false)
+        if (firstWave == false && deathActive == false)
         {
             Box.boxHealth += 10;
             wave++;

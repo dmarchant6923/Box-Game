@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Main Menu/Main Menu.unity
     guid: 2d299eb1b03fe43469c9e2b62f028162
   - enabled: 1
-    path: Assets/Scenes/Battleground/Battleground.unity
+    path: Assets/Scenes/Battleground/Stage 1.unity
     guid: 3eebe6846d627064387fec950f42c337
   - enabled: 1
     path: Assets/Scenes/Playground.unity
@@ -23,4 +23,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Adventure Mode/Season 1/S1E1.unity
     guid: c4f3e99d35e61df4ab021b28f04f401b
+  - enabled: 1
+    path: Assets/Scenes/Battleground/Stage 2.unity
+    guid: 4876c669df2efd44e88d6d751b02f16f
   m_configObjects: {}

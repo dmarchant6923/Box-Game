@@ -76,6 +76,8 @@ public class EnemyBehavior_Grounded : MonoBehaviour
 
     bool aggroActive = false;
 
+    float maxFallSpeed;
+
     private void Awake()
     {
         enemyRB = GetComponent<Rigidbody2D>();
@@ -95,12 +97,22 @@ public class EnemyBehavior_Grounded : MonoBehaviour
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
         enemyLM = LayerMask.GetMask("Enemies");
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
+        maxFallSpeed = enemyRB.gravityScale * -5;
+        if (lvl3)
+        {
+            maxFallSpeed *= 2;
+        }
     }
     void FixedUpdate()
     {
         if (EM.scriptsEnabled == false)
         {
             this.enabled = false;
+        }
+
+        if (enemyRB.velocity.y < maxFallSpeed && EM.enemyWasKilled == false)
+        {
+            enemyRB.velocity = new Vector2(enemyRB.velocity.x, maxFallSpeed);
         }
 
         directionToBoxX = (int) Mathf.Sign(boxRB.position.x - enemyRB.position.x);
@@ -568,9 +580,10 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                 EM.physicalHitboxActive = true;
                 if (enemyRB.velocity.y < -5f && lvl3 && enemyHitboxActive && willDamageEnemies == false && activatedGroundPound == false && EM.enemyWasKilled == false)
                 {
-                    enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 2f);
                     activatedGroundPound = true;
                     groundpoundActive = true;
+                    yield return null;
+                    enemyRB.velocity = new Vector2(enemyRB.velocity.x, groundpoundYVel * 2f);
                 }
                 if (activatedGroundPound && groundpoundActive && avgYVelocity > groundpoundYVel && enemyRB.velocity.y > groundpoundYVel)
                 {

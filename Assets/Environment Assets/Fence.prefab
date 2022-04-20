@@ -148,7 +148,7 @@ MonoBehaviour:
   initialDelay: 0
   randomInitialDelay: 0
   distance: 5
-  horizontal: 0
+  horizontal: 1
   movementType1: 0
   type1Velocity1: 2.6
   type1Velocity2: 2.6

@@ -435,9 +435,13 @@ public class Box : MonoBehaviour
                 //regular movements, non crouched
                 else
                 {
-                    if (inputs.leftStick.x != 0 && Mathf.Abs(BoxVelocity.velocitiesX[0]) <= Mathf.Abs(dashSpeed))
+                    if (inputs.leftStick.x > 0.2f && BoxVelocity.velocitiesX[0] < adjustedHorizSpeed)
                     {
-                        BoxVelocity.velocitiesX[0] = adjustedHorizSpeed * Mathf.Sign(inputs.leftStick.x);
+                        BoxVelocity.velocitiesX[0] = adjustedHorizSpeed;
+                    }
+                    else if (inputs.leftStick.x < -0.2f && BoxVelocity.velocitiesX[0] > -adjustedHorizSpeed)
+                    {
+                        BoxVelocity.velocitiesX[0] = -adjustedHorizSpeed;
                     }
                     else
                     {

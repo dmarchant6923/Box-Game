@@ -176,6 +176,8 @@ public class BattlegroundManager : MonoBehaviour
     bool deathActive = false;
 
     Box boxScript;
+    public GameObject boxShadow;
+    GameObject newShadow;
 
     void Start()
     {
@@ -393,8 +395,8 @@ public class BattlegroundManager : MonoBehaviour
             {
                 continue;
             }
-            //only allow a max of 5 kamikaze enemies to spawn at higher waves, and only spawn them at wave 15 or above
-            if (enemySelected.enemyObject == flyingKamikaze1 && (wavePoints > enemySelected.enemyPoints * 5 || wave < 15))
+            //only allow a max of 5 kamikaze enemies to spawn at higher waves, and only spawn them at wave 18 or above
+            if (enemySelected.enemyObject == flyingKamikaze1 && (wavePoints > enemySelected.enemyPoints * 5 || wave < 18))
             {
                 continue;
             }
@@ -426,7 +428,7 @@ public class BattlegroundManager : MonoBehaviour
             //no grounded vehicles before wave 15 (besides scripted one on wave 10), and max of one
             if (enemies[enemyTypeSelected] == groundedVehicle && wave < 15)
             {
-                if (wave < 15 || (wave < 25 && groundedVehicles > 0 && groundedVehicles < 2))
+                if (wave < 15 || (wave < 35 && groundedVehicles > 0) || (wave >= 35 && groundedVehicles > 2))
                 {
                     continue;
                 }
@@ -779,6 +781,7 @@ public class BattlegroundManager : MonoBehaviour
     }
     IEnumerator Death()
     {
+        BoxPerks.buffActive = false;
         UIManager.stopClock = true;
         StartCoroutine(boxScript.DisableInputs(20));
         float timer = 0;
@@ -804,10 +807,14 @@ public class BattlegroundManager : MonoBehaviour
         boxScript.GetComponent<Rigidbody2D>().velocity = Vector2.up * 17;
         boxScript.GetComponent<Rigidbody2D>().angularVelocity = 1000;
         boxScript.GetComponent<Rigidbody2D>().angularDrag = 0;
+
+        newShadow = Instantiate(boxShadow, boxScript.transform.position, Quaternion.identity);
         timer = 0;
         window = 2f;
         while (timer < window)
         {
+            newShadow.transform.position = new Vector2(boxScript.transform.position.x, boxScript.transform.position.y) + new Vector2(0.25f, -0.25f);
+            newShadow.GetComponent<Rigidbody2D>().rotation = boxScript.GetComponent<Rigidbody2D>().rotation;
             timer += Time.deltaTime;
             yield return null;
         }

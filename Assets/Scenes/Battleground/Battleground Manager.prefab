@@ -95,8 +95,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 288cc518481e83d4f95f8c872c6b270f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  perkSpawns: {fileID: 0}
-  enemySpawns: {fileID: 0}
   groundedEnemy1: {fileID: 1388795964695304196, guid: 7f4c45fe6333c41489c202e09a6379c8, type: 3}
   groundedEnemy2: {fileID: 2193496508546508246, guid: 8ed1a759e78866d4aba7fc4db7e5117b, type: 3}
   groundedEnemy3: {fileID: 2686020244897123073, guid: 3270b5cc00957a8428bb76a373e77d70, type: 3}
@@ -128,3 +126,4 @@ MonoBehaviour:
   spikes: {fileID: 4922364118404835582, guid: 6cd5b4ef7857db24e8f66c4f3e7f142b, type: 3}
   star: {fileID: 1258098538347273395, guid: e74b8891b5f017a4694944cd1ba2e6e5, type: 3}
   doubleJump: {fileID: 3636424940818211183, guid: 991eb23b04d971d4d9eb09276fad9abd, type: 3}
+  boxShadow: {fileID: 8852039325525571753, guid: abf3754709516ed43937f07090421f0a, type: 3}

@@ -6,10 +6,10 @@ public class InputBroker : MonoBehaviour
 {
     [HideInInspector] public bool inputsEnabled;
 
-    public static bool Keyboard { get; private set; } = true;
-    public static bool Controller { get; private set; } = false;
+    public static bool Keyboard { get; private set; } = false;
+    public static bool Controller { get; private set; } = true;
 
-    public static bool GameCube { get; private set; } = false;
+    public static bool GameCube { get; private set; } = true;
     public static bool Xbox { get; private set; } = false;
 
     public Vector2 leftStick { get; private set; } //calibration for sticks is done in this script, not with input manager
@@ -582,7 +582,7 @@ public class InputBroker : MonoBehaviour
 
         leftStick3f = leftStick2f;
         leftStick2f = leftStick1f;
-        leftStick1f = leftStick;
+        leftStick1f = leftStickDisabled;
         if (Mathf.Abs(leftStick3f.x) <= 0.3f && Mathf.Abs(leftStick2f.x) < 0.6f && Mathf.Abs(leftStick1f.x) >= smashInputLimit)
         {
             leftSmashX = Mathf.Sign(leftStick1f.x);

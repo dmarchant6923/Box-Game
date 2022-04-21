@@ -31,6 +31,9 @@ public class BulletScript : MonoBehaviour
     public GameObject explosion;
     GameObject newExplosion;
 
+    bool flickerActive = false;
+    float flickerMult = 0.85f;
+
     private void Start()
     {
         boxLM = LayerMask.GetMask("Box");
@@ -40,26 +43,26 @@ public class BulletScript : MonoBehaviour
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
         if (explodingBullets)
         {
-            Color color = transform.GetComponent<Renderer>().material.color;
+            Color color = transform.GetComponent<SpriteRenderer>().material.color;
             color.g /= 2;
             color.b /= 2;
-            transform.GetComponent<Renderer>().material.color = color;
+            transform.GetComponent<SpriteRenderer>().material.color = color;
         }
         if (heatSeeking)
         {
-            Color color = transform.GetComponent<Renderer>().material.color;
+            Color color = transform.GetComponent<SpriteRenderer>().material.color;
             color.r /= 1.5f;
             color.g *= 2;
             color.b += 1;
-            transform.GetComponent<Renderer>().material.color = color;
+            transform.GetComponent<SpriteRenderer>().material.color = color;
             bulletDespawnWindow *= 2;
         }
         if (aggro)
         {
-            Color color = transform.GetComponent<Renderer>().material.color;
+            Color color = transform.GetComponent<SpriteRenderer>().material.color;
             color.g /= 1.5f;
             color.b /= 1.5f;
-            transform.GetComponent<Renderer>().material.color = color;
+            transform.GetComponent<SpriteRenderer>().material.color = color;
         }
 
     }
@@ -102,6 +105,11 @@ public class BulletScript : MonoBehaviour
         if (bulletTimer >= bulletDespawnWindow)
         {
             DestroyBullet();
+        }
+        if (bulletTimer >= bulletDespawnWindow * flickerMult && flickerActive == false)
+        {
+            flickerActive = true;
+            StartCoroutine(Flicker());
         }
     }
 
@@ -230,6 +238,24 @@ public class BulletScript : MonoBehaviour
         {
             collision.transform.root.GetComponent<HitSwitch>().Hit();
             DestroyBullet();
+        }
+    }
+
+    IEnumerator Flicker()
+    {
+        SpriteRenderer sprite = GetComponent<SpriteRenderer>();
+        while (true)
+        {
+            if (sprite != null)
+            {
+                sprite.enabled = false;
+                yield return new WaitForSeconds(0.04f);
+            }
+            if (sprite != null)
+            {
+                sprite.enabled = true;
+                yield return new WaitForSeconds(0.06f);
+            }
         }
     }
 

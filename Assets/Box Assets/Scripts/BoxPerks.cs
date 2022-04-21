@@ -39,7 +39,7 @@ public class BoxPerks : MonoBehaviour
     [HideInInspector] public static bool activateHeavy = false;
     [HideInInspector] public static bool heavyActive = false;
     float heavyActiveTime = 10;
-    float heavyMult = 0.92f;
+    [HideInInspector] public static float heavyMult = 0.92f;
 
     [HideInInspector] public static bool activateSpikes = false;
     [HideInInspector] public static bool spikesActive = false;

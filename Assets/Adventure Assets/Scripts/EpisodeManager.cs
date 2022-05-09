@@ -10,6 +10,10 @@ public class EpisodeManager : MonoBehaviour
     Box boxScript;
     public int initialHealth = 100;
 
+    public bool dashUnlocked = false;
+    public bool teleportUnlocked = false;
+    public bool pulseUnlocked = false;
+
     public GameObject UIBackground;
     public CameraFollowBox cameraScript;
 
@@ -48,15 +52,15 @@ public class EpisodeManager : MonoBehaviour
         UIManager.initialHealth = initialHealth;
         Box.boxHealth = initialHealth;
 
-        if (season <= 1)
+        if (dashUnlocked == false)
         {
             Box.dashUnlocked = false;
         }
-        if (season <= 2)
+        if (pulseUnlocked == false)
         {
             Box.pulseUnlocked = false;
         }
-        if (season <= 3)
+        if (teleportUnlocked == false)
         {
             Box.teleportUnlocked = false;
         }

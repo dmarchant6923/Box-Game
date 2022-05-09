@@ -28,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6201285939165384421}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 33.72, y: 37.43, z: 0}
+  m_LocalPosition: {x: 33.382, y: 37.448, z: 0}
   m_LocalScale: {x: 0.4, y: 0.4, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -135,3 +135,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   explosion: {fileID: 5823236508701568830, guid: 28a7c8f00c3cbb344a6f8f0c20542e6d, type: 3}
+  grenadeWasReflected: 0
+  remoteExplode: 0

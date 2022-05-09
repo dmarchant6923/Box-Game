@@ -111,9 +111,9 @@ public class BattlegroundManager : MonoBehaviour
     int mountedTurret2Points = 12;
     int mountedTurret3Points = 13;
 
-    int wizardShieldPoints = 7;
-    int wizardPulsePoints = 7;
-    int wizardAggroPoints = 7;
+    int wizardShieldPoints = 5;
+    int wizardPulsePoints = 5;
+    int wizardAggroPoints = 5;
 
     int thunderGuyPoints = 9;
 
@@ -286,6 +286,8 @@ public class BattlegroundManager : MonoBehaviour
         Box.boxHealth = 100;
         UIManager.initialHealth = (int) maxHealth; //250
 
+        UIManager.pulseNoKill = false;
+
         addToHiScores = false;
         if (((wave == 1 && Box.boxHealth == 250) || (wave == 15 && Box.boxHealth == 100)) && infiniteHealth == false && invulnerable == false && usePresetWaves)
         {
@@ -344,6 +346,7 @@ public class BattlegroundManager : MonoBehaviour
         if (firstWave == false && deathActive == false)
         {
             Box.boxHealth += 10;
+            UIManager.pulseNoKill = false;
             wave++;
         }
         yield return new WaitForSeconds(timeBetweenWaves * 3/4);
@@ -352,7 +355,8 @@ public class BattlegroundManager : MonoBehaviour
         {
             wavePointMult += (wave - 39) * 1.5f / 20;
         }
-        wavePoints = (int) Mathf.Floor(wave * wavePointMult);
+        int maxPoints = (int)Mathf.Floor(wave * wavePointMult);
+        wavePoints = maxPoints;
         int wizards = 0;
         int dupeWizards = 0;
         int groundedVehicles = 0;
@@ -375,7 +379,7 @@ public class BattlegroundManager : MonoBehaviour
             {
                 int[] difficulties = new int[] {2, 2, 2, 3 };
                 enemyDifficulty = difficulties[Random.Range(0, difficulties.Length)];
-                if (wavePoints > (int)Mathf.Floor(wave * wavePointMult * 0.75f))
+                if (wavePoints > (int) maxPoints * 0.75f)
                 {
                     enemyDifficulty = 3;
                 }
@@ -436,10 +440,10 @@ public class BattlegroundManager : MonoBehaviour
             {
                 continue;
             }
-            //no wizards before wave 17, can't be the first enemy spawned, and can't be more than three. Will also randomly select difficulty irrespective of above
+            //no wizards before wave 18, can't be the first enemy spawned, and can't be more than three. Will also randomly select difficulty irrespective of above
             if (enemyTypeSelected == 7)
             {
-                if (wave < 17 || wavePoints == (int)Mathf.Floor(wave * wavePointMult) || wizards > 2)
+                if (wave < 18 || wavePoints == maxPoints || wizards > 2)
                 {
                     continue;
                 }
@@ -488,10 +492,14 @@ public class BattlegroundManager : MonoBehaviour
             {
                 continue;
             }
-            //no thunders before wave 20 and no more than 2 thunders
+            //no thunders before wave 20 and no more than 2 thunders. No more than 1 thunder before wave 30
             if (enemies[enemyTypeSelected] == thunder)
             {
-                if (wave < 20 || thunders > 1 || wavePoints == (int)Mathf.Floor(wave * wavePointMult))
+                if (wave < 20 || thunders > 1 || wavePoints == maxPoints)
+                {
+                    continue;
+                }
+                if (wave < 30 && thunders > 0)
                 {
                     continue;
                 }
@@ -503,7 +511,7 @@ public class BattlegroundManager : MonoBehaviour
             //no duplicate wizards before wave 25
             if (enemies[enemyTypeSelected] == duplicate)
             { 
-                if (wave < 25 || dupeWizards >= 1 || wavePoints == (int)Mathf.Floor(wave * wavePointMult))
+                if (wave < 25 || dupeWizards >= 1 || wavePoints == maxPoints)
                 {
                     continue;
                 }
@@ -552,7 +560,7 @@ public class BattlegroundManager : MonoBehaviour
                 if (wave == 6)
                 {
                     enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
-                    if (spawnedEnemies.Count >= 7)
+                    if (spawnedEnemies.Count >= 6)
                     {
                         wavePoints = 0;
                     }
@@ -561,7 +569,25 @@ public class BattlegroundManager : MonoBehaviour
                 {
                     enemyTypeSelected = 5; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 0;
                 }
-                if (wave == 18)
+                if (wave == 15 && wavePoints != maxPoints && wizards == 0)
+                {
+                    enemyTypeSelected = 7;
+                    enemySelected = enemies[enemyTypeSelected].enemylvl1;
+                    wizards++;
+                }
+                if (wave == 16 && wavePoints != maxPoints && wizards == 0)
+                {
+                    enemyTypeSelected = 7;
+                    enemySelected = enemies[enemyTypeSelected].enemylvl2;
+                    wizards++;
+                }
+                if (wave == 17 && wavePoints != maxPoints && wizards == 0)
+                {
+                    enemyTypeSelected = 7;
+                    enemySelected = enemies[enemyTypeSelected].enemylvl3;
+                    wizards++;
+                }
+                if (wave == 19)
                 {
                     enemyTypeSelected = 3; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
                     if (spawnedEnemies.Count >= 6)
@@ -583,7 +609,7 @@ public class BattlegroundManager : MonoBehaviour
                 }
                 if (wave == 21)
                 {
-                    if (wavePoints == Mathf.Floor(wave * wavePointMult))
+                    if (wavePoints == maxPoints)
                     {
                         enemyTypeSelected = 1; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
                     }
@@ -598,7 +624,7 @@ public class BattlegroundManager : MonoBehaviour
                 }
                 if (wave == 22)
                 {
-                    if (wavePoints == Mathf.Floor(wave * wavePointMult))
+                    if (wavePoints == maxPoints)
                     {
                         enemyTypeSelected = 2; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
                     }
@@ -613,7 +639,7 @@ public class BattlegroundManager : MonoBehaviour
                 }
                 if (wave == 23)
                 {
-                    if (wavePoints == Mathf.Floor(wave * wavePointMult))
+                    if (wavePoints == maxPoints)
                     {
                         enemyTypeSelected = 4; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
                     }
@@ -622,6 +648,21 @@ public class BattlegroundManager : MonoBehaviour
                         enemyTypeSelected = 4; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
                     }
                     if (spawnedEnemies.Count >= 5)
+                    {
+                        wavePoints = 0;
+                    }
+                }
+                if (wave == 24)
+                {
+                    if (wavePoints == maxPoints)
+                    {
+                        enemyTypeSelected = 10; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
+                    }
+                    else
+                    {
+                        enemyTypeSelected = 10; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    }
+                    if (spawnedEnemies.Count >= 4)
                     {
                         wavePoints = 0;
                     }

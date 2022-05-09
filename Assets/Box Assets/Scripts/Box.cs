@@ -187,6 +187,12 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static bool inShockRadius = false;
     bool shockCR = false;
 
+    [System.NonSerialized] public static bool activateFire = false;
+    [System.NonSerialized] public static bool onFire;
+    [System.NonSerialized] public static float fireTimer = 0;
+    float fireWindow = 3f;
+    [System.NonSerialized] public static float fireDOT = 2.5f;
+
     bool forceInputsDisabled = false;
 
     public bool debugEnabled = false;
@@ -909,6 +915,17 @@ public class Box : MonoBehaviour
             }
         }
 
+        //fire
+        if (activateFire)
+        {
+            if (onFire == false)
+            {
+                StartCoroutine(Fire());
+                onFire = true;
+            }
+            activateFire = false;
+        }
+
         if (debugEnabled)
         {
             //debug color changes (will probably keep walljump color in normal game)
@@ -1603,8 +1620,8 @@ public class Box : MonoBehaviour
         SpriteRenderer sprite = GetComponent<SpriteRenderer>();
         sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0.4f);
         Vector2 initialPosition = rigidBody.position;
-        float startVelocity = 35;
-        float slowMult = 6.5f;
+        float startVelocity = 25;
+        float slowMult = 5f;
         if (BoxPerks.speedActive || BoxPerks.starActive)
         {
             startVelocity *= 1.2f;
@@ -2204,5 +2221,21 @@ public class Box : MonoBehaviour
             yield return null;
         }
         airFriction = initialAirFriction;
+    }
+    IEnumerator Fire()
+    {
+        while (fireTimer < fireWindow)
+        {
+            fireTimer += Time.deltaTime;
+            Debug.Log(fireTimer);
+            if (isInvulnerable == false)
+            {
+                activateDamage = true;
+                damageTaken += fireDOT * Time.fixedDeltaTime;
+            }
+            yield return new WaitForFixedUpdate();
+        }
+        fireTimer = 0;
+        onFire = false;
     }
 }

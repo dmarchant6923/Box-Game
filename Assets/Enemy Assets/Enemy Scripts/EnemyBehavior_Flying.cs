@@ -195,7 +195,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
             }
             else
             {
-                if (enemyRC_MoveToBox.collider == null)
+                if (canSeeBox == false)
                 {
                     wanderDistance = 2f;
                     flyForce = flySpeed * 1.5f;

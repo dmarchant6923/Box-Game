@@ -23,6 +23,9 @@ public class ProximityMine : MonoBehaviour
     bool detonateActive = false;
     float detonateDelay = 0.4f;
 
+    Transform attachedObject;
+    Vector3 relativePosition;
+
     int groundLM;
     int obstacleLM;
     int boxLM;
@@ -44,22 +47,30 @@ public class ProximityMine : MonoBehaviour
         if (groundRC.collider != null)
         {
             transform.position = groundRC.point + Vector2.up * transform.lossyScale.y / 2;
+            attachedObject = groundRC.transform;
+            relativePosition = transform.position - attachedObject.position;
         }
 
         else if (wallRightRC.collider != null)
         {
             transform.position = wallRightRC.point + Vector2.left * transform.lossyScale.y / 2;
             transform.eulerAngles = Vector3.forward * (90);
+            attachedObject = wallRightRC.transform;
+            relativePosition = transform.position - attachedObject.position;
         }
         else if (ceilingRC.collider != null)
         {
             transform.position = ceilingRC.point + Vector2.down * transform.lossyScale.y / 2;
             transform.eulerAngles = Vector3.forward * (180);
+            attachedObject = ceilingRC.transform;
+            relativePosition = transform.position - attachedObject.position;
         }
         else if (wallLeftRC.collider != null)
         {
             transform.position = wallLeftRC.point + Vector2.right * transform.lossyScale.y / 2;
             transform.eulerAngles = Vector3.forward * (-90);
+            attachedObject = wallLeftRC.transform;
+            relativePosition = transform.position - attachedObject.position;
         }
 
 
@@ -97,6 +108,8 @@ public class ProximityMine : MonoBehaviour
         {
             StartCoroutine(DelayedExplode());
         }
+
+        transform.position = attachedObject.position + relativePosition;
     }
 
     private void Explode()

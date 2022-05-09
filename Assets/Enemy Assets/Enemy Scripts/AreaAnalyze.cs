@@ -47,14 +47,14 @@ public class AreaAnalyze : MonoBehaviour
             perimeter.SetPosition(i, points[i]);
 
 
-            if (i == 0)
-            {
-                Debug.DrawRay(transform.position, vector * distance, Color.red);
-            }
-            else
-            {
-                Debug.DrawRay(transform.position, vector * distance);
-            }
+            //if (i == 0)
+            //{
+            //    Debug.DrawRay(transform.position, vector * distance, Color.red);
+            //}
+            //else
+            //{
+            //    Debug.DrawRay(transform.position, vector * distance);
+            //}
         }
     }
 }

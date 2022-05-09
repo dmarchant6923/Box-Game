@@ -11,6 +11,8 @@ public class EnemyBehavior_Wizard : MonoBehaviour
     Rigidbody2D enemyRB;
     Rigidbody2D boxRB;
     EnemyManager EM;
+    AreaAnalyze areaAnalyze;
+    LineRenderer lr;
 
     RaycastHit2D obstacleCheckRC;
 
@@ -125,6 +127,14 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         {
             EM.canReceiveAggro = false;
         }
+
+        areaAnalyze = GetComponent<AreaAnalyze>();
+        lr = GetComponent<LineRenderer>();
+        areaAnalyze.radius = auraRadius;
+        Color color = thisAuraColor;
+        color.a = 0;
+        lr.startColor = color;
+        lr.endColor = color;
     }
 
     private void FixedUpdate()
@@ -192,6 +202,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             aggroActive = true;
 
             auraRadius *= EM.aggroIncreaseMult;
+            areaAnalyze.radius = auraRadius;
             auraCheckPeriod *= EM.aggroDecreaseMult;
             thisAura.transform.localScale *= EM.aggroIncreaseMult;
 
@@ -206,6 +217,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             aggroActive = false;
 
             auraRadius /= EM.aggroIncreaseMult;
+            areaAnalyze.radius = auraRadius;
             auraCheckPeriod /= EM.aggroDecreaseMult;
             thisAura.transform.localScale /= EM.aggroIncreaseMult;
 
@@ -340,8 +352,25 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                 {
                     continue;
                 }
-                
-                if (shield && parentEnemy.transform.root.GetComponent<EnemyManager>().shieldCurrentlyActive == false
+
+                Vector2 enemyPosition = enemy.transform.position;
+                float obstacleDist = 1000;
+                bool success = false;
+                RaycastHit2D[] rayToItem = Physics2D.RaycastAll(enemyRB.position, (enemyPosition - enemyRB.position).normalized, pulseDetectRadius, obstacleLM);
+                foreach (RaycastHit2D col in rayToItem)
+                {
+                    if (col.collider.gameObject.tag != "Fence")
+                    {
+                        obstacleDist = Mathf.Min(obstacleDist, col.distance);
+                    }
+                }
+
+                if ((enemyPosition - enemyRB.position).magnitude < obstacleDist)
+                {
+                    success = true;
+                }
+
+                if (shield && success && parentEnemy.transform.root.GetComponent<EnemyManager>().shieldCurrentlyActive == false
                     && parentEnemy.transform.root.GetComponent<EnemyManager>().canReceiveShield)
                 {
                     parentEnemy.transform.root.GetComponent<EnemyManager>().shieldCurrentlyActive = true;
@@ -353,7 +382,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     newAura.GetComponent<Aura>().shield = true;
                     spawnedAuras.Add(newAura);
                 }
-                else if (aggro && parentEnemy.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive == false
+                else if (aggro && success && parentEnemy.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive == false
                     && parentEnemy.transform.root.GetComponent<EnemyManager>().canReceiveAggro)
                 {
                     parentEnemy.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive = true;
@@ -539,11 +568,25 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         thisAuraColor = initialAuraColor;
         thisAuraColor.a = 1;
         thisAura.GetComponent<SpriteRenderer>().color = thisAuraColor;
+
+        Color initialLineColor = lr.startColor;
+        Color lineColor = initialLineColor;
+        lineColor.a = 1;
+        lr.startColor = lineColor;
+        lr.endColor = lineColor;
+
         float timer = 0;
         while (thisAuraColor.a >= 0.1f && EM.enemyWasKilled == false)
         {
             thisAuraColor.a -= auraCheckColorSpeed * Time.deltaTime;
             thisAura.GetComponent<SpriteRenderer>().color = thisAuraColor;
+
+            if (lineColor.a > initialLineColor.a)
+            {
+                lineColor.a -= auraCheckColorSpeed * Time.deltaTime;
+                lr.startColor = lineColor;
+                lr.endColor = lineColor;
+            }
             if (EM.hitstopImpactActive == false)
             {
                 timer += Time.deltaTime;
@@ -551,5 +594,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             yield return null;
         }
         thisAuraColor.a = 0.1f;
+        lr.startColor = initialLineColor;
+        lr.endColor = initialLineColor;
     }
 }

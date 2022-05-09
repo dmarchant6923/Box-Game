@@ -85,6 +85,28 @@ public class Grenade : MonoBehaviour
                 grenadeRB.velocity = -vectorToBox * grenadeRB.velocity.magnitude;
             }
         }
+
+        RaycastHit2D cast = Physics2D.CircleCast(grenadeRB.position, transform.localScale.x / 2, Vector2.zero, 0, LayerMask.GetMask("Box"));
+        if (cast.collider != null)
+        {
+            if (explosionTimer == false)
+            {
+                Debug.DrawRay(grenadeRB.position, -grenadeRB.velocity.normalized, Color.green);
+                Debug.DrawRay(grenadeRB.position, -vectorToBox.normalized, Color.red);
+                grenadeRB.velocity = (-grenadeRB.velocity.normalized - vectorToBox.normalized).normalized * grenadeRB.velocity.magnitude;
+
+                if (velocityList[2].magnitude >= 20)
+                {
+                    Box.activateDamage = true;
+                    Box.damageTaken = collisionDamage;
+                    Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - grenadeRB.position.x), 1).normalized;
+                    StartCoroutine(GrenadeHitstop());
+                }
+                StartCoroutine(ExplosionTimer());
+                StartCoroutine(GrenadeFlash());
+                grenadeRB.gravityScale *= 0.2f;
+            }
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -102,13 +124,13 @@ public class Grenade : MonoBehaviour
             StartCoroutine(GrenadeFlash());
             grenadeRB.gravityScale *= 0.2f;
         }
-        if (1 << collision.gameObject.layer == LayerMask.GetMask("Box") && velocityList[2].magnitude >= 20)
-        {
-            Box.activateDamage = true;
-            Box.damageTaken = collisionDamage;
-            Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - grenadeRB.position.x), 1).normalized;
-            StartCoroutine(GrenadeHitstop());
-        }
+        //if (1 << collision.gameObject.layer == LayerMask.GetMask("Box") && velocityList[2].magnitude >= 20)
+        //{
+        //    Box.activateDamage = true;
+        //    Box.damageTaken = collisionDamage;
+        //    Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - grenadeRB.position.x), 1).normalized;
+        //    StartCoroutine(GrenadeHitstop());
+        //}
         if (collision.transform.GetComponent<HitSwitch>() != null && velocityList[2].magnitude >= 20)
         {
             collision.transform.GetComponent<HitSwitch>().Hit();

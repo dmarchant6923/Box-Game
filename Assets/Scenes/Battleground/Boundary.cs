@@ -44,7 +44,7 @@ public class Boundary : MonoBehaviour
             {
                 teleport = false;
             }
-            if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+            if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null && teleport)
             {
                 StartCoroutine(CameraFocus());
             }

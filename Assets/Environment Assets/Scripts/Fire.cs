@@ -15,7 +15,10 @@ public class Fire : MonoBehaviour
     bool onObject = false;
     float offset = 0.5f;
 
-    bool mainFire = true;
+    public bool hazardFire = false;
+    public bool boxFire = false;
+    public GameObject fire;
+    GameObject newFire;
 
     public bool stopFire;
 
@@ -33,7 +36,8 @@ public class Fire : MonoBehaviour
                 offset = 0.9f;
             }
             else if (objectOnFire.transform.root.GetComponent<EnemyBehavior_Wizard>() != null ||
-                objectOnFire.transform.root.GetComponent<EnemyBehavior_Blitz>() != null)
+                objectOnFire.transform.root.GetComponent<EnemyBehavior_Blitz>() != null ||
+                objectOnFire.transform.root.GetComponent<Box>() != null)
             {
                 offset = 0.2f;
             }
@@ -42,6 +46,11 @@ public class Fire : MonoBehaviour
                 offset = 0.7f;
             }
             onObject = true;
+
+            if (objectOnFire.GetComponent<Box>() != null)
+            {
+                transform.localScale = new Vector2(transform.localScale.x * 0.7f, transform.localScale.y);
+            }
         }
     }
 
@@ -55,13 +64,41 @@ public class Fire : MonoBehaviour
 
         if (onObject == true)
         {
-            if (objectOnFire == null || objectOnFire.transform.root.GetComponent<EnemyManager>().enemyWasKilled)
+            if (objectOnFire == null)
+            {
+                stopFire = true;
+            }
+            if (objectOnFire.transform.root.GetComponent<EnemyManager>() != null && objectOnFire.transform.root.GetComponent<EnemyManager>().enemyWasKilled)
             {
                 stopFire = true;
             }
             else
             {
                 transform.position = objectOnFire.position + Vector2.up * offset;
+            }
+        }
+
+        if (boxFire && Box.onFire == false && Box.activateFire == false)
+        {
+            stopFire = true;
+        }
+    }
+
+    private void OnTriggerStay2D (Collider2D collision)
+    {
+        if (hazardFire && collision.GetComponent<Box>() != null)
+        {
+            if (Box.onFire == false)
+            {
+                Box.activateFire = true;
+                newFire = Instantiate(fire, collision.GetComponent<Rigidbody2D>().position, Quaternion.identity);
+                newFire.GetComponent<Fire>().objectOnFire = collision.GetComponent<Rigidbody2D>();
+                newFire.GetComponent<Fire>().hazardFire = false;
+                newFire.GetComponent<Fire>().boxFire = true;
+            }
+            else
+            {
+                Box.fireTimer = 0;
             }
         }
     }
@@ -82,7 +119,9 @@ public class Fire : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(smokeTime * 0.7f + Random.Range(0f, smokeTime * 0.6f));
-            Instantiate(smoke, transform.position + Vector3.up * 0.5f, Quaternion.identity);
+            float angle = transform.eulerAngles.z;
+            Vector3 vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2), Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+            Instantiate(smoke, transform.position + vector * 0.5f, Quaternion.identity);
         }
     }
 }

@@ -313,6 +313,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 if (EM.hitstopImpactActive)
                 {
                     stopAttack = true;
+                    attacksLeft = numAttacks;
                     break;
                 }
                 enemyRB.velocity -= vectorFacing * 15 * (0.5f / attackDelay) * timer * Time.deltaTime;

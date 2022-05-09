@@ -100,7 +100,7 @@ public class Switch : MonoBehaviour
             {
                 item.GetComponent<MovingObjects>().Trigger();
             }
-            else if (item != null && item.GetComponent<CommandMove>() != null)
+            if (item != null && item.GetComponent<CommandMove>() != null)
             {
                 item.GetComponent<CommandMove>().Trigger();
             }

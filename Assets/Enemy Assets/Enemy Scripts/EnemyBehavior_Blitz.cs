@@ -204,22 +204,25 @@ public class EnemyBehavior_Blitz : MonoBehaviour
     private void FixedUpdate()
     {
         float distance = 2;
-        RaycastHit2D circleCast = Physics2D.CircleCast(enemyRB.position, distance, Vector2.zero, 0, LayerMask.GetMask("Obstacles", "Platforms"));
+        RaycastHit2D circleCast = Physics2D.CircleCast(enemyRB.position, distance, Vector2.zero, 0, LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
         if ((knockbackActive == false || (knockbackActive && attacksLeft > 0)) && delayActive == false && attackActive == false && circleCast.collider != null)
         {
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 17; i++)
             {
-                float angle = i * 45;
+                float angle = i * 22.5f;
+                float offset = 0.9f;
                 Vector2 vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2),
                 Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
-                RaycastHit2D cast = Physics2D.Raycast(enemyRB.position, vector, distance, LayerMask.GetMask("Obstacles", "Platforms"));
+                RaycastHit2D cast = Physics2D.Raycast(enemyRB.position + vector * offset, vector, distance - vector.magnitude * offset, LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
+                Color color = Color.white;
                 if (cast.collider != null)
                 {
-                    enemyRB.velocity -= vector * Time.deltaTime * 10;
+                    enemyRB.velocity -= vector * 0.1f;
+                    color = Color.blue;
                 }
                 if (debugEnabled)
                 {
-                    Debug.DrawRay(enemyRB.position, vector * distance);
+                    Debug.DrawRay(enemyRB.position + vector * offset, vector * (distance - vector.magnitude * offset), color);
                 }
             }
         }
@@ -299,70 +302,83 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             radius = 100;
             StartCoroutine(Shake());
             float window = attackDelay;
+            if (attacksLeft != numAttacks - 1)
+            {
+                window /= 2;
+            }
             float timer = 0;
+            bool stopAttack = false;
             while (timer < window && EM.enemyWasKilled == false)
             {
+                if (EM.hitstopImpactActive)
+                {
+                    stopAttack = true;
+                    break;
+                }
                 enemyRB.velocity -= vectorFacing * 15 * (0.5f / attackDelay) * timer * Time.deltaTime;
                 timer += Time.deltaTime;
                 yield return null;
             }
             delayActive = false;
 
-            attackActive = true;
-            EM.physicalHitboxActive = true;
-            StartCoroutine(Fire());
-            StartCoroutine(SpawnSmoke());
-            angularVelocity = attackAngularVelocity;
-            enemyRB.velocity += vectorFacing * launchSpeed;
-            float velMagnitude = enemyRB.velocity.magnitude;
-            enemyRB.drag = 0;
-            enemyRB.constraints = RigidbodyConstraints2D.FreezeRotation;
-            bool knockback = false;
-            Vector2 initialPosition = enemyRB.position;
-            float distance = 0;
-            timer = 0;
-            while (attackActive && distance < maxDistance && timer < 2 && EM.enemyWasKilled == false)
+            if (stopAttack == false)
             {
-                if (enemyHitstopActive == false)
+                attackActive = true;
+                EM.physicalHitboxActive = true;
+                StartCoroutine(Fire());
+                StartCoroutine(SpawnSmoke());
+                angularVelocity = attackAngularVelocity;
+                enemyRB.velocity += vectorFacing * launchSpeed;
+                float velMagnitude = enemyRB.velocity.magnitude;
+                enemyRB.drag = 0;
+                enemyRB.constraints = RigidbodyConstraints2D.FreezeRotation;
+                bool knockback = false;
+                Vector2 initialPosition = enemyRB.position;
+                float distance = 0;
+                timer = 0;
+                while (attackActive && distance < maxDistance && timer < 2 && EM.enemyWasKilled == false)
                 {
-                    if (blitzCollision == true || attackWasPulsed)
+                    if (enemyHitstopActive == false)
                     {
-                        attackActive = false;
-                        knockback = true;
-                    }
-                    blitzCollision = false;
-                    velMagnitude = Mathf.Min(velMagnitude + (attackAccel * Time.deltaTime), launchSpeed * 1.5f);
-                    enemyRB.velocity = velMagnitude * vectorFacing;
+                        if (blitzCollision == true || attackWasPulsed)
+                        {
+                            attackActive = false;
+                            knockback = true;
+                        }
+                        blitzCollision = false;
+                        velMagnitude = Mathf.Min(velMagnitude + (attackAccel * Time.deltaTime), launchSpeed * 1.5f);
+                        enemyRB.velocity = velMagnitude * vectorFacing;
 
-                    distance = (enemyRB.position - initialPosition).magnitude;
-                    if (debugEnabled)
-                    {
-                        Debug.DrawLine(initialPosition, enemyRB.position, Color.green);
-                    }
+                        distance = (enemyRB.position - initialPosition).magnitude;
+                        if (debugEnabled)
+                        {
+                            Debug.DrawLine(initialPosition, enemyRB.position, Color.green);
+                        }
 
-                    timer += Time.deltaTime;
+                        timer += Time.deltaTime;
+                    }
+                    yield return null;
                 }
-                yield return null;
-            }
-            enemyRB.constraints = RigidbodyConstraints2D.None;
-            EM.physicalHitboxActive = false;
-            attackActive = false;
-            if (knockback)
-            {
-                if (attackWasPulsed)
+                enemyRB.constraints = RigidbodyConstraints2D.None;
+                EM.physicalHitboxActive = false;
+                attackActive = false;
+                if (knockback)
                 {
-                    attacksLeft = 0;
-                    StartCoroutine(Knockback(true));
+                    if (attackWasPulsed)
+                    {
+                        attacksLeft = 0;
+                        StartCoroutine(Knockback(true));
+                    }
+                    else
+                    {
+                        StartCoroutine(Knockback(false));
+                    }
                 }
                 else
                 {
-                    StartCoroutine(Knockback(false));
+                    attacksLeft = 0;
+                    enemyRB.drag = initialDrag;
                 }
-            }
-            else
-            {
-                attacksLeft = 0;
-                enemyRB.drag = initialDrag;
             }
 
             yield return new WaitForFixedUpdate();

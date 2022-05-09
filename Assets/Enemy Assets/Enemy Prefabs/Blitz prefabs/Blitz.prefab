@@ -154,7 +154,7 @@ MonoBehaviour:
   initialRadius: 16
   attackDelay: 1.2
   attackCooldownTime: 2
-  normalAngularVelocity: 400
+  normalAngularVelocity: 1200
   attackAngularVelocity: 40
   launchSpeed: 30
   attackAccel: 50

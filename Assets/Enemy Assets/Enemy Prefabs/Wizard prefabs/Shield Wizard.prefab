@@ -149,8 +149,11 @@ MonoBehaviour:
   pulse: 0
   aggro: 0
   aura: {fileID: 2363786751874218683, guid: 758630e8ad5ec344da63d95e84ed0f32, type: 3}
+  gradientAura: {fileID: 5613376698903100916, guid: de04e051bd15614439cc017f7af03373, type: 3}
+  ringAura: {fileID: 7302231936170378391, guid: cb38a5a10f7cda2489ecbf0588d9fd81, type: 3}
   auraRadius: 5.5
   auraCheckPeriod: 3.5
+  fire: {fileID: 4677626524065600173, guid: b9affa55bbb74fa4599156f913f3ccdc, type: 3}
 --- !u!114 &6372242058043596875
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,6 +186,7 @@ MonoBehaviour:
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
   canReceiveShield: 1
+  fire: {fileID: 4677626524065600173, guid: b9affa55bbb74fa4599156f913f3ccdc, type: 3}
   aggroCurrentlyActive: 0
   canReceiveAggro: 1
   initialDelay: 1

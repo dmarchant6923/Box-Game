@@ -110,7 +110,7 @@ Rigidbody2D:
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!70 &7234212506140235766
 CapsuleCollider2D:
@@ -626,6 +626,7 @@ MonoBehaviour:
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
   canReceiveShield: 1
+  fire: {fileID: 4677626524065600173, guid: b9affa55bbb74fa4599156f913f3ccdc, type: 3}
   aggroCurrentlyActive: 0
   canReceiveAggro: 1
   initialDelay: 1

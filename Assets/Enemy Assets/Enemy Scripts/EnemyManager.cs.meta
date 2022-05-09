@@ -6,6 +6,7 @@ MonoImporter:
   defaultReferences:
   - enemyRB: {instanceID: 0}
   - exclamation: {fileID: 3364276225366665692, guid: ac28d28127d78e8438dddc2e65c38c74, type: 3}
+  - fire: {fileID: 4677626524065600173, guid: b9affa55bbb74fa4599156f913f3ccdc, type: 3}
   - lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

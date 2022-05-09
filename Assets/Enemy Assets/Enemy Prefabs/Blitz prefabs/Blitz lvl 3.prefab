@@ -1,0 +1,139 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &931462981035724414
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: damage
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: numAttacks
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: attackDelay
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: launchSpeed
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: initialRadius
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: attackCooldownTime
+      value: 2.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: attackAngularVelocity
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 335218603663760166, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: enemyHealth
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 794745157996261776, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Name
+      value: Blitz lvl 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 26.243391
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.1859837
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2125347041666356303, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2716862397680335539, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.b
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2716862397680335539, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2716862397680335539, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4393030401885740954, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4393030401885740954, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.g
+      value: 0.78892344
+      objectReference: {fileID: 0}
+    - target: {fileID: 4393030401885740954, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.r
+      value: 0.5150944
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264199786353754818, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.b
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264199786353754818, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264199786353754818, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358896931749455939, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.b
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358896931749455939, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358896931749455939, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: m_Color.r
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 70af88173373485418eaa315ce6253a6, type: 3}

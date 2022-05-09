@@ -381,7 +381,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             }
             if (col.collider != null && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles") && col.collider.gameObject.tag != "Fence")
             {
-                distToObstacle = col.distance;
+                distToObstacle = Mathf.Min(distToObstacle, col.distance);
             }
         }
 

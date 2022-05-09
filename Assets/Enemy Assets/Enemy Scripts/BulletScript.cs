@@ -43,26 +43,29 @@ public class BulletScript : MonoBehaviour
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
         if (explodingBullets)
         {
-            Color color = transform.GetComponent<SpriteRenderer>().material.color;
+            Color color = transform.GetComponent<SpriteRenderer>().color;
             color.g /= 2;
             color.b /= 2;
-            transform.GetComponent<SpriteRenderer>().material.color = color;
+            transform.GetComponent<SpriteRenderer>().color = color;
         }
         if (heatSeeking)
         {
-            Color color = transform.GetComponent<SpriteRenderer>().material.color;
-            color.r /= 1.5f;
+            Color color = transform.GetComponent<SpriteRenderer>().color;
+            color = new Color(Mathf.Min(color.r, 1), Mathf.Min(color.g, 1), Mathf.Min(color.b, 1));
+            color.r /= 3f;
             color.g *= 2;
-            color.b += 1;
-            transform.GetComponent<SpriteRenderer>().material.color = color;
+            color.b += 0.5f;
+            transform.GetComponent<SpriteRenderer>().color = color;
             bulletDespawnWindow *= 2;
         }
         if (aggro)
         {
-            Color color = transform.GetComponent<SpriteRenderer>().material.color;
+            Color color = transform.GetComponent<SpriteRenderer>().color;
+            color = new Color(Mathf.Min(color.r, 1), Mathf.Min(color.g, 1), Mathf.Min(color.b, 1));
+            color.r += 0.25f;
             color.g /= 1.5f;
             color.b /= 1.5f;
-            transform.GetComponent<SpriteRenderer>().material.color = color;
+            transform.GetComponent<SpriteRenderer>().color = color;
         }
 
     }
@@ -208,26 +211,7 @@ public class BulletScript : MonoBehaviour
         }
         else if (collision.gameObject.tag == "Reflect")
         {
-            //Vector2 vel = bulletRB.velocity.normalized;
-            //float frameDistance = bulletRB.velocity.magnitude * Time.deltaTime;
-            //Vector2 colPoint = collision.ClosestPoint(bulletRB.position + vel * transform.lossyScale.y / 2);
-            //Debug.DrawRay(colPoint - vel * frameDistance, vel * frameDistance * 2, Color.yellow);
-            //RaycastHit2D raycast = Physics2D.Raycast(colPoint - vel * frameDistance, vel, frameDistance * 2, LayerMask.GetMask("Obstacles"));
-            //if (raycast.collider != null)
-            //{
-            //    Vector2 perp = raycast.normal;
-            //    Vector2 parallel = Vector2.Perpendicular(perp);
-            //    Vector2 perpComponent = Vector2.Dot(vel, perp) * perp;
-            //    Vector2 parallelComponent = Vector2.Dot(vel, parallel) * parallel;
 
-            //    perpComponent *= -1;
-            //    Vector2 newVel = (perpComponent + parallelComponent).normalized;
-            //    bulletRB.velocity = newVel * bulletRB.velocity.magnitude;
-
-            //    Debug.DrawRay(colPoint - vel * frameDistance, vel * frameDistance);
-            //    Debug.DrawRay(colPoint, bulletRB.velocity.normalized * frameDistance, Color.red);
-            //    Debug.DrawRay(colPoint, perp * frameDistance, Color.green);
-            //}
         }
         else if (1 << collision.gameObject.layer != LayerMask.GetMask("Pulse") && collision.isTrigger == false && collision.tag != "Fence")
         {

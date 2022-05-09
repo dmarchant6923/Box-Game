@@ -136,6 +136,13 @@ public class Lightning : MonoBehaviour
                     touchedWall = true;
                     points[i] = wallCheck.point;
                     pointB = points[i];
+                    if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+                    {
+                        CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
+                        camScript.startCamShake = true;
+                        camScript.shakeInfo = new Vector2(thunderDamage,
+                            new Vector2(pointB.x - boxRB.position.x, pointB.y - boxRB.position.y).magnitude);
+                    }
                 }
             }
 
@@ -275,6 +282,11 @@ public class Lightning : MonoBehaviour
             //startPoint = sourceObject.transform.position;
             RaycastHit2D[] lightningCheck = Physics2D.CircleCastAll(startPoint, radius, Vector2.zero, 0,
                 LayerMask.GetMask("Box", "Platforms", "Enemies"));
+            if (sourceObject.transform.root.GetComponent<PlatformDrop>() != null)
+            {
+                lightningCheck = Physics2D.CircleCastAll(startPoint + Vector2.left * sourceObject.transform.root.localScale.x / 2, radius, Vector2.right,
+                    sourceObject.transform.root.localScale.x, LayerMask.GetMask("Box", "Platforms", "Enemies"));
+            }
             int strikes = 0;
             if (lightningCheck.Length > 1)
             {

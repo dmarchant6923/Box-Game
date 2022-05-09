@@ -92,6 +92,10 @@ public class Boundary : MonoBehaviour
                 enemyRB.position = new Vector2(enemyRB.position.x, center.y + halfExtents.y - Mathf.Abs(enemyRB.position.y - (center.y - halfExtents.y)));
             }
         }
+        if (collision.GetComponent<BulletScript>() != null)
+        {
+            Destroy(collision.gameObject);
+        }
     }
 
     IEnumerator CameraFocus()

@@ -139,6 +139,14 @@ public class Duplicate : MonoBehaviour
             {
                 aura.localScale = new Vector2(aura.localScale.x, aura1InitialScale + ((boxYScaleArray[targetIndex] / boxInitialYScale) * 0.2222222f));
                 aura.GetChild(0).localScale = new Vector2(aura.localScale.x, aura2InitialScale + ((boxYScaleArray[targetIndex] / boxInitialYScale) * 0.1666666f));
+                if (aggro == false)
+                {
+                    transform.position += Vector3.down * 0.04f;
+                }
+                else
+                {
+                    transform.position += Vector3.down * 0.085f;
+                }
             }
             else
             {

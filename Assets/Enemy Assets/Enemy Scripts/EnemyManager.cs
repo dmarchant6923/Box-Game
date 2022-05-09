@@ -51,6 +51,9 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public bool shieldCurrentlyActive = false;
     [HideInInspector] public bool canReceiveShield = true;
 
+    public GameObject fire;
+    GameObject newFire;
+    bool fireActive = false;
     [HideInInspector] public bool aggroCurrentlyActive = false;
     [HideInInspector] public bool canReceiveAggro = true;
     [System.NonSerialized] public float aggroIncreaseMult = 1.3f;
@@ -225,6 +228,21 @@ public class EnemyManager : MonoBehaviour
         {
             StartCoroutine(Exclamation());
         }
+
+        if (aggroCurrentlyActive && fireActive == false)
+        {
+            fireActive = true;
+            newFire = Instantiate(fire, enemyRB.position, Quaternion.identity);
+            newFire.GetComponent<Fire>().objectOnFire = enemyRB;
+        }
+        if (aggroCurrentlyActive == false && fireActive)
+        {
+            fireActive = false;
+            if (newFire != null)
+            {
+                newFire.GetComponent<Fire>().stopFire = true;
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -376,14 +394,16 @@ public class EnemyManager : MonoBehaviour
     }
     IEnumerator EnemyDeath()
     {
+        enemyDeathActive = true;
         if (FindObjectOfType<EpisodeManager>() != null && respawn == false)
         {
             FindObjectOfType<EpisodeManager>().enemiesKilled++;
         }
         shieldCurrentlyActive = false;
         aggroCurrentlyActive = false;
-        enemyDeathActive = true;
         enemyRB.gravityScale = 7;
+        enemyRB.drag = 0;
+        enemyRB.angularDrag = 0;
         if (multipleParts == true)
         {
             foreach (Transform transform in enemyChildren)
@@ -481,7 +501,7 @@ public class EnemyManager : MonoBehaviour
     IEnumerator Shock()
     {
         float window1 = shockTime; // length of shock status
-        float window2 = 0.3f; // time between aesthetic lightnings
+        float window2 = 0.2f; // time between aesthetic lightnings
         StartCoroutine(ShockFlash());
         float timer1 = 0;
         float timer2 = 0;

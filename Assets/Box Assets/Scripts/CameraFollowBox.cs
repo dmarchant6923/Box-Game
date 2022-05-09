@@ -34,6 +34,7 @@ public class CameraFollowBox : MonoBehaviour
     [HideInInspector] public float boxDamageTaken = 0;
     [HideInInspector] public Vector2 shakeInfo; // x = damage, y = distance
     Vector3 camShakeOffset;
+    bool shakeIgnoreActive = false;
 
     Vector3 camLookOffset;
     float camLookMax = 4;
@@ -172,12 +173,15 @@ public class CameraFollowBox : MonoBehaviour
     {
         if (startCamShake == true)
         {
-            StartCoroutine(CameraShake(shakeInfo.x, shakeInfo.y));
+            if (shakeIgnoreActive == false)
+            {
+                StartCoroutine(CameraShake(shakeInfo.x, shakeInfo.y));
+            }
             startCamShake = false;
         }
         if (boxDamageShake == true)
         {
-            if (ignoreBoxDamageShake == false)
+            if (ignoreBoxDamageShake == false && shakeIgnoreActive == false)
             {
                 StartCoroutine(CameraShake(boxDamageTaken, 12));
             }
@@ -220,6 +224,7 @@ public class CameraFollowBox : MonoBehaviour
 
     IEnumerator CameraShake(float damage, float distance)
     {
+        StartCoroutine(CamShakeDelay());
         if (distance < 4) { distance = 4; }
         float shakeDistance = Mathf.Sqrt(damage) / (Mathf.Sqrt(distance) * 3);
         if (shakeDistance > 0.8f) { shakeDistance = 0.8f; }
@@ -244,5 +249,12 @@ public class CameraFollowBox : MonoBehaviour
             currentDistance -= (1f + shakeDistance) * shakeStepTime;
             i++;
         }
+    }
+
+    IEnumerator CamShakeDelay()
+    {
+        shakeIgnoreActive = true;
+        yield return new WaitForSeconds(0.2f);
+        shakeIgnoreActive = false;
     }
 }

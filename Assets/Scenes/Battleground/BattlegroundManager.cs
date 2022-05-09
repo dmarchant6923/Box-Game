@@ -7,6 +7,10 @@ public class BattlegroundManager : MonoBehaviour
     [HideInInspector] public static int stage = 1;
     [HideInInspector] public static int wave = 1;
     [HideInInspector] public static int enemiesKilled = 0;
+    public int startingWave = 15;
+    public bool usePresetWaves = true;
+    public bool infiniteHealth = false;
+    public bool invulnerable = false;
     bool currentWaveActive = false;
     int wavePoints;
     float timeBetweenWaves = 3;
@@ -77,6 +81,10 @@ public class BattlegroundManager : MonoBehaviour
 
     public GameObject dupeWizard;
 
+    public GameObject blitz1;
+    public GameObject blitz2;
+    public GameObject blitz3;
+
     int groundedEnemy1Points = 1;
     int groundedEnemy2Points = 1;
     int groundedEnemy3Points = 1;
@@ -110,6 +118,10 @@ public class BattlegroundManager : MonoBehaviour
     int thunderGuyPoints = 9;
 
     int dupeWizardPoints = 9;
+
+    int blitz1Points = 3;
+    int blitz2Points = 5;
+    int blitz3Points = 9;
 
     Enemy groundedEnemyLvl1;
     Enemy groundedEnemyLvl2;
@@ -145,6 +157,10 @@ public class BattlegroundManager : MonoBehaviour
 
     Enemy dupeWizardLvl1;
 
+    Enemy blitzLvl1;
+    Enemy blitzLvl2;
+    Enemy blitzLvl3;
+
     EnemyType groundedEnemy;
     EnemyType flyingShooter;
     EnemyType flyingSniper;
@@ -155,6 +171,7 @@ public class BattlegroundManager : MonoBehaviour
     EnemyType wizard;
     EnemyType thunder;
     EnemyType duplicate;
+    EnemyType blitz;
 
     List<EnemyType> enemies = new List<EnemyType>();
     List<GameObject> spawnedEnemies = new List<GameObject>();
@@ -235,6 +252,10 @@ public class BattlegroundManager : MonoBehaviour
 
         dupeWizardLvl1 = new Enemy(dupeWizard, dupeWizardPoints);
 
+        blitzLvl1 = new Enemy(blitz1, blitz1Points);
+        blitzLvl2 = new Enemy(blitz2, blitz2Points);
+        blitzLvl3 = new Enemy(blitz3, blitz3Points);
+
         groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemylvl3);
         flyingShooter = new EnemyType(flyingShooterLvl1, flyingShooterLvl2, flyingShooterLvl3);
         flyingSniper = new EnemyType(flyingSniperLvl1, flyingSniperLvl2, flyingSniperLvl3);
@@ -245,6 +266,7 @@ public class BattlegroundManager : MonoBehaviour
         wizard = new EnemyType(wizardLvl1, wizardLvl2, wizardLvl3);
         thunder = new EnemyType(thunderGuyLvl1, thunderGuyLvl1, thunderGuyLvl1);
         duplicate = new EnemyType(dupeWizardLvl1, dupeWizardLvl1, dupeWizardLvl1);
+        blitz = new EnemyType(blitzLvl1, blitzLvl2, blitzLvl3);
 
         enemies.Add(groundedEnemy); //0
         enemies.Add(flyingShooter); //1
@@ -256,15 +278,16 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(wizard); //7
         enemies.Add(thunder); //8
         enemies.Add(duplicate); //9
+        enemies.Add(blitz); //10
 
-        wave = 15;
+        wave = startingWave;
         enemiesKilled = 0;
 
         Box.boxHealth = 100;
         UIManager.initialHealth = (int) maxHealth; //250
 
         addToHiScores = false;
-        if ((wave == 1 && Box.boxHealth == 250) || (wave == 15 && Box.boxHealth == 100))
+        if (((wave == 1 && Box.boxHealth == 250) || (wave == 15 && Box.boxHealth == 100)) && infiniteHealth == false && invulnerable == false && usePresetWaves)
         {
             addToHiScores = true;
         }
@@ -299,6 +322,18 @@ public class BattlegroundManager : MonoBehaviour
             deathActive = true;
             StartCoroutine(Death());
         }
+
+
+
+
+        if (infiniteHealth == Box.boxHealth < maxHealth)
+        {
+            Box.boxHealth = maxHealth;
+        }
+        if (invulnerable)
+        {
+            Box.isInvulnerable = true;
+        }
     }
 
     IEnumerator RoundStart()
@@ -321,6 +356,7 @@ public class BattlegroundManager : MonoBehaviour
         int wizards = 0;
         int dupeWizards = 0;
         int groundedVehicles = 0;
+        int thunders = 0;
 
         while (wavePoints > 0)
         {
@@ -452,9 +488,17 @@ public class BattlegroundManager : MonoBehaviour
             {
                 continue;
             }
-            if (enemies[enemyTypeSelected] == thunder && (wave < 20 || wavePoints > 26))
+            //no thunders before wave 20 and no more than 2 thunders
+            if (enemies[enemyTypeSelected] == thunder)
             {
-                continue;
+                if (wave < 20 || thunders > 1 || wavePoints == (int)Mathf.Floor(wave * wavePointMult))
+                {
+                    continue;
+                }
+                else
+                {
+                    thunders++;
+                }
             }
             //no duplicate wizards before wave 25
             if (enemies[enemyTypeSelected] == duplicate)
@@ -471,118 +515,121 @@ public class BattlegroundManager : MonoBehaviour
 
 
             //preset waves
-            if (wave == 2)
+            if (usePresetWaves)
             {
-                enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
-                if (spawnedEnemies.Count >= 2)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 3)
-            {
-                enemyTypeSelected = 1; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
-                if (spawnedEnemies.Count >= 1)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 4)
-            {
-                enemyTypeSelected = 2; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
-                if (spawnedEnemies.Count >= 1)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 5)
-            {
-                enemyTypeSelected = 4; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
-                if (spawnedEnemies.Count >= 2)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 6)
-            {
-                enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
-                if (spawnedEnemies.Count >= 7)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 10)
-            {
-                enemyTypeSelected = 5; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 0;
-            }
-            if (wave == 18)
-            {
-                enemyTypeSelected = 3; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
-                if (spawnedEnemies.Count >= 6)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 20)
-            {
-                enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
-                if (spawnedEnemies.Count >= 3)
+                if (wave == 2)
                 {
                     enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 2)
+                    {
+                        wavePoints = 0;
+                    }
                 }
-                if (spawnedEnemies.Count >= 5)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 21)
-            {
-                if (wavePoints == Mathf.Floor(wave * wavePointMult))
-                {
-                    enemyTypeSelected = 1; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
-                }
-                else
+                if (wave == 3)
                 {
                     enemyTypeSelected = 1; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 1)
+                    {
+                        wavePoints = 0;
+                    }
                 }
-                if (spawnedEnemies.Count >= 5)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 22)
-            {
-                if (wavePoints == Mathf.Floor(wave * wavePointMult))
-                {
-                    enemyTypeSelected = 2; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
-                }
-                else
+                if (wave == 4)
                 {
                     enemyTypeSelected = 2; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 1)
+                    {
+                        wavePoints = 0;
+                    }
                 }
-                if (spawnedEnemies.Count >= 5)
-                {
-                    wavePoints = 0;
-                }
-            }
-            if (wave == 23)
-            {
-                if (wavePoints == Mathf.Floor(wave * wavePointMult))
-                {
-                    enemyTypeSelected = 4; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
-                }
-                else
+                if (wave == 5)
                 {
                     enemyTypeSelected = 4; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 2)
+                    {
+                        wavePoints = 0;
+                    }
                 }
-                if (spawnedEnemies.Count >= 5)
+                if (wave == 6)
                 {
-                    wavePoints = 0;
+                    enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 7)
+                    {
+                        wavePoints = 0;
+                    }
                 }
-            }
-            if (wave == 30)
-            {
-                enemyTypeSelected = 5; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 0;
+                if (wave == 10)
+                {
+                    enemyTypeSelected = 5; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 0;
+                }
+                if (wave == 18)
+                {
+                    enemyTypeSelected = 3; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 6)
+                    {
+                        wavePoints = 0;
+                    }
+                }
+                if (wave == 20)
+                {
+                    enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 3)
+                    {
+                        enemyTypeSelected = 0; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    }
+                    if (spawnedEnemies.Count >= 5)
+                    {
+                        wavePoints = 0;
+                    }
+                }
+                if (wave == 21)
+                {
+                    if (wavePoints == Mathf.Floor(wave * wavePointMult))
+                    {
+                        enemyTypeSelected = 1; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
+                    }
+                    else
+                    {
+                        enemyTypeSelected = 1; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    }
+                    if (spawnedEnemies.Count >= 5)
+                    {
+                        wavePoints = 0;
+                    }
+                }
+                if (wave == 22)
+                {
+                    if (wavePoints == Mathf.Floor(wave * wavePointMult))
+                    {
+                        enemyTypeSelected = 2; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
+                    }
+                    else
+                    {
+                        enemyTypeSelected = 2; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    }
+                    if (spawnedEnemies.Count >= 5)
+                    {
+                        wavePoints = 0;
+                    }
+                }
+                if (wave == 23)
+                {
+                    if (wavePoints == Mathf.Floor(wave * wavePointMult))
+                    {
+                        enemyTypeSelected = 4; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 100;
+                    }
+                    else
+                    {
+                        enemyTypeSelected = 4; enemySelected = enemies[enemyTypeSelected].enemylvl1; wavePoints = 100;
+                    }
+                    if (spawnedEnemies.Count >= 5)
+                    {
+                        wavePoints = 0;
+                    }
+                }
+                if (wave == 30)
+                {
+                    enemyTypeSelected = 5; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 0;
+                }
             }
 
 
@@ -645,7 +692,8 @@ public class BattlegroundManager : MonoBehaviour
 
             RaycastHit2D spawnCircleGroundCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
             if (enemies[enemyTypeSelected] == flyingShooter || enemies[enemyTypeSelected] == flyingKamikaze ||
-                enemies[enemyTypeSelected] == flyingSniper || enemies[enemyTypeSelected] == flyingShotgun)
+                enemies[enemyTypeSelected] == flyingSniper || enemies[enemyTypeSelected] == flyingShotgun ||
+                enemies[enemyTypeSelected] == blitz)
             {
                 while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null)
                 {
@@ -717,7 +765,7 @@ public class BattlegroundManager : MonoBehaviour
 
             GameObject newEnemy;
             newEnemy = Instantiate(enemySelected.enemyObject, spawnCoordinates, Quaternion.identity);
-            if (newEnemy.GetComponent<MountedTurret>() != null)
+            if (newEnemy.GetComponent<EnemyBehavior_Turret>() != null)
             {
                 SpriteRenderer[] sprites = newEnemy.GetComponentsInChildren<SpriteRenderer>();
                 foreach (SpriteRenderer item in sprites)

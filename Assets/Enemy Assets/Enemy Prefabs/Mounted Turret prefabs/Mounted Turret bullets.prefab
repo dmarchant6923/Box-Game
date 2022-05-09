@@ -189,6 +189,7 @@ MonoBehaviour:
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
   canReceiveShield: 1
+  fire: {fileID: 4677626524065600173, guid: b9affa55bbb74fa4599156f913f3ccdc, type: 3}
   aggroCurrentlyActive: 0
   canReceiveAggro: 1
   initialDelay: 1

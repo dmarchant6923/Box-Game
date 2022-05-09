@@ -14,7 +14,7 @@ public class ProximityMine : MonoBehaviour
 
     public GameObject explosion;
     GameObject newExplosion;
-    float explosionRadius = 3.5f;
+    public float explosionRadius = 3.5f;
     float explosionDamage = 30;
     bool mineWasPulsed = false;
 

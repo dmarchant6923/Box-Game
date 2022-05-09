@@ -49,6 +49,8 @@ public class EnemyBehavior_Wizard : MonoBehaviour
     float pulseMagnitude = 20;
 
     public GameObject aura;
+    public GameObject gradientAura;
+    public GameObject ringAura;
     GameObject newAura;
     GameObject thisAura;
     Color thisAuraColor;
@@ -65,6 +67,9 @@ public class EnemyBehavior_Wizard : MonoBehaviour
     bool pulseCheckSuccess = false;
 
     bool aggroActive = false;
+    public GameObject fire;
+    GameObject newFire;
+    GameObject wizardFire;
 
     void Start()
     {
@@ -103,6 +108,8 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         else if (aggro)
         {
             thisAuraColor = aggroColor;
+            wizardFire = Instantiate(fire, enemyRB.position, Quaternion.identity);
+            wizardFire.GetComponent<Fire>().objectOnFire = enemyRB;
         }
         thisAuraColor.a = 0.1f;
         thisAura.GetComponent<SpriteRenderer>().color = thisAuraColor;
@@ -246,7 +253,11 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             {
                 if (aura != null)
                 {
-                    aura.GetComponent<Aura>().breakAura = true;
+                    if (aura.GetComponent<Aura>() != null)
+                    {
+                        aura.GetComponent<Aura>().breakAura = true;
+                    }
+
                     if (shield)
                     {
                         aura.transform.root.GetComponent<EnemyManager>().shieldCurrentlyActive = false;
@@ -254,6 +265,9 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     if (aggro)
                     {
                         aura.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive = false;
+                        //aura.GetComponent<Fire>().objectOnFire.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive = false;
+                        //aura.GetComponent<Fire>().stopFire = true;
+                        wizardFire.GetComponent<Fire>().stopFire = true;
                     }
                 }
             }
@@ -331,10 +345,11 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     && parentEnemy.transform.root.GetComponent<EnemyManager>().canReceiveShield)
                 {
                     parentEnemy.transform.root.GetComponent<EnemyManager>().shieldCurrentlyActive = true;
-                    newAura = Instantiate(aura, parentEnemy.transform.root.GetComponent<EnemyManager>().enemyRB.position, Quaternion.identity);
-                    newAura.GetComponent<SpriteRenderer>().color = new Color(shieldColor.r, shieldColor.g, shieldColor.b, 0.2f);
+                    newAura = Instantiate(ringAura, parentEnemy.transform.root.GetComponent<EnemyManager>().enemyRB.position, Quaternion.identity);
                     newAura.transform.localScale = Mathf.Max(parentEnemy.transform.localScale.x, parentEnemy.transform.localScale.y) * Vector2.one * 1.9f;
                     newAura.transform.parent = parentEnemy.transform;
+                    newAura.GetComponent<SpriteRenderer>().color = new Color(shieldColor.r, shieldColor.g, shieldColor.b, 0.5f);
+                    newAura.transform.localPosition = Vector2.zero;
                     newAura.GetComponent<Aura>().shield = true;
                     spawnedAuras.Add(newAura);
                 }
@@ -342,12 +357,18 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     && parentEnemy.transform.root.GetComponent<EnemyManager>().canReceiveAggro)
                 {
                     parentEnemy.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive = true;
-                    newAura = Instantiate(aura, parentEnemy.transform.root.GetComponent<EnemyManager>().enemyRB.position, Quaternion.identity);
-                    newAura.GetComponent<SpriteRenderer>().color = new Color(aggroColor.r, aggroColor.g, aggroColor.b, 0.4f);
-                    newAura.transform.localScale = Mathf.Max(parentEnemy.transform.localScale.x, parentEnemy.transform.localScale.y) * Vector2.one * 1.3f;
+                    newAura = Instantiate(gradientAura, parentEnemy.transform.root.GetComponent<EnemyManager>().enemyRB.position, Quaternion.identity);
+                    newAura.transform.localScale = Mathf.Max(parentEnemy.transform.localScale.x, parentEnemy.transform.localScale.y) * Vector2.one * 1.7f;
                     newAura.transform.parent = parentEnemy.transform;
+                    newAura.GetComponent<SpriteRenderer>().color = new Color(aggroColor.r, aggroColor.g, aggroColor.b, 0.4f);
+                    newAura.transform.localPosition = Vector2.zero;
                     newAura.GetComponent<Aura>().aggro = true;
                     spawnedAuras.Add(newAura);
+
+                    //parentEnemy.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive = true;
+                    //newFire = Instantiate(fire, parentEnemy.transform.root.GetComponent<EnemyManager>().enemyRB.position, Quaternion.identity);
+                    //newFire.GetComponent<Fire>().objectOnFire = parentEnemy.transform.root.GetComponent<EnemyManager>().enemyRB;
+                    //spawnedAuras.Add(newFire);
                 }
             }
         }

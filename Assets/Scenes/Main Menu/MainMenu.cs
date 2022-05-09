@@ -760,7 +760,6 @@ public class MainMenu : MonoBehaviour
     }
     IEnumerator StageHighlight()
     {
-        Debug.Log("you are here");
         stageHighlightCR = true;
         GameObject selectedStage = stages.transform.GetChild(currentSelection - 1).gameObject;
         Color color = selectedStage.GetComponent<Image>().color;

@@ -292,7 +292,7 @@ public class EnemyBehavior_Thunder : MonoBehaviour
     IEnumerator SwitchPoints()
     {
         addForce = false;
-        float window = timeToMove;
+        float window = timeToMove * 0.94f + Random.Range(0, 0.12f);
         float timer = 0;
         while (timer < window)
         {

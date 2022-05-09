@@ -16,6 +16,16 @@ public class Aura : MonoBehaviour
     void Start()
     {
         enemyManager = transform.root.GetComponent<EnemyManager>();
+        if (shield || aggro)
+        {
+            Transform parent = transform.parent;
+            float angle = parent.localEulerAngles.z;
+            parent.localEulerAngles = Vector3.zero;
+            transform.parent = null;
+            transform.localEulerAngles = Vector3.zero;
+            transform.parent = parent;
+            parent.localEulerAngles = new Vector3(0, 0, angle);
+        }
     }
 
     // Update is called once per frame

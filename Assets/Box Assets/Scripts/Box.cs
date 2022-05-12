@@ -120,7 +120,7 @@ public class Box : MonoBehaviour
     RaycastHit2D leftWallCheck;
     RaycastHit2D rightWallCheck;
     bool dashWallBounceActivate = false; // will turn on for a frame when a dash wallbounce becomes active to activate the coroutine
-    bool wallBounceActive = false;
+    [System.NonSerialized] public static bool wallBounceActive = false;
     float reboundTime = 0.4f; // how long the wall bounce lasts and inputs are disabled
 
     [System.NonSerialized] public static bool pulseUnlocked = true;
@@ -187,11 +187,8 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static bool inShockRadius = false;
     bool shockCR = false;
 
-    [System.NonSerialized] public static bool activateFire = false;
     [System.NonSerialized] public static bool onFire;
-    [System.NonSerialized] public static float fireTimer = 0;
-    float fireWindow = 3f;
-    [System.NonSerialized] public static float fireDOT = 2.5f;
+    [System.NonSerialized] public static float fireDOT = 3.5f;
 
     bool forceInputsDisabled = false;
 
@@ -229,6 +226,7 @@ public class Box : MonoBehaviour
         inShockRadius = false;
         doubleJumpUsed = false;
         canDodge = true;
+        onFire = false;
 
         initialGroundFriction = groundFriction;
         stickyFriction = initialGroundFriction * 4;
@@ -916,14 +914,10 @@ public class Box : MonoBehaviour
         }
 
         //fire
-        if (activateFire)
+        if (onFire)
         {
-            if (onFire == false)
-            {
-                StartCoroutine(Fire());
-                onFire = true;
-            }
-            activateFire = false;
+            activateDamage = true;
+            damageTaken += fireDOT * Time.deltaTime;
         }
 
         if (debugEnabled)
@@ -1842,7 +1836,7 @@ public class Box : MonoBehaviour
     {
         damageTaken = Mathf.Min(damageTaken, 200);
         float maxDamageStunTime = 0.4f + damageTaken * 0.014f + boxHitstopDelay;
-        float launchSpeed = 7 + damageTaken / 2.5f;
+        float launchSpeed = 8 + damageTaken / 2.2f;
         rigidBody.angularDrag /= 3;
         float DIMult = 0.25f;
         Vector2 DI = inputs.leftStickDisabled;
@@ -2221,21 +2215,5 @@ public class Box : MonoBehaviour
             yield return null;
         }
         airFriction = initialAirFriction;
-    }
-    IEnumerator Fire()
-    {
-        while (fireTimer < fireWindow)
-        {
-            fireTimer += Time.deltaTime;
-            Debug.Log(fireTimer);
-            if (isInvulnerable == false)
-            {
-                activateDamage = true;
-                damageTaken += fireDOT * Time.fixedDeltaTime;
-            }
-            yield return new WaitForFixedUpdate();
-        }
-        fireTimer = 0;
-        onFire = false;
     }
 }

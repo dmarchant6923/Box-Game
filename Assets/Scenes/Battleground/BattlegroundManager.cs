@@ -11,6 +11,7 @@ public class BattlegroundManager : MonoBehaviour
     public bool usePresetWaves = true;
     public bool infiniteHealth = false;
     public bool invulnerable = false;
+    public float startingHealth = 100;
     bool currentWaveActive = false;
     int wavePoints;
     float timeBetweenWaves = 3;
@@ -283,7 +284,7 @@ public class BattlegroundManager : MonoBehaviour
         wave = startingWave;
         enemiesKilled = 0;
 
-        Box.boxHealth = 100;
+        Box.boxHealth = startingHealth;
         UIManager.initialHealth = (int) maxHealth; //250
 
         UIManager.pulseNoKill = false;
@@ -353,7 +354,7 @@ public class BattlegroundManager : MonoBehaviour
         float wavePointMult = 1.5f;
         if (wave >= 40)
         {
-            wavePointMult += (wave - 39) * 1.5f / 20;
+            wavePointMult += (wave - 39) * 1.5f / 30;
         }
         int maxPoints = (int)Mathf.Floor(wave * wavePointMult);
         wavePoints = maxPoints;

@@ -95,6 +95,7 @@ public class Grenade : MonoBehaviour
                 Debug.DrawRay(grenadeRB.position, -vectorToBox.normalized, Color.red);
                 grenadeRB.velocity = (-grenadeRB.velocity.normalized - vectorToBox.normalized).normalized * grenadeRB.velocity.magnitude;
 
+                Debug.Log(velocityList[2].magnitude);
                 if (velocityList[2].magnitude >= 20)
                 {
                     Box.activateDamage = true;

@@ -44,6 +44,8 @@ public class EpisodeManager : MonoBehaviour
 
     bool restartActive = false;
 
+    public bool bossFight = false;
+
     void Start()    
     {
         UIManager.canPause = false;
@@ -71,7 +73,7 @@ public class EpisodeManager : MonoBehaviour
         inGameStickersFound = episodeStats.stickersFound;
 
         startAtCheckpoint = false;
-        if (episodeStats.checkpoint)
+        if (episodeStats.checkpoint && bossFight == false)
         {
             checkpoint.GetComponent<Checkpoint>().checkpointActive = true;
             boxRB.position = checkpoint.transform.position + Vector3.left * 5;
@@ -89,7 +91,7 @@ public class EpisodeManager : MonoBehaviour
 
         for (int i = 0; i < inGameStickers.Length; i++)
         {
-            if (episodeStats.stickersFound[i])
+            if (episodeStats.stickersFound[i] && bossFight == false)
             {
                 Vector2 position = inGameStickers[i].transform.position;
                 Destroy(inGameStickers[i]);

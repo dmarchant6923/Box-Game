@@ -70,6 +70,8 @@ public class EnemyBehavior_Turret : MonoBehaviour
     float laserDOT = 15;
     bool laserHittingBox = false;
     GameObject fuel;
+    GameObject fire;
+    GameObject newFire;
 
     bool initialShootDelay = true;
 
@@ -191,6 +193,8 @@ public class EnemyBehavior_Turret : MonoBehaviour
         }
 
         StartCoroutine(InitialDelay());
+
+        fire = EM.fire;
     }
 
     void Update()
@@ -403,10 +407,17 @@ public class EnemyBehavior_Turret : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (laserHittingBox == true)
+        if (laserHittingBox == true && Box.isInvulnerable == false)
         {
             Box.activateDamage = true;
-            Box.damageTaken += laserDOT * Time.deltaTime;
+            if (Box.onFire)
+            {
+                Box.damageTaken += (laserDOT - Box.fireDOT) * Time.deltaTime;
+            }
+            else
+            {
+                Box.damageTaken += laserDOT * Time.deltaTime;
+            }
         }
 
         if (EM.aggroCurrentlyActive && aggroActive == false)
@@ -645,6 +656,28 @@ public class EnemyBehavior_Turret : MonoBehaviour
                     {
                         enemyRC.collider.GetComponent<Grenade>().remoteExplode = true;
                     }
+                }
+            }
+
+            if (laserRC.collider != null && 1 << laserRC.collider.gameObject.layer == obstacleLM)
+            {
+                Physics2D.queriesHitTriggers = true;
+                RaycastHit2D[] fireRC = Physics2D.CircleCastAll(laserRC.point, 0.3f, Vector2.zero, 0, LayerMask.GetMask("Hazards"));
+                Physics2D.queriesHitTriggers = false;
+                bool spawnFire = true;
+                foreach (RaycastHit2D item in fireRC)
+                {
+                    if (item.collider.GetComponent<Fire>() != null && item.collider.GetComponent<Fire>().hazardFire == true)
+                    {
+                        spawnFire = false;
+                        item.collider.GetComponent<Fire>().fireTime = 0;
+                    }
+                }
+                if (spawnFire)
+                {
+                    newFire = Instantiate(fire, laserRC.point, Quaternion.identity);
+                    newFire.GetComponent<Fire>().surfaceNormal = laserRC.normal;
+                    newFire.GetComponent<Fire>().hazardFire = true;
                 }
             }
 

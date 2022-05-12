@@ -115,7 +115,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
         }
         if (touchingThisEnemy == true && enemyHitstopActive == false)
         {
-            if (attackActive && Box.isInvulnerable == false && ignoreBoxLaunchDamage == false)
+            if (attackActive && Box.isInvulnerable == false && ignoreBoxLaunchDamage == false && BoxPerks.spikesActive == false)
             {
                 Box.activateDamage = true;
                 Box.damageTaken = damage;
@@ -126,7 +126,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 }
                 StartCoroutine(EnemyHitstop());
             }
-            else if (Box.boxHitboxActive && attackActive == false)
+            else if (Box.boxHitboxActive && (attackActive == false || Box.isInvulnerable))
             {
                 EM.enemyWasDamaged = true;
                 if (EM.enemyIsInvulnerable == false)

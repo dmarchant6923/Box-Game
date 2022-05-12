@@ -42,8 +42,10 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public bool normalDeath = true;
     [HideInInspector] public bool normalDamage = true;
     [HideInInspector] public bool normalHitstop = true;
+    [HideInInspector] public bool blastzoneDeath = true;
 
     [HideInInspector] public bool normalExplosionsWillDamage = false;
+    [HideInInspector] public bool explosionsWillPush = true;
     [HideInInspector] public bool reflectedBulletsWillDamage = true;
 
     [HideInInspector] public bool keepAsKinematic = false;
@@ -75,7 +77,7 @@ public class EnemyManager : MonoBehaviour
     List<Color> enemyColors;
 
     public float enemyHealth = 1; //all damage from Box will deal 1 damage
-    float invulnerabilityPeriod = 2f;
+    [HideInInspector] public float invulnerabilityPeriod = 2f;
     float invulnerabilityTime = 0;
 
     public bool startEnemyDeath = false;

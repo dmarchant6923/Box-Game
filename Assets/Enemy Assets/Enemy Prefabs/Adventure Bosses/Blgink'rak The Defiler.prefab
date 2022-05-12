@@ -98,7 +98,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 476275804576760928}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -138,6 +138,7 @@ MonoBehaviour:
   normalDeath: 1
   normalDamage: 1
   normalHitstop: 1
+  blastzoneDeath: 1
   normalExplosionsWillDamage: 0
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
@@ -155,6 +156,7 @@ MonoBehaviour:
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
   enemyHealth: 10
+  invulnerabilityPeriod: 2
   startEnemyDeath: 0
   respawn: 0
 --- !u!114 &7427285536664237595
@@ -169,14 +171,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad75f06c39408cf4598caea299554f0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sentinels:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  area: {fileID: 0}
+  sentinelMoveSpeed: 20
+  initialSentinelMoveSpeed: 20
   sentinelIdle: 00000000
   sentinelPositions:
   - {x: 0, y: 0}
   - {x: 0, y: 0}
   - {x: 0, y: 0}
   - {x: 0, y: 0}
-  boomerang: 0
   sentinelBoomerang: 00000000
+  explosionAttack: 0
+  explosionBoundaryConnected: 0
+  boundaryConnected: 00000000
+  squareExplosion: {fileID: 5318103486178067125, guid: 7c5373c18c7d6ef47b8ee983f6109647, type: 3}
   debugEnabled: 0
 --- !u!58 &8496529877861891088
 CircleCollider2D:
@@ -205,9 +218,10 @@ GameObject:
   - component: {fileID: 4977688972698352812}
   - component: {fileID: 1675180940928053445}
   - component: {fileID: 1454021086362540733}
+  - component: {fileID: 8752688867000926540}
   - component: {fileID: 2039272253972699535}
   - component: {fileID: 8970947477049191002}
-  - component: {fileID: 8752688867000926540}
+  - component: {fileID: 8761086295827959766}
   m_Layer: 11
   m_Name: Sentinel
   m_TagString: Untagged
@@ -307,6 +321,7 @@ MonoBehaviour:
   normalDeath: 1
   normalDamage: 1
   normalHitstop: 1
+  blastzoneDeath: 1
   normalExplosionsWillDamage: 0
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
@@ -323,9 +338,24 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
-  enemyHealth: 3
+  enemyHealth: 2
+  invulnerabilityPeriod: 2
   startEnemyDeath: 0
   respawn: 0
+--- !u!114 &8752688867000926540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 810099599738093835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossScript: {fileID: 7427285536664237595}
+  index: 0
 --- !u!60 &2039272253972699535
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -375,20 +405,104 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!114 &8752688867000926540
-MonoBehaviour:
+--- !u!120 &8761086295827959766
+LineRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 810099599738093835}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bossScript: {fileID: 7427285536664237595}
-  index: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: -1210902825
+  m_SortingLayer: 4
+  m_SortingOrder: -1
+  m_Positions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  m_Parameters:
+    serializedVersion: 3
+    widthMultiplier: 0.2
+    widthCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
+      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    numCornerVertices: 0
+    numCapVertices: 0
+    alignment: 0
+    textureMode: 0
+    shadowBias: 0.5
+    generateLightingData: 0
+  m_UseWorldSpace: 1
+  m_Loop: 0
 --- !u!1 &1467524287881267631
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,9 +514,10 @@ GameObject:
   - component: {fileID: 5690046354289332566}
   - component: {fileID: 8017800601422948828}
   - component: {fileID: 5258312447451330591}
+  - component: {fileID: 8086226547102982745}
   - component: {fileID: 5235667710608142759}
   - component: {fileID: 4727302475602281501}
-  - component: {fileID: 8086226547102982745}
+  - component: {fileID: 6086820979427010427}
   m_Layer: 11
   m_Name: Sentinel
   m_TagString: Untagged
@@ -502,6 +617,7 @@ MonoBehaviour:
   normalDeath: 1
   normalDamage: 1
   normalHitstop: 1
+  blastzoneDeath: 1
   normalExplosionsWillDamage: 0
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
@@ -518,9 +634,24 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
-  enemyHealth: 3
+  enemyHealth: 2
+  invulnerabilityPeriod: 2
   startEnemyDeath: 0
   respawn: 0
+--- !u!114 &8086226547102982745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467524287881267631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossScript: {fileID: 7427285536664237595}
+  index: 0
 --- !u!60 &5235667710608142759
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -570,20 +701,104 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!114 &8086226547102982745
-MonoBehaviour:
+--- !u!120 &6086820979427010427
+LineRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1467524287881267631}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bossScript: {fileID: 7427285536664237595}
-  index: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: -1210902825
+  m_SortingLayer: 4
+  m_SortingOrder: -1
+  m_Positions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  m_Parameters:
+    serializedVersion: 3
+    widthMultiplier: 0.2
+    widthCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
+      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    numCornerVertices: 0
+    numCapVertices: 0
+    alignment: 0
+    textureMode: 0
+    shadowBias: 0.5
+    generateLightingData: 0
+  m_UseWorldSpace: 1
+  m_Loop: 0
 --- !u!1 &4087129882815804339
 GameObject:
   m_ObjectHideFlags: 0
@@ -595,9 +810,10 @@ GameObject:
   - component: {fileID: 9027249813742395130}
   - component: {fileID: 8477936653170706523}
   - component: {fileID: 7195439053476388715}
+  - component: {fileID: 8570840121822797844}
   - component: {fileID: 3746584113521789730}
   - component: {fileID: 8319692837118129033}
-  - component: {fileID: 8570840121822797844}
+  - component: {fileID: 6273749243942537751}
   m_Layer: 11
   m_Name: Sentinel
   m_TagString: Untagged
@@ -697,6 +913,7 @@ MonoBehaviour:
   normalDeath: 1
   normalDamage: 1
   normalHitstop: 1
+  blastzoneDeath: 1
   normalExplosionsWillDamage: 0
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
@@ -713,9 +930,24 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
-  enemyHealth: 3
+  enemyHealth: 2
+  invulnerabilityPeriod: 2
   startEnemyDeath: 0
   respawn: 0
+--- !u!114 &8570840121822797844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4087129882815804339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossScript: {fileID: 7427285536664237595}
+  index: 0
 --- !u!60 &3746584113521789730
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -765,20 +997,104 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!114 &8570840121822797844
-MonoBehaviour:
+--- !u!120 &6273749243942537751
+LineRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4087129882815804339}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bossScript: {fileID: 7427285536664237595}
-  index: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: -1210902825
+  m_SortingLayer: 4
+  m_SortingOrder: -1
+  m_Positions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  m_Parameters:
+    serializedVersion: 3
+    widthMultiplier: 0.2
+    widthCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
+      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    numCornerVertices: 0
+    numCapVertices: 0
+    alignment: 0
+    textureMode: 0
+    shadowBias: 0.5
+    generateLightingData: 0
+  m_UseWorldSpace: 1
+  m_Loop: 0
 --- !u!1 &4388793012888743974
 GameObject:
   m_ObjectHideFlags: 0
@@ -790,9 +1106,10 @@ GameObject:
   - component: {fileID: 512859784868540521}
   - component: {fileID: 3226779024569251283}
   - component: {fileID: 1555535051733880509}
+  - component: {fileID: 5372764768264144146}
   - component: {fileID: 4876807837641189935}
   - component: {fileID: 8957902775279971556}
-  - component: {fileID: 5372764768264144146}
+  - component: {fileID: 2542442280582477060}
   m_Layer: 11
   m_Name: Sentinel
   m_TagString: Untagged
@@ -892,6 +1209,7 @@ MonoBehaviour:
   normalDeath: 1
   normalDamage: 1
   normalHitstop: 1
+  blastzoneDeath: 1
   normalExplosionsWillDamage: 0
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
@@ -908,9 +1226,24 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
-  enemyHealth: 3
+  enemyHealth: 2
+  invulnerabilityPeriod: 2
   startEnemyDeath: 0
   respawn: 0
+--- !u!114 &5372764768264144146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4388793012888743974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossScript: {fileID: 7427285536664237595}
+  index: 0
 --- !u!60 &4876807837641189935
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -960,17 +1293,101 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!114 &5372764768264144146
-MonoBehaviour:
+--- !u!120 &2542442280582477060
+LineRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4388793012888743974}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 524b45b1066e127408ea7a2abf27f557, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bossScript: {fileID: 7427285536664237595}
-  index: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: -1210902825
+  m_SortingLayer: 4
+  m_SortingOrder: -1
+  m_Positions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  m_Parameters:
+    serializedVersion: 3
+    widthMultiplier: 0.2
+    widthCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
+      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    numCornerVertices: 0
+    numCapVertices: 0
+    alignment: 0
+    textureMode: 0
+    shadowBias: 0.5
+    generateLightingData: 0
+  m_UseWorldSpace: 1
+  m_Loop: 0

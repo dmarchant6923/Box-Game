@@ -9,6 +9,7 @@ public class Explosion : MonoBehaviour
     public float explosionDamage = 30;
     [HideInInspector] public bool damageEnemies = false;
     [HideInInspector] public bool aestheticExplosion = false;
+    [HideInInspector] public bool circleExplosion = true;
 
     Rigidbody2D boxRB;
     Vector2 vectorToBox;
@@ -36,6 +37,12 @@ public class Explosion : MonoBehaviour
                 new Vector2(0, 0), 0f, boxLM);
             RaycastHit2D[] explosion = Physics2D.CircleCastAll(transform.position, explosionRadius,
                 new Vector2(0, 0), 0f, LayerMask.GetMask("Box", "Enemies", "Enemy Device"));
+            if (circleExplosion == false)
+            {
+                Debug.Log("square explosion");
+                explosionClose = Physics2D.BoxCast(transform.position, Vector2.one * (explosionRadius / 8), 0, Vector2.zero, boxLM);
+                explosion = Physics2D.BoxCastAll(transform.position, Vector2.one * explosionRadius * 2, 0, Vector2.zero, LayerMask.GetMask("Box", "Enemies", "Enemy Device"));
+            }
             foreach (RaycastHit2D item in explosion)
             {
                 Vector2 vectorToItem = new Vector2(item.transform.position.x - transform.position.x, item.transform.position.y - transform.position.y);
@@ -86,7 +93,7 @@ public class Explosion : MonoBehaviour
                     // if the explosion isn't set to damage enemies AND the enemy itself won't take damage from normal explosions, push the enemy
                     if (EM.normalExplosionsWillDamage == false && damageEnemies == false)
                     {
-                        if (RB != null && RB.isKinematic == false)
+                        if (RB != null && RB.isKinematic == false && EM.explosionsWillPush)
                         {
                             Vector2 forceVector = new Vector2(RB.position.x - transform.position.x, RB.position.y - transform.position.y);
                             RB.AddForce(forceVector * 2, ForceMode2D.Impulse);
@@ -121,6 +128,7 @@ public class Explosion : MonoBehaviour
             }
             if (explosionClose.collider != null)
             {
+                Debug.Log("you are here");
                 explosion_RayToItem = Physics2D.Raycast(transform.position, vectorToBox, explosionRadius,
                         LayerMask.GetMask("Obstacles", "Hazards", "Box"));
                 if (explosion_RayToItem.collider != null && 1 << explosion_RayToItem.collider.gameObject.layer == boxLM)
@@ -150,5 +158,10 @@ public class Explosion : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        //Debug.DrawRay(transform.position + Vector3.up * explosionRadius, Vector2.down * explosionRadius * 2);
+        //Debug.DrawRay(transform.position + Vector3.up * explosionRadius / 4, Vector2.down * explosionRadius / 2, Color.green);
+        //Debug.DrawRay(transform.position + Vector3.right * explosionRadius, Vector2.left * explosionRadius * 2);
+        //Debug.DrawRay(transform.position + Vector3.right * explosionRadius / 4, Vector2.left * explosionRadius / 2, Color.green);
     }
 }

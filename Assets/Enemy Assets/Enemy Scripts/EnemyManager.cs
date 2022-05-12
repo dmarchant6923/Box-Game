@@ -38,7 +38,7 @@ public class EnemyManager : MonoBehaviour
     float hitstopTime = 0;
     [HideInInspector] public bool scriptsEnabled = true;
 
-    [HideInInspector] public bool normalPulse = true;
+    public bool normalPulse = true;
     [HideInInspector] public bool normalDeath = true;
     [HideInInspector] public bool normalDamage = true;
     [HideInInspector] public bool normalHitstop = true;

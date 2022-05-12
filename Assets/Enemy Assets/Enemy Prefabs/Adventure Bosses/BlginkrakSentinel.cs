@@ -110,8 +110,8 @@ public class BlginkrakSentinel : MonoBehaviour
     IEnumerator Boomerang()
     {
         boomerangCR = true;
-        float maxSpeed = 40;
-        float minSpeed = 8;
+        float maxSpeed = 35;
+        float minSpeed = 3;
         Vector2 vectorToBox = boxRB.position - sentinelRB.position;
         float distance = Mathf.Max(15, vectorToBox.magnitude * 1.2f);
         Vector2 target = sentinelRB.position + (vectorToBox.normalized * distance);
@@ -121,15 +121,17 @@ public class BlginkrakSentinel : MonoBehaviour
             float speed = minSpeed + maxSpeed * (sentinelRB.position - target).magnitude / distance;
             if (sentinelHitstopActive == false)
             {
-                sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, target, speed * Time.fixedDeltaTime);
+                //sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, target, speed * Time.fixedDeltaTime);
+                sentinelRB.velocity = (target - sentinelRB.position).normalized * speed;
             }
             yield return new WaitForFixedUpdate();
         }
 
-        float window = 0.2f;
+        float window = 0.8f;
         float timer = 0;
         while (timer < window)
         {
+            sentinelRB.velocity = Vector2.zero;
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
@@ -140,10 +142,12 @@ public class BlginkrakSentinel : MonoBehaviour
             float speed = minSpeed + maxSpeed * (sentinelRB.position - target).magnitude / distance;
             if (sentinelHitstopActive == false)
             {
-                sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + bossScript.sentinelPositions[index], speed * Time.fixedDeltaTime);
+                //sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + bossScript.sentinelPositions[index], speed * Time.fixedDeltaTime);
+                sentinelRB.velocity = (bossRB.position + bossScript.sentinelPositions[index] - sentinelRB.position).normalized * speed;
             }
             yield return new WaitForFixedUpdate();
         }
+        sentinelRB.velocity = Vector2.zero;
         boomerangCR = false;
         bossScript.sentinelBoomerang[index] = false;
         bossScript.sentinelIdle[index] = true;

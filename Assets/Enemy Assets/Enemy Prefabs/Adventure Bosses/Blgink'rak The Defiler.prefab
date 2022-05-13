@@ -140,6 +140,7 @@ MonoBehaviour:
   normalHitstop: 1
   blastzoneDeath: 1
   normalExplosionsWillDamage: 0
+  explosionsWillPush: 1
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
@@ -177,6 +178,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   area: {fileID: 0}
+  telePositions: []
   sentinelMoveSpeed: 20
   initialSentinelMoveSpeed: 20
   sentinelIdle: 00000000
@@ -190,6 +192,13 @@ MonoBehaviour:
   explosionBoundaryConnected: 0
   boundaryConnected: 00000000
   squareExplosion: {fileID: 5318103486178067125, guid: 7c5373c18c7d6ef47b8ee983f6109647, type: 3}
+  enemySpawnAttack: 0
+  enemiesSpawned: 0
+  sentinelAtSpawnPoint: 00000000
+  sentinelSpawnedEnemy: 00000000
+  startSpawns: 0
+  spawnedEnemies: []
+  sentinelHitboxEnabled: 1
   debugEnabled: 0
 --- !u!58 &8496529877861891088
 CircleCollider2D:
@@ -323,6 +332,7 @@ MonoBehaviour:
   normalHitstop: 1
   blastzoneDeath: 1
   normalExplosionsWillDamage: 0
+  explosionsWillPush: 1
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
@@ -356,6 +366,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bossScript: {fileID: 7427285536664237595}
   index: 0
+  spawnGlow: {fileID: 6870382186886569198, guid: 76b5fbf6a8afd274a98197479729600c, type: 3}
+  enemy1: {fileID: 4527013208551144489, guid: c07ada987acbac64cb7f5cb7751ba4a3, type: 3}
+  enemy2: {fileID: 7808080921964901628, guid: 940a7813e7b8d7c49b99b46a89f27f83, type: 3}
+  enemy3: {fileID: 928503645619085636, guid: 0c0c530a13da180488b5643869753262, type: 3}
+  enemy4: {fileID: 1455908726195974841, guid: 9a02adf35844cbe41954c3d13827e220, type: 3}
+  enemy5: {fileID: 5813661966276729620, guid: 001ab344e360a6a4aab109894b547c66, type: 3}
+  perk: {fileID: 247569352566294278, guid: e694c8a3082ba314a8d5119a8136e071, type: 3}
 --- !u!60 &2039272253972699535
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -468,8 +485,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
-      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key0: {r: 0, g: 0.5, b: 1, a: 1}
+      key1: {r: 0, g: 0.5, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -619,6 +636,7 @@ MonoBehaviour:
   normalHitstop: 1
   blastzoneDeath: 1
   normalExplosionsWillDamage: 0
+  explosionsWillPush: 1
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
@@ -652,6 +670,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bossScript: {fileID: 7427285536664237595}
   index: 0
+  spawnGlow: {fileID: 6870382186886569198, guid: 76b5fbf6a8afd274a98197479729600c, type: 3}
+  enemy1: {fileID: 4527013208551144489, guid: c07ada987acbac64cb7f5cb7751ba4a3, type: 3}
+  enemy2: {fileID: 7808080921964901628, guid: 940a7813e7b8d7c49b99b46a89f27f83, type: 3}
+  enemy3: {fileID: 928503645619085636, guid: 0c0c530a13da180488b5643869753262, type: 3}
+  enemy4: {fileID: 1455908726195974841, guid: 9a02adf35844cbe41954c3d13827e220, type: 3}
+  enemy5: {fileID: 5813661966276729620, guid: 001ab344e360a6a4aab109894b547c66, type: 3}
+  perk: {fileID: 247569352566294278, guid: e694c8a3082ba314a8d5119a8136e071, type: 3}
 --- !u!60 &5235667710608142759
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -764,8 +789,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
-      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key0: {r: 0, g: 0.5, b: 1, a: 1}
+      key1: {r: 0, g: 0.5, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -915,6 +940,7 @@ MonoBehaviour:
   normalHitstop: 1
   blastzoneDeath: 1
   normalExplosionsWillDamage: 0
+  explosionsWillPush: 1
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
@@ -948,6 +974,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bossScript: {fileID: 7427285536664237595}
   index: 0
+  spawnGlow: {fileID: 6870382186886569198, guid: 76b5fbf6a8afd274a98197479729600c, type: 3}
+  enemy1: {fileID: 4527013208551144489, guid: c07ada987acbac64cb7f5cb7751ba4a3, type: 3}
+  enemy2: {fileID: 7808080921964901628, guid: 940a7813e7b8d7c49b99b46a89f27f83, type: 3}
+  enemy3: {fileID: 928503645619085636, guid: 0c0c530a13da180488b5643869753262, type: 3}
+  enemy4: {fileID: 1455908726195974841, guid: 9a02adf35844cbe41954c3d13827e220, type: 3}
+  enemy5: {fileID: 5813661966276729620, guid: 001ab344e360a6a4aab109894b547c66, type: 3}
+  perk: {fileID: 247569352566294278, guid: e694c8a3082ba314a8d5119a8136e071, type: 3}
 --- !u!60 &3746584113521789730
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -1060,8 +1093,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
-      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key0: {r: 0, g: 0.5, b: 1, a: 1}
+      key1: {r: 0, g: 0.5, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -1211,6 +1244,7 @@ MonoBehaviour:
   normalHitstop: 1
   blastzoneDeath: 1
   normalExplosionsWillDamage: 0
+  explosionsWillPush: 1
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
@@ -1244,6 +1278,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bossScript: {fileID: 7427285536664237595}
   index: 0
+  spawnGlow: {fileID: 6870382186886569198, guid: 76b5fbf6a8afd274a98197479729600c, type: 3}
+  enemy1: {fileID: 4527013208551144489, guid: c07ada987acbac64cb7f5cb7751ba4a3, type: 3}
+  enemy2: {fileID: 7808080921964901628, guid: 940a7813e7b8d7c49b99b46a89f27f83, type: 3}
+  enemy3: {fileID: 928503645619085636, guid: 0c0c530a13da180488b5643869753262, type: 3}
+  enemy4: {fileID: 1455908726195974841, guid: 9a02adf35844cbe41954c3d13827e220, type: 3}
+  enemy5: {fileID: 5813661966276729620, guid: 001ab344e360a6a4aab109894b547c66, type: 3}
+  perk: {fileID: 247569352566294278, guid: e694c8a3082ba314a8d5119a8136e071, type: 3}
 --- !u!60 &4876807837641189935
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -1356,8 +1397,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.5657749, b: 1, a: 1}
-      key1: {r: 0, g: 0.5647059, b: 1, a: 1}
+      key0: {r: 0, g: 0.5, b: 1, a: 1}
+      key1: {r: 0, g: 0.5, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}

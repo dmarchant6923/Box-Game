@@ -17,7 +17,23 @@ public class BlginkrakSentinel : MonoBehaviour
 
     bool explosionCR = false;
 
+    bool enemySpawnCR = false;
+    public GameObject spawnGlow;
+    GameObject newSpawnGlow;
+    public GameObject enemy1;
+    public GameObject enemy2;
+    public GameObject enemy3;
+    public GameObject enemy4;
+    public GameObject enemy5;
+    public GameObject perk;
+    GameObject[] enemies = new GameObject[6];
+    GameObject newEnemy;
+
+
+
     LineRenderer line;
+
+    int groundAndEnemiesLM;
 
     void Start()
     {
@@ -31,6 +47,14 @@ public class BlginkrakSentinel : MonoBehaviour
 
         EM.blastzoneDeath = false;
         EM.explosionsWillPush = false;
+
+        groundAndEnemiesLM = LayerMask.GetMask("Obstacles", "Platforms", "Enemies");
+        enemies[0] = enemy1;
+        enemies[1] = enemy2;
+        enemies[2] = enemy3;
+        enemies[3] = enemy4;
+        enemies[4] = enemy5;
+        enemies[5] = perk;
     }
 
     private void Update()
@@ -40,7 +64,7 @@ public class BlginkrakSentinel : MonoBehaviour
         if (hitbox.collider != null)
         {
             if (bossScript.sentinelMoveSpeed <= bossScript.initialSentinelMoveSpeed &&
-            bossScript.explosionAttack == false && bossScript.sentinelHitboxEnabled)
+            bossScript.explosionAttack == false && bossScript.sentinelHitboxEnabled && bossScript.enemySpawnAttack == false)
             {
                 if (Box.isInvulnerable == false)
                 {
@@ -67,12 +91,12 @@ public class BlginkrakSentinel : MonoBehaviour
             }
         }
 
-        if (bossScript.sentinelMoveSpeed <= bossScript.initialSentinelMoveSpeed && bossScript.explosionAttack == false && bossScript.sentinelHitboxEnabled)
+        if (bossScript.sentinelMoveSpeed <= bossScript.initialSentinelMoveSpeed && bossScript.explosionAttack == false && bossScript.sentinelHitboxEnabled &&
+            bossScript.enemySpawnAttack == false)
         {
             if (bossScript.debugEnabled)
             {
-                Debug.DrawRay(sentinelRB.position + Vector2.up * radius, Vector2.down * radius * 2);
-                Debug.DrawRay(sentinelRB.position + Vector2.right * radius, Vector2.left * radius * 2);
+
             }
         }
     }
@@ -86,6 +110,10 @@ public class BlginkrakSentinel : MonoBehaviour
         if (bossScript.explosionAttack == true && explosionCR == false)
         {
             StartCoroutine(ExplosionBox());
+        }
+        if (bossScript.enemySpawnAttack == true && enemySpawnCR == false)
+        {
+            StartCoroutine(SpawnEnemies());
         }
 
         if (boomerangCR && sentinelHitstopActive == false)
@@ -124,7 +152,7 @@ public class BlginkrakSentinel : MonoBehaviour
         Vector2 target = sentinelRB.position + (vectorToBox.normalized * distance);
         while (Mathf.Abs((sentinelRB.position - target).magnitude) > 0.05f)
         {
-            float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 2 * (sentinelRB.position - target).magnitude / distance);
+            float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 3 * (sentinelRB.position - target).magnitude / distance);
             if (sentinelHitstopActive == false)
             {
                 //sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, target, speed * Time.fixedDeltaTime);
@@ -144,7 +172,7 @@ public class BlginkrakSentinel : MonoBehaviour
 
         while (Mathf.Abs((sentinelRB.position - (bossRB.position + bossScript.sentinelPositions[index])).magnitude) > 0.5f)
         {
-            float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 2 * (sentinelRB.position - target).magnitude / distance);
+            float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 3 * (sentinelRB.position - target).magnitude / distance);
             if (sentinelHitstopActive == false)
             {
                 //sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + bossScript.sentinelPositions[index], speed * Time.fixedDeltaTime);
@@ -167,6 +195,7 @@ public class BlginkrakSentinel : MonoBehaviour
         float timeBetweenRays = 0.3f;
         float timeToEvade = 0.3f;
         float timer = 0;
+        line.positionCount = 2;
         while (bossScript.explosionBoundaryConnected == false && timer < initialTimer + timeBetweenRays * 5)
         {
             float rotation = -135 + 90 * index;
@@ -251,5 +280,180 @@ public class BlginkrakSentinel : MonoBehaviour
         line.startColor = initialColor;
         line.endColor = initialColor;
 
+    }
+    IEnumerator SpawnEnemies()
+    {
+        enemySpawnCR = true;
+
+
+        //assigning area quadrant to sentinel
+        Vector2 center = bossScript.area.transform.position;
+        Vector2 halfExtents = bossScript.area.transform.localScale / 2;
+        float offset = 2f;
+        float minX = center.x - halfExtents.x + offset;
+        float maxX = center.x - offset;
+        if (index == 2 || index == 3)
+        {
+            minX = center.x + offset;
+            maxX = center.x + halfExtents.x - offset;
+        }
+        float minY = center.y + offset;
+        float maxY = center.y + halfExtents.y - offset;
+        if (index == 1 || index == 2)
+        {
+            minY = center.y - halfExtents.y + offset;
+            maxY = center.y - offset;
+        }
+        Vector2 min = new Vector2(minX, minY);
+        Vector2 max = new Vector2(maxX, maxY);
+
+
+        //picking enemyPosition when it passes some criteria
+        Vector2 enemyPosition = new Vector2(Random.Range(min.x, max.x), Random.Range(min.y, max.y));
+        float obstacleDist = 1.2f;
+        RaycastHit2D obstacleCheck = Physics2D.CircleCast(enemyPosition, obstacleDist, Vector2.zero, 0f, groundAndEnemiesLM);
+        float distToTelePositions = 1000;
+        float minDist = 2f;
+        foreach (Vector2 position in bossScript.telePositions)
+        {
+            distToTelePositions = Mathf.Min(distToTelePositions, (enemyPosition - position).magnitude);
+        }
+        while (distToTelePositions <= minDist || obstacleCheck.collider != null)
+        {
+            enemyPosition = new Vector2(Random.Range(min.x, max.x), Random.Range(min.y, max.y));
+            obstacleCheck = Physics2D.CircleCast(enemyPosition, obstacleDist, Vector2.zero, 0f, groundAndEnemiesLM);
+            distToTelePositions = 1000;
+            foreach (Vector2 position in bossScript.telePositions)
+            {
+                distToTelePositions = Mathf.Min(distToTelePositions, (enemyPosition - position).magnitude);
+            }
+
+            minDist -= 0.05f;
+            obstacleDist -= 0.03f;
+
+            if (bossScript.debugEnabled)
+            {
+                Debug.DrawRay(enemyPosition + Vector2.up, Vector2.down * 2);
+                Debug.DrawRay(enemyPosition + Vector2.right, Vector2.left * 2);
+                Debug.DrawRay((min + max) / 2 + Vector2.up, Vector2.down * 2, Color.green);
+                Debug.DrawRay((min + max) / 2 + Vector2.right, Vector2.left * 2, Color.green);
+            }
+        }
+
+
+        //moving sentinel to a point above enemyPosition, telling boss script that it's reached its destination afterwards. 
+        offset = 1.7f;
+        float minSpeed = 5;
+        float maxSpeed = 20;
+        Vector2 target = enemyPosition + Vector2.up * offset;
+        float distance = (sentinelRB.position - target).magnitude;
+        while ((sentinelRB.position - target).magnitude > 0.05f && EM.enemyWasKilled == false)
+        {
+            float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 2 * (sentinelRB.position - target).magnitude / distance);
+            sentinelRB.velocity = (target - sentinelRB.position).normalized * speed;
+            sentinelRB.rotation = Mathf.MoveTowardsAngle(sentinelRB.rotation, 180f, 250 * Time.fixedDeltaTime);
+            yield return new WaitForFixedUpdate();
+        }
+        bossScript.sentinelAtSpawnPoint[index] = true;
+        sentinelRB.velocity = Vector2.zero;
+
+
+        //continue rotating towards downward direction while waiting for boss script to set startSpawns = true
+        while (bossScript.startSpawns == false)
+        {
+            sentinelRB.rotation = Mathf.MoveTowardsAngle(sentinelRB.rotation, 180f, 250 * Time.fixedDeltaTime);
+            if (bossScript.debugEnabled)
+            {
+                Debug.DrawRay(enemyPosition + Vector2.up, Vector2.down * 2);
+                Debug.DrawRay(enemyPosition + Vector2.right, Vector2.left * 2);
+            }
+            yield return new WaitForFixedUpdate();
+        }
+
+
+        //rotate sentinel position and rotation around enemyPosition at a certain speed and offset. Enable and draw line renderer points.
+        minSpeed = 100;
+        maxSpeed = 600;
+        float angle = 0;
+        Vector2 vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2),
+            Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+        line.enabled = true;
+        line.positionCount = 1;
+        float lineOffset = 0.4f;
+        line.SetPosition(0, sentinelRB.position - vector * lineOffset);
+        int i = 1;
+        while (angle < 360 && EM.enemyWasKilled == false)
+        {
+            if (EM.hitstopImpactActive == false)
+            {
+                float angularVelocity = minSpeed + Mathf.Min(maxSpeed, maxSpeed * (360 - angle) / 360);
+                angle += angularVelocity * Time.fixedDeltaTime;
+                vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2),
+                    Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+                sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, enemyPosition + (vector * offset), 40 * Time.fixedDeltaTime);
+                sentinelRB.rotation = Mathf.MoveTowardsAngle(sentinelRB.rotation, angle + 180, 2000 * Time.fixedDeltaTime);
+                line.positionCount++;
+                line.SetPosition(i, sentinelRB.position - vector * lineOffset);
+                i++;
+
+                if (bossScript.debugEnabled)
+                {
+                    Debug.DrawRay(enemyPosition + Vector2.up, Vector2.down * 2);
+                    Debug.DrawRay(enemyPosition + Vector2.right, Vector2.left * 2);
+                }
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+
+
+        //when loop is finished, instantiate a spawnGlow and wait 0.25 seconds.
+        if (EM.enemyWasKilled == false)
+        {
+            line.loop = true;
+            newSpawnGlow = Instantiate(spawnGlow, enemyPosition, Quaternion.identity);
+            newSpawnGlow.transform.localScale = Vector2.one * (offset - lineOffset) * 2;
+            yield return new WaitForSeconds(0.25f);
+        }
+
+
+        //spawn the enemy and fade out line color over time at the same time spawnGlow fades out on its own. Disable and reset line parameters after it's faded out.
+        Color color = line.startColor;
+        Color initialColor = line.startColor;
+        if (EM.enemyWasKilled == false)
+        {
+            bossScript.sentinelSpawnedEnemy[index] = true;
+            int num = Random.Range(0, enemies.Length - 1);
+            if (Random.Range(0, 10) == 9)
+            {
+                num = 5;
+            }
+            newEnemy = Instantiate(enemies[num], enemyPosition, Quaternion.identity);
+            if (newEnemy.GetComponent<perks>() == null)
+            {
+                bossScript.spawnedEnemies.Add(newEnemy);
+            }
+            while (color.a > 0 && EM.enemyWasKilled == false)
+            {
+                color.a -= 2 * Time.deltaTime;
+                line.startColor = color;
+                line.endColor = color;
+                yield return null;
+            }
+        }
+        line.enabled = false;
+        line.startColor = initialColor;
+        line.endColor = initialColor;
+        line.loop = false;
+
+
+        //pause script while waiting for boss script to set enemySpawnAttack to true.
+        while (bossScript.enemySpawnAttack == true)
+        {
+            yield return null;
+        }
+        bossScript.sentinelAtSpawnPoint[index] = false;
+        bossScript.sentinelSpawnedEnemy[index] = false;
+        enemySpawnCR = false;
     }
 }

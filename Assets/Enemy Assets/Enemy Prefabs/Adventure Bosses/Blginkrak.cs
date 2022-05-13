@@ -11,7 +11,7 @@ public class Blginkrak : MonoBehaviour
     bool[] sentinelsKilled = new bool[4];
     int sentinelsLeft = 4;
     public GameObject area;
-    List<Vector2> telePositions = new List<Vector2>();
+    [HideInInspector] public List<Vector2> telePositions = new List<Vector2>();
     float distanceTriggersTeleport = 8f;
     Vector2 currentPosition;
     float[] startAngles = new float[4];
@@ -48,6 +48,13 @@ public class Blginkrak : MonoBehaviour
     public GameObject squareExplosion;
     GameObject newSquareExplosion;
 
+    [HideInInspector] public bool enemySpawnAttack = false;
+    [HideInInspector] public bool enemiesSpawned = false;
+    [HideInInspector] public bool[] sentinelAtSpawnPoint = new bool[4];
+    [HideInInspector] public bool[] sentinelSpawnedEnemy = new bool[4];
+    [HideInInspector] public bool startSpawns = false;
+    [HideInInspector] public List<GameObject> spawnedEnemies = new List<GameObject>();
+
     [HideInInspector] public bool sentinelHitboxEnabled = true;
     bool sentinelsReturned = true;
 
@@ -82,10 +89,16 @@ public class Blginkrak : MonoBehaviour
             if (child.gameObject != area.gameObject)
             {
                 telePositions.Add(child.position);
-                child.GetComponent<SpriteRenderer>().enabled = false;
+                if (debugEnabled == false)
+                {
+                    child.GetComponent<SpriteRenderer>().enabled = false;
+                }
             }
         }
-        area.GetComponent<SpriteRenderer>().enabled = false;
+        if (debugEnabled == false)
+        {
+            area.GetComponent<SpriteRenderer>().enabled = false;
+        }
 
     }
 
@@ -98,6 +111,15 @@ public class Blginkrak : MonoBehaviour
             {
                 sentinelsKilled[i] = true;
                 sentinelsLeft -= 1;
+            }
+        }
+
+        for (int i = 0; i < spawnedEnemies.Count; i++)
+        {
+            if (spawnedEnemies[i] == null || spawnedEnemies[i].GetComponent<EnemyManager>().enemyWasKilled)
+            {
+                spawnedEnemies.RemoveAt(i);
+                i--;
             }
         }
 
@@ -164,11 +186,15 @@ public class Blginkrak : MonoBehaviour
                     sentinelAngles[i], sentinelRotateSpeed * Time.fixedDeltaTime);
             }
 
-            if (sentinels[i] != null && (sentinels[i].GetComponent<Rigidbody2D>().position - (enemyRB.position + sentinelPositions[i])).magnitude > 0.2f)
+            if ((sentinels[i] != null && (sentinels[i].GetComponent<Rigidbody2D>().position - (enemyRB.position + sentinelPositions[i])).magnitude > 0.05f) || 
+                enemySpawnAttack || explosionAttack)
             {
+                
                 sentinelsReturned = false;
             }
         }
+
+        enemyRB.velocity = Vector2.zero;
 
         if (debugEnabled)
         {
@@ -236,7 +262,8 @@ public class Blginkrak : MonoBehaviour
             timer += Time.deltaTime;
             yield return null;
         }
-        int num = Random.Range(0, 2);
+        int numAttacks = 3;
+        int num = Random.Range(0, numAttacks);
         bool attackSelected = false;
         while (attackSelected == false)
         {
@@ -250,7 +277,12 @@ public class Blginkrak : MonoBehaviour
                 StartCoroutine(ExplosionAttack());
                 attackSelected = true;
             }
-            num = Random.Range(0, 2);
+            if (num == 2 && spawnedEnemies.Count < 7)
+            {
+                StartCoroutine(EnemySpawnAttack());
+                attackSelected = true;
+            }
+            num = Random.Range(0, numAttacks);
         }
         Debug.Log("starting attack");
 
@@ -329,6 +361,59 @@ public class Blginkrak : MonoBehaviour
         {
             sentinelIdle[i] = true;
         }
+        sentinelHitboxEnabled = false;
+        while (sentinelsReturned == false)
+        {
+            yield return new WaitForFixedUpdate();
+        }
+        sentinelHitboxEnabled = true;
+    }
+    IEnumerator EnemySpawnAttack()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            sentinelIdle[i] = false;
+        }
+        enemySpawnAttack = true;
+        bool sentinelsArrived = false;
+        while (sentinelsArrived == false)
+        {
+            sentinelsArrived = true;
+            for (int i = 0; i < 4; i++)
+            {
+                if (sentinelAtSpawnPoint[i] == false && sentinelsKilled[i] == false)
+                {
+                    sentinelsArrived = false;
+                    break;
+                }
+            }
+            yield return new WaitForFixedUpdate();
+        }
+        Debug.Log("all sentinels arrived");
+        yield return new WaitForSeconds(0.25f);
+        startSpawns = true;
+        while (enemiesSpawned == false)
+        {
+            enemiesSpawned = true;
+            for (int i = 0; i < 4; i++)
+            {
+                if (sentinelSpawnedEnemy[i] == false && sentinelsKilled[i] == false)
+                {
+                    enemiesSpawned = false;
+                    break;
+                }
+            }
+            yield return new WaitForFixedUpdate();
+        }
+        startSpawns = false;
+        yield return new WaitForSeconds(0.5f);
+        idle = true;
+        enemySpawnAttack = false;
+        for (int i = 0; i < 4; i++)
+        {
+            sentinelIdle[i] = true;
+        }
+        enemiesSpawned = false;
         sentinelHitboxEnabled = false;
         while (sentinelsReturned == false)
         {

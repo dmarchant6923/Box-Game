@@ -227,6 +227,7 @@ public class Box : MonoBehaviour
         doubleJumpUsed = false;
         canDodge = true;
         onFire = false;
+        wallBounceActive = false;
 
         initialGroundFriction = groundFriction;
         stickyFriction = initialGroundFriction * 4;

@@ -9,7 +9,7 @@ public class Blginkrak : MonoBehaviour
     Rigidbody2D boxRB;
     [HideInInspector] public GameObject[] sentinels = new GameObject[4];
     bool[] sentinelsKilled = new bool[4];
-    int sentinelsLeft = 4;
+    [HideInInspector] public int sentinelsLeft = 4;
     public GameObject area;
     [HideInInspector] public List<Vector2> telePositions = new List<Vector2>();
     float distanceTriggersTeleport = 8f;
@@ -29,16 +29,18 @@ public class Blginkrak : MonoBehaviour
     [HideInInspector] public Vector2[] sentinelPositions = new Vector2[4];
     float[] sentinelAngles = new float[4];
 
-    bool idle = true;
+    [HideInInspector] public bool idle = true;
     bool canTeleport = true;
     bool idleTeleportCR = false;
     bool attackCycleCR = false;
     float cycleTimer = 4f; //2f
     bool teleportCR = false;
+    int lastAttackNum = 0;
 
     Vector2 vectorToBox;
     bool touchingThisEnemy;
 
+    [HideInInspector] public bool boomerangAttack = false;
     [HideInInspector] public bool[] sentinelBoomerang = new bool[4];
 
     [HideInInspector] public bool explosionAttack = false;
@@ -55,8 +57,12 @@ public class Blginkrak : MonoBehaviour
     [HideInInspector] public bool startSpawns = false;
     [HideInInspector] public List<GameObject> spawnedEnemies = new List<GameObject>();
 
+    [HideInInspector] public bool laserAttack = false;
+    [System.NonSerialized] public float laserTime = 9f;
+
     [HideInInspector] public bool sentinelHitboxEnabled = true;
-    bool sentinelsReturned = true;
+    bool allSentinelsReturned = true;
+    [HideInInspector] public bool[] sentinelsReturned = new bool[4];
 
     public bool debugEnabled = false;
 
@@ -107,10 +113,11 @@ public class Blginkrak : MonoBehaviour
     {
         for (int i = 0; i < 4; i++)
         {
-            if (sentinels[i] == null || sentinels[i].GetComponent<EnemyManager>().enemyWasKilled && sentinelsKilled[i] == false)
+            if ((sentinels[i] == null || sentinels[i].GetComponent<EnemyManager>().enemyWasKilled) && sentinelsKilled[i] == false)
             {
                 sentinelsKilled[i] = true;
                 sentinelsLeft -= 1;
+                laserTime -= 1f;
             }
         }
 
@@ -146,10 +153,9 @@ public class Blginkrak : MonoBehaviour
         {
             EM.enemyWasDamaged = true;
             Box.activateHitstop = true;
-            StartCoroutine(Teleport(true));
         }
 
-        if (idle || explosionAttack)
+        if (idle || explosionAttack || enemySpawnAttack)
         {
             canTeleport = true;
         }
@@ -173,11 +179,10 @@ public class Blginkrak : MonoBehaviour
     {
         for (int i = 0; i < 4; i++)
         {
-            sentinelsReturned = true;
             sentinelAngles[i] += Time.fixedDeltaTime * sentinelOrbitSpeed;
             sentinelPositions[i] = new Vector2(Mathf.Cos(sentinelAngles[i] * Mathf.Deg2Rad + Mathf.PI / 2),
                 Mathf.Sin(sentinelAngles[i] * Mathf.Deg2Rad + Mathf.PI / 2)).normalized * startDistance;
-            if (sentinelIdle[i] && sentinelsKilled[i] == false)
+            if (sentinels[i] != null && sentinelIdle[i] && sentinelsKilled[i] == false)
             {
                 sentinels[i].GetComponent<Rigidbody2D>().position = Vector2.MoveTowards(sentinels[i].GetComponent<Rigidbody2D>().position,
                     enemyRB.position + sentinelPositions[i], sentinelMoveSpeed * Time.fixedDeltaTime);
@@ -186,11 +191,20 @@ public class Blginkrak : MonoBehaviour
                     sentinelAngles[i], sentinelRotateSpeed * Time.fixedDeltaTime);
             }
 
-            if ((sentinels[i] != null && (sentinels[i].GetComponent<Rigidbody2D>().position - (enemyRB.position + sentinelPositions[i])).magnitude > 0.05f) || 
-                enemySpawnAttack || explosionAttack)
+            if ((sentinels[i] != null && (sentinels[i].GetComponent<Rigidbody2D>().position - (enemyRB.position + sentinelPositions[i])).magnitude < 0.05f && 
+                enemySpawnAttack == false && explosionAttack == false) || sentinelsKilled[i])
             {
-                
-                sentinelsReturned = false;
+                sentinelsReturned[i] = true;
+            }
+            else
+            {
+                sentinelsReturned[i] = false;
+            }
+
+            allSentinelsReturned = true;
+            if (sentinelsReturned[i] == false)
+            {
+                allSentinelsReturned = false;
             }
         }
 
@@ -221,19 +235,15 @@ public class Blginkrak : MonoBehaviour
         }
         if (canTeleport && teleportCR == false)
         {
-            StartCoroutine(Teleport(false));
+            StartCoroutine(Teleport());
         }
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2.5f - (4 - sentinelsLeft) * 0.3f);
         idleTeleportCR = false;
 
     }
-    IEnumerator Teleport(bool damaged)
+    IEnumerator Teleport()
     {
         teleportCR = true;
-        while (canTeleport == false && damaged == true)
-        {
-            yield return null;
-        }
         yield return new WaitForSeconds(0.3f);
         if (canTeleport)
         {
@@ -255,43 +265,53 @@ public class Blginkrak : MonoBehaviour
     IEnumerator AttackSelect()
     {
         attackCycleCR = true;
-        float window = cycleTimer;
+        float window = cycleTimer - (4 - sentinelsLeft) * cycleTimer * 0.15f;
         float timer = 0;
         while (timer < window)
         {
             timer += Time.deltaTime;
             yield return null;
         }
-        int numAttacks = 3;
-        int num = Random.Range(0, numAttacks);
         bool attackSelected = false;
+        int num = 0;
         while (attackSelected == false)
         {
+            int numAttacks = 4;
+            num = Random.Range(0, numAttacks);
+            //num = 0;
             if (num == 0)
             {
                 StartCoroutine(BoomerangAttack());
                 attackSelected = true;
             }
-            if (num == 1 && sentinelsLeft == 4)
+            if (num == 1 && sentinelsLeft == 4 && lastAttackNum != 1)
             {
                 StartCoroutine(ExplosionAttack());
                 attackSelected = true;
             }
-            if (num == 2 && spawnedEnemies.Count < 7)
+            if (num == 2 && spawnedEnemies.Count < 7 && lastAttackNum != 2)
             {
                 StartCoroutine(EnemySpawnAttack());
                 attackSelected = true;
             }
-            num = Random.Range(0, numAttacks);
+            if (num == 3 && lastAttackNum != 3)
+            {
+                StartCoroutine(LaserAttack());
+                attackSelected = true;
+            }
         }
-        Debug.Log("starting attack");
+        lastAttackNum = num;
+        Debug.Log("starting attack " + num);
 
         idle = false;
         attackCycleCR = false;
     }
+
+
     IEnumerator BoomerangAttack()
     {
-        sentinelOrbitSpeed *= 0.1f;
+        boomerangAttack = true;
+        sentinelOrbitSpeed *= 0.1f + (4 - sentinelsLeft) * 0.15f;
         yield return new WaitForSeconds(0.2f);
         bool allThrown = false;
         bool[] boomerangLaunched = new bool[4];
@@ -300,7 +320,7 @@ public class Blginkrak : MonoBehaviour
             allThrown = true;
             for (int i = 0; i < 4; i++)
             {
-                if (Vector2.Dot(sentinelPositions[i].normalized, vectorToBox) > 0.95f && boomerangLaunched[i] == false && sentinelsKilled[i] == false)
+                if (Vector2.Dot(sentinelPositions[i].normalized, vectorToBox) > 0.95f && boomerangLaunched[i] == false && sentinelsKilled[i] == false && sentinelsReturned[i])
                 {
                     boomerangLaunched[i] = true;
                     sentinelBoomerang[i] = true;
@@ -313,7 +333,7 @@ public class Blginkrak : MonoBehaviour
                 }
 
             }
-            sentinelOrbitSpeed += initialSentinelOrbitSpeed * 0.4f * Time.fixedDeltaTime;
+            sentinelOrbitSpeed += initialSentinelOrbitSpeed * (0.4f + (4 - sentinelsLeft) * 0.15f) * Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
         Debug.Log("all sentinels thrown");
@@ -334,6 +354,7 @@ public class Blginkrak : MonoBehaviour
         }
         Debug.Log("all sentinels returned");
         idle = true;
+        boomerangAttack = false;
     }
     IEnumerator ExplosionAttack()
     {
@@ -362,7 +383,7 @@ public class Blginkrak : MonoBehaviour
             sentinelIdle[i] = true;
         }
         sentinelHitboxEnabled = false;
-        while (sentinelsReturned == false)
+        while (allSentinelsReturned == false)
         {
             yield return new WaitForFixedUpdate();
         }
@@ -370,11 +391,14 @@ public class Blginkrak : MonoBehaviour
     }
     IEnumerator EnemySpawnAttack()
     {
+        Debug.Log("enemySpawnAttack");
         for (int i = 0; i < 4; i++)
         {
             sentinelIdle[i] = false;
         }
         enemySpawnAttack = true;
+
+        //wait for all 4 sentinels to arrive, then set startSpawns = true to trigger sentinels to begin spinning
         bool sentinelsArrived = false;
         while (sentinelsArrived == false)
         {
@@ -390,8 +414,10 @@ public class Blginkrak : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
         Debug.Log("all sentinels arrived");
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.25f - (4 - sentinelsLeft) * 0.03f);
         startSpawns = true;
+
+        //wait for all 4 sentinels to finish spawning the enemy, then pause for a small amount of time then finish attack
         while (enemiesSpawned == false)
         {
             enemiesSpawned = true;
@@ -406,7 +432,7 @@ public class Blginkrak : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
         startSpawns = false;
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.5f - (4 - sentinelsLeft) * 0.06f);
         idle = true;
         enemySpawnAttack = false;
         for (int i = 0; i < 4; i++)
@@ -415,10 +441,22 @@ public class Blginkrak : MonoBehaviour
         }
         enemiesSpawned = false;
         sentinelHitboxEnabled = false;
-        while (sentinelsReturned == false)
+
+        //disable sentinel hitbox while returning to the boss (not used?)
+        while (allSentinelsReturned == false)
         {
             yield return new WaitForFixedUpdate();
         }
         sentinelHitboxEnabled = true;
+    }
+    IEnumerator LaserAttack()
+    {
+        Debug.Log("LaserAttack");
+        laserAttack = true;
+        sentinelOrbitSpeed *= 0.1f + (4 - sentinelsLeft) * 0.05f;
+        yield return new WaitForSeconds(laserTime);
+        sentinelOrbitSpeed = initialSentinelOrbitSpeed;
+        laserAttack = false;
+        idle = true;
     }
 }

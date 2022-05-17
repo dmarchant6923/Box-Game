@@ -127,7 +127,6 @@ public class Explosion : MonoBehaviour
             }
             if (explosionClose.collider != null)
             {
-                Debug.Log("you are here");
                 explosion_RayToItem = Physics2D.Raycast(transform.position, vectorToBox, explosionRadius,
                         LayerMask.GetMask("Obstacles", "Hazards", "Box"));
                 if (explosion_RayToItem.collider != null && 1 << explosion_RayToItem.collider.gameObject.layer == boxLM)

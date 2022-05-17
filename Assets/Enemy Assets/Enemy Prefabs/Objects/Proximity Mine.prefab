@@ -176,6 +176,7 @@ GameObject:
   - component: {fileID: 7908764803543489432}
   - component: {fileID: -7491570892751003058}
   - component: {fileID: 4041444348684161160}
+  - component: {fileID: 8479615600939044893}
   m_Layer: 14
   m_Name: Proximity Mine
   m_TagString: Untagged
@@ -263,6 +264,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   explosion: {fileID: 5823236508701568830, guid: 28a7c8f00c3cbb344a6f8f0c20542e6d, type: 3}
+  explosionRadius: 3.5
   remoteExplode: 0
 --- !u!61 &4041444348684161160
 BoxCollider2D:
@@ -288,5 +290,26 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2, y: 4}
   m_EdgeRadius: 0
+--- !u!50 &8479615600939044893
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7908764803543489511}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 4
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 1
+  m_Constraints: 0

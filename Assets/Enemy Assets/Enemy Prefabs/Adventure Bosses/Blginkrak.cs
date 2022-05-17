@@ -16,6 +16,7 @@ public class Blginkrak : MonoBehaviour
     Vector2 currentPosition;
     float[] startAngles = new float[4];
     float startDistance;
+    float sentinelDistance;
 
     [HideInInspector] public float sentinelMoveSpeed = 20;
     [HideInInspector] public float initialSentinelMoveSpeed = 20;
@@ -23,7 +24,7 @@ public class Blginkrak : MonoBehaviour
     float sentinelRotateSpeed = 600;
 
     float initialSentinelOrbitSpeed = 400;
-    float sentinelOrbitSpeed = 400;
+    [HideInInspector] public float sentinelOrbitSpeed = 400;
 
     [HideInInspector] public bool[] sentinelIdle = new bool[4];
     [HideInInspector] public Vector2[] sentinelPositions = new Vector2[4];
@@ -36,9 +37,14 @@ public class Blginkrak : MonoBehaviour
     float cycleTimer = 4f; //2f
     bool teleportCR = false;
     int lastAttackNum = 0;
+    int attacksStarted = 0;
 
     Vector2 vectorToBox;
     bool touchingThisEnemy;
+
+    float initialHealth;
+    [HideInInspector] public bool upset = false;
+    [HideInInspector] public bool pissed = false;
 
     [HideInInspector] public bool boomerangAttack = false;
     [HideInInspector] public bool[] sentinelBoomerang = new bool[4];
@@ -58,7 +64,20 @@ public class Blginkrak : MonoBehaviour
     [HideInInspector] public List<GameObject> spawnedEnemies = new List<GameObject>();
 
     [HideInInspector] public bool laserAttack = false;
-    [System.NonSerialized] public float laserTime = 9f;
+    [HideInInspector] public bool laserActive = false;
+    [System.NonSerialized] public float laserTime;
+    [System.NonSerialized] public float initialLaserTime = 9f;
+
+    [HideInInspector] public bool dashAttack = false;
+    [HideInInspector] public bool dashActive = false;
+    [HideInInspector] public int dashDirection = 1;
+    [HideInInspector] public float dashDamage = 50;
+    [HideInInspector] public bool bossHitstopActive = false;
+
+    [HideInInspector] public bool spawnSentinel = false;
+    public GameObject sentinelClone;
+    GameObject newSentinel;
+    BlginkrakEye eyeScript;
 
     [HideInInspector] public bool sentinelHitboxEnabled = true;
     bool allSentinelsReturned = true;
@@ -70,9 +89,12 @@ public class Blginkrak : MonoBehaviour
     {
         enemyRB = GetComponent<Rigidbody2D>();
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
+        eyeScript = GetComponentInChildren<BlginkrakEye>();
         EM = GetComponent<EnemyManager>();
         EM.normalPulse = false;
-        EM.normalDeath = false;
+        //EM.normalDeath = false;
+        EM.keepAsKinematic = true;
+        initialHealth = EM.enemyHealth;
 
         for (int i = 0; i < 4; i++)
         {
@@ -85,6 +107,7 @@ public class Blginkrak : MonoBehaviour
         }
         sentinelAngles = startAngles;
         startDistance = (sentinels[0].transform.position - transform.position).magnitude;
+        sentinelDistance = startDistance;
         for (int i = 0; i < 4; i++)
         {
             sentinels[i].transform.parent = null;
@@ -101,6 +124,10 @@ public class Blginkrak : MonoBehaviour
                 }
             }
         }
+
+        laserTime = initialLaserTime;
+
+
         if (debugEnabled == false)
         {
             area.GetComponent<SpriteRenderer>().enabled = false;
@@ -117,7 +144,7 @@ public class Blginkrak : MonoBehaviour
             {
                 sentinelsKilled[i] = true;
                 sentinelsLeft -= 1;
-                laserTime -= 1f;
+                laserTime = initialLaserTime - (4 - sentinelsLeft) * 1.3f;
             }
         }
 
@@ -128,6 +155,23 @@ public class Blginkrak : MonoBehaviour
                 spawnedEnemies.RemoveAt(i);
                 i--;
             }
+        }
+
+        if (upset == false && EM.enemyHealth <= initialHealth / 2)
+        {
+            upset = true;
+            Color color = GetComponent<SpriteRenderer>().color;
+            color.r = 0.8f;
+            GetComponent<SpriteRenderer>().color = color;
+        }
+        if (pissed == false && EM.enemyHealth <= initialHealth / 4)
+        {
+            pissed = true;
+            Color color = GetComponent<SpriteRenderer>().color;
+            color.r = 1f;
+            color.g = 0;
+            color.b = 0;
+            GetComponent<SpriteRenderer>().color = color;
         }
 
         bool thisEnemyFound = false;
@@ -149,10 +193,17 @@ public class Blginkrak : MonoBehaviour
             EM.touchingThisEnemy = false;
         }
 
-        if (touchingThisEnemy && Box.boxHitboxActive && EM.enemyIsInvulnerable == false)
+        if (touchingThisEnemy && Box.boxHitboxActive && EM.enemyIsInvulnerable == false && dashActive == false && Box.damageActive == false)
         {
             EM.enemyWasDamaged = true;
             Box.activateHitstop = true;
+        }
+        if (touchingThisEnemy && Box.isInvulnerable == false && dashActive)
+        {
+            Box.activateDamage = true;
+            Box.damageTaken = dashDamage;
+            Box.boxDamageDirection = new Vector2(dashDirection, 1).normalized;
+            StartCoroutine(EnemyHitstop());
         }
 
         if (idle || explosionAttack || enemySpawnAttack)
@@ -177,11 +228,19 @@ public class Blginkrak : MonoBehaviour
 
     private void FixedUpdate()
     {
+        allSentinelsReturned = true;
         for (int i = 0; i < 4; i++)
         {
-            sentinelAngles[i] += Time.fixedDeltaTime * sentinelOrbitSpeed;
+            if (dashActive && bossHitstopActive)
+            {
+                sentinelAngles[i] += Time.fixedDeltaTime * sentinelOrbitSpeed / 20;
+            }
+            else
+            {
+                sentinelAngles[i] += Time.fixedDeltaTime * sentinelOrbitSpeed;
+            }
             sentinelPositions[i] = new Vector2(Mathf.Cos(sentinelAngles[i] * Mathf.Deg2Rad + Mathf.PI / 2),
-                Mathf.Sin(sentinelAngles[i] * Mathf.Deg2Rad + Mathf.PI / 2)).normalized * startDistance;
+                Mathf.Sin(sentinelAngles[i] * Mathf.Deg2Rad + Mathf.PI / 2)).normalized * sentinelDistance;
             if (sentinels[i] != null && sentinelIdle[i] && sentinelsKilled[i] == false)
             {
                 sentinels[i].GetComponent<Rigidbody2D>().position = Vector2.MoveTowards(sentinels[i].GetComponent<Rigidbody2D>().position,
@@ -191,6 +250,7 @@ public class Blginkrak : MonoBehaviour
                     sentinelAngles[i], sentinelRotateSpeed * Time.fixedDeltaTime);
             }
 
+
             if ((sentinels[i] != null && (sentinels[i].GetComponent<Rigidbody2D>().position - (enemyRB.position + sentinelPositions[i])).magnitude < 0.05f && 
                 enemySpawnAttack == false && explosionAttack == false) || sentinelsKilled[i])
             {
@@ -199,16 +259,12 @@ public class Blginkrak : MonoBehaviour
             else
             {
                 sentinelsReturned[i] = false;
-            }
-
-            allSentinelsReturned = true;
-            if (sentinelsReturned[i] == false)
-            {
                 allSentinelsReturned = false;
             }
         }
 
         enemyRB.velocity = Vector2.zero;
+        enemyRB.rotation = 0;
 
         if (debugEnabled)
         {
@@ -237,7 +293,9 @@ public class Blginkrak : MonoBehaviour
         {
             StartCoroutine(Teleport());
         }
-        yield return new WaitForSeconds(2.5f - (4 - sentinelsLeft) * 0.3f);
+        float time = 2.5f;
+        if (upset) { time = 2f; } if (pissed) { time = 1.5f; }
+        yield return new WaitForSeconds(time);
         idleTeleportCR = false;
 
     }
@@ -256,16 +314,43 @@ public class Blginkrak : MonoBehaviour
             }
             currentPosition = newPosition;
             enemyRB.position = newPosition;
-            sentinelMoveSpeed *= 2;
-            yield return new WaitForSeconds(0.4f);
+            sentinelMoveSpeed = initialSentinelMoveSpeed * 2;
+            teleportCR = false;
+            yield return new WaitForFixedUpdate();
+            while (allSentinelsReturned == false)
+            {
+                yield return null;
+            }
             sentinelMoveSpeed = initialSentinelMoveSpeed;
         }
         teleportCR = false;
     }
+    public IEnumerator EnemyHitstop()
+    {
+        bossHitstopActive = true;
+        Vector2 enemyHitstopVelocity = enemyRB.velocity;
+        float enemyHitstopRotationSlowDown = 10;
+        enemyRB.velocity = new Vector2(0, 0);
+        enemyRB.angularVelocity /= enemyHitstopRotationSlowDown;
+        yield return null;
+        while (Box.boxHitstopActive)
+        {
+            yield return null;
+        }
+        if (EM.shockActive)
+        {
+            EM.shockActive = false;
+        }
+        enemyRB.angularVelocity *= enemyHitstopRotationSlowDown;
+        enemyRB.velocity = enemyHitstopVelocity;
+        bossHitstopActive = false;
+    }
     IEnumerator AttackSelect()
     {
         attackCycleCR = true;
-        float window = cycleTimer - (4 - sentinelsLeft) * cycleTimer * 0.15f;
+        float window = cycleTimer;
+        if (upset) { window = cycleTimer * 0.7f; }
+        if (pissed) { window = cycleTimer * 0.5f; }
         float timer = 0;
         while (timer < window)
         {
@@ -273,35 +358,86 @@ public class Blginkrak : MonoBehaviour
             yield return null;
         }
         bool attackSelected = false;
-        int num = 0;
+        int num = 100;
         while (attackSelected == false)
         {
-            int numAttacks = 4;
+            int numAttacks = 6;
+            //num = 5;
             num = Random.Range(0, numAttacks);
-            //num = 0;
-            if (num == 0)
+
+            //if all 4 sentinels:      boomerang,   enemy spawn, explosion, boomerang, dash, enemy spawn, boomerang,     laser,      dash, enemy spawn, explosion, laser,    boomerang
+            //if missing sentinels: spawn sentinel, enemy spawn,  random,   boomerang, dash, enemy spawn, boomerang, spawn sentinel, dash, enemy spawn,  random,   laser, spawn sentinel
+            if ((attacksStarted % 7 == 0 && sentinelsLeft < 4) || (attacksStarted % 2 == 0 && sentinelsLeft == 0))
             {
-                StartCoroutine(BoomerangAttack());
+                StartCoroutine(SpawnSentinel());
                 attackSelected = true;
+                num = 0;
+                Debug.Log("manually selected sentinel spawn");
             }
-            if (num == 1 && sentinelsLeft == 4 && lastAttackNum != 1)
-            {
-                StartCoroutine(ExplosionAttack());
-                attackSelected = true;
-            }
-            if (num == 2 && spawnedEnemies.Count < 7 && lastAttackNum != 2)
+            else if (attacksStarted % 4 == 1 && spawnedEnemies.Count < 7 && sentinelsLeft > 0)
             {
                 StartCoroutine(EnemySpawnAttack());
                 attackSelected = true;
+                num = 1;
+                Debug.Log("manually selected enemy spawn");
             }
-            if (num == 3 && lastAttackNum != 3)
+            else if (sentinelsLeft > 0 && attacksStarted % 3 == 0)
+            {
+                StartCoroutine(BoomerangAttack());
+                attackSelected = true;
+                num = 2;
+                Debug.Log("manually selected boomerang");
+            }
+            else if (attacksStarted % 4 == 2 && sentinelsLeft == 4)
+            {
+                StartCoroutine(ExplosionAttack());
+                attackSelected = true;
+                num = 3;
+                Debug.Log("manually selected explosion");
+            }
+            else if (attacksStarted % 4 == 3 && sentinelsLeft > 0)
             {
                 StartCoroutine(LaserAttack());
                 attackSelected = true;
+                num = 4;
+                Debug.Log("manually selected laser");
+            }
+            else if (attacksStarted % 4 == 0 || sentinelsLeft == 0)
+            {
+                StartCoroutine(DashAttack());
+                attackSelected = true;
+                num = 5;
+                Debug.Log("manually selected dash attack");
+            }
+
+
+            else if (num == 1 && spawnedEnemies.Count < 7 && sentinelsLeft > 0 && lastAttackNum != num)
+            {
+                StartCoroutine(EnemySpawnAttack());
+                attackSelected = true;
+                Debug.Log("randomly selected enemy spawn");
+            }
+            else if (num == 2 && sentinelsLeft > 0 && lastAttackNum != num)
+            {
+                StartCoroutine(BoomerangAttack());
+                attackSelected = true;
+                Debug.Log("randomly selected boomerang");
+            }
+            else if (num == 4 && lastAttackNum != num && sentinelsLeft > 0)
+            {
+                StartCoroutine(LaserAttack());
+                attackSelected = true;
+                Debug.Log("randomly selected laser");
+            }
+            else if (num == 5)
+            {
+                StartCoroutine(DashAttack());
+                attackSelected = true;
+                Debug.Log("randomly selected dash attack");
             }
         }
+        attacksStarted++;
         lastAttackNum = num;
-        Debug.Log("starting attack " + num);
 
         idle = false;
         attackCycleCR = false;
@@ -311,8 +447,23 @@ public class Blginkrak : MonoBehaviour
     IEnumerator BoomerangAttack()
     {
         boomerangAttack = true;
-        sentinelOrbitSpeed *= 0.1f + (4 - sentinelsLeft) * 0.15f;
-        yield return new WaitForSeconds(0.2f);
+        sentinelOrbitSpeed = initialSentinelOrbitSpeed * 0.1f;
+        if (upset) { sentinelOrbitSpeed = initialSentinelOrbitSpeed * 0.2f; }
+        if (pissed) { sentinelOrbitSpeed = initialSentinelOrbitSpeed * 0.4f; }
+        while (allSentinelsReturned == false)
+        {
+            yield return null;
+        }
+        float window = 0.7f;
+        if (upset) { window = 0.5f; } if (pissed) { window = 0.25f; }
+        float timer = 0;
+        while (timer < window)
+        {
+            sentinelDistance = Mathf.MoveTowards(sentinelDistance, startDistance * 0.6f, startDistance * Time.fixedDeltaTime * 2);
+
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
         bool allThrown = false;
         bool[] boomerangLaunched = new bool[4];
         while (allThrown == false)
@@ -320,12 +471,11 @@ public class Blginkrak : MonoBehaviour
             allThrown = true;
             for (int i = 0; i < 4; i++)
             {
-                if (Vector2.Dot(sentinelPositions[i].normalized, vectorToBox) > 0.95f && boomerangLaunched[i] == false && sentinelsKilled[i] == false && sentinelsReturned[i])
+                if (Vector2.Dot(sentinelPositions[i].normalized, vectorToBox) > 0.99f && boomerangLaunched[i] == false && sentinelsKilled[i] == false && sentinelsReturned[i])
                 {
                     boomerangLaunched[i] = true;
                     sentinelBoomerang[i] = true;
                     sentinelIdle[i] = false;
-                    Debug.Log("launched sentinel " + i);
                 }
                 if (boomerangLaunched[i] == false && sentinelsKilled[i] == false)
                 {
@@ -333,10 +483,12 @@ public class Blginkrak : MonoBehaviour
                 }
 
             }
-            sentinelOrbitSpeed += initialSentinelOrbitSpeed * (0.4f + (4 - sentinelsLeft) * 0.15f) * Time.fixedDeltaTime;
+            sentinelOrbitSpeed += initialSentinelOrbitSpeed * 0.4f * Time.fixedDeltaTime;
+            if (upset) { sentinelOrbitSpeed += initialSentinelOrbitSpeed * 0.3f * Time.fixedDeltaTime; }
+            if (pissed) { sentinelOrbitSpeed += initialSentinelOrbitSpeed * 0.5f * Time.fixedDeltaTime; }
             yield return new WaitForFixedUpdate();
         }
-        Debug.Log("all sentinels thrown");
+        sentinelDistance = startDistance;
         sentinelOrbitSpeed = initialSentinelOrbitSpeed;
 
         bool allReturned = false;
@@ -352,7 +504,6 @@ public class Blginkrak : MonoBehaviour
             }
             yield return new WaitForFixedUpdate();
         }
-        Debug.Log("all sentinels returned");
         idle = true;
         boomerangAttack = false;
     }
@@ -391,7 +542,6 @@ public class Blginkrak : MonoBehaviour
     }
     IEnumerator EnemySpawnAttack()
     {
-        Debug.Log("enemySpawnAttack");
         for (int i = 0; i < 4; i++)
         {
             sentinelIdle[i] = false;
@@ -413,7 +563,6 @@ public class Blginkrak : MonoBehaviour
             }
             yield return new WaitForFixedUpdate();
         }
-        Debug.Log("all sentinels arrived");
         yield return new WaitForSeconds(0.25f - (4 - sentinelsLeft) * 0.03f);
         startSpawns = true;
 
@@ -440,23 +589,232 @@ public class Blginkrak : MonoBehaviour
             sentinelIdle[i] = true;
         }
         enemiesSpawned = false;
-        sentinelHitboxEnabled = false;
-
-        //disable sentinel hitbox while returning to the boss (not used?)
-        while (allSentinelsReturned == false)
-        {
-            yield return new WaitForFixedUpdate();
-        }
-        sentinelHitboxEnabled = true;
     }
     IEnumerator LaserAttack()
     {
-        Debug.Log("LaserAttack");
+        while (allSentinelsReturned == false)
+        {
+            yield return null;
+        }
         laserAttack = true;
-        sentinelOrbitSpeed *= 0.1f + (4 - sentinelsLeft) * 0.05f;
-        yield return new WaitForSeconds(laserTime);
+        sentinelOrbitSpeed *= 0.1f + (4 - sentinelsLeft) * 0.07f;
+        if (sentinelsLeft == 1)
+        {
+            sentinelOrbitSpeed += 60;
+        }
+        float window = laserTime * 0.15f;
+        float timer = 0;
+        while (timer < window)
+        {
+            if (EM.hitstopImpactActive == false)
+            {
+                timer += Time.deltaTime;
+            }
+            yield return null;
+        }
+
+        laserActive = true;
+        window = laserTime * 0.7f;
+        timer = 0;
+        while (timer < window && EM.hitstopImpactActive == false)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        laserActive = false;
+
+        yield return new WaitForSeconds(laserTime * 0.15f);
         sentinelOrbitSpeed = initialSentinelOrbitSpeed;
         laserAttack = false;
+        idle = true;
+    }
+    IEnumerator DashAttack()
+    {
+        //begin dash attack, move boss upwards from position
+        while (allSentinelsReturned == false)
+        {
+            yield return null;
+        }
+        yield return null;
+        dashAttack = true;
+        sentinelMoveSpeed *= 10;
+        Vector2 target = enemyRB.position + Vector2.up * 40;
+        float speed = 0f;
+        float window = 1.5f;
+        float timer = 0;
+        while (timer < window)
+        {
+            enemyRB.position = Vector2.MoveTowards(enemyRB.position, target, speed * Time.fixedDeltaTime);
+            speed += 50 * Time.fixedDeltaTime;
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+
+        //make boss and sentinels larger, spin faster. Decide dash direction and height, and teleport off screen at the chosen height
+        Vector2 bossInitialScale = transform.localScale;
+        Vector2 sentinelInitialScale = Vector2.one;
+        transform.localScale = bossInitialScale * 1.5f;
+        for (int i = 0; i < 4; i++)
+        {
+            if (sentinelsKilled[i] == false)
+            {
+                sentinelInitialScale = sentinels[i].transform.localScale;
+                sentinels[i].transform.localScale = sentinelInitialScale * 1.5f;
+            }
+        }
+        sentinelDistance = startDistance * 1.1f;
+        sentinelOrbitSpeed *= 4f;
+        sentinelRotateSpeed *= 10f;
+        dashDirection = (Random.Range(0, 2) * 2) - 1;
+        float height = area.transform.position.y - 0.8f + ((Random.Range(0, 2) * 2) - 1) * area.transform.localScale.y / 4;
+        enemyRB.position = new Vector2(area.transform.position.x - dashDirection * 60, height);
+        for (int i = 0; i < 4; i++)
+        {
+            if (sentinelsKilled[i] == false)
+            {
+                sentinels[i].transform.position = enemyRB.position + sentinelPositions[i];
+            }
+        }
+
+        //if not pissed, move to the edge of the area to prepare to dash. if pissed, skip directly to the dash.
+        float minSpeed = 1;
+        if (pissed == false)
+        {
+            target = new Vector2(area.transform.position.x + ((area.transform.localScale.x / 2) + 5) * -dashDirection, height);
+            while ((enemyRB.position - target).magnitude > 0.2f)
+            {
+                speed = minSpeed + ((enemyRB.position - target).magnitude) * 4;
+                enemyRB.position = Vector2.MoveTowards(enemyRB.position, target, speed * Time.fixedDeltaTime);
+                timer += Time.fixedDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+
+            //chill there for a bit, then pull back before launching
+            float time = 0.7f;
+            if (upset) { time = 0.2f; }
+            yield return new WaitForSeconds(time);
+            window = 0.3f;
+            timer = 0;
+            speed = 5f;
+            while (timer < window)
+            {
+                enemyRB.position += Vector2.right * speed * Time.fixedDeltaTime * -dashDirection;
+                speed -= 20 * Time.fixedDeltaTime;
+                timer += Time.fixedDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
+        //dash is now active, move in dash direction for a certain length of time, then deactivate dash and change size / speed back to normal afterwards
+        dashActive = true;
+        speed = 50f;
+        if (upset) { speed = 60f; }
+        window = 2f;
+        timer = 0;
+        while (timer < window)
+        {
+            if (bossHitstopActive == false)
+            {
+                enemyRB.position += Vector2.right * speed * Time.fixedDeltaTime * dashDirection;
+            }
+            else
+            {
+                enemyRB.position += Vector2.right * speed * Time.fixedDeltaTime * dashDirection / 15;
+            }
+            speed += 20 * Time.fixedDeltaTime;
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+        dashActive = false;
+        transform.localScale = bossInitialScale;
+        for (int i = 0; i < 4; i++)
+        {
+            if (sentinelsKilled[i] == false)
+            {
+                sentinels[i].transform.localScale = sentinelInitialScale;
+            }
+        }
+        sentinelDistance = startDistance;
+        sentinelOrbitSpeed = initialSentinelOrbitSpeed;
+
+
+        //pick a new position using same teleport logic, set boss position to be above the new position, then descend into new position
+        float minDist = 15;
+        Vector2 newPosition = telePositions[Random.Range(0, telePositions.Count - 1)];
+        while ((newPosition - boxRB.position).magnitude < minDist || (newPosition - currentPosition).magnitude < 0.4f)
+        {
+            newPosition = telePositions[Random.Range(0, telePositions.Count - 1)];
+            minDist -= 0.1f;
+        }
+        enemyRB.position = newPosition + Vector2.up * 25;
+        for (int i = 0; i < 4; i++)
+        {
+            if (sentinelsKilled[i] == false)
+            {
+                sentinels[i].transform.position = enemyRB.position + sentinelPositions[i];
+            }
+        }
+        minSpeed = 1;
+        while ((enemyRB.position - newPosition).magnitude > 0.05f)
+        {
+            speed = minSpeed + (enemyRB.position - newPosition).magnitude * 4;
+            enemyRB.position = Vector2.MoveTowards(enemyRB.position, newPosition, speed * Time.fixedDeltaTime);
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+        enemyRB.position = newPosition;
+        sentinelMoveSpeed = initialSentinelMoveSpeed;
+        yield return new WaitForSeconds(0.4f);
+        dashAttack = false;
+        idle = true;
+
+
+
+    }
+    IEnumerator SpawnSentinel()
+    {
+        spawnSentinel = true;
+        float window = 2f;
+        if (upset) { window = 1.4f; }
+        if (pissed) { window = 0.7f; }
+        float timer = 0f;
+        StartCoroutine(eyeScript.ForceBlink(window));
+        while (timer < window)
+        {
+            Vector2 shuffle = Random.insideUnitCircle.normalized * 0.3f * (timer / window);
+            enemyRB.position += shuffle;
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+
+            enemyRB.position -= shuffle;
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+        int index = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            if (sentinelsKilled[i])
+            {
+                index = i;
+                break;
+            }        
+        }
+        newSentinel = Instantiate(sentinelClone, transform);
+        newSentinel.transform.position = transform.position;
+        newSentinel.transform.parent = null;
+        newSentinel.GetComponent<BlginkrakSentinel>().index = index;
+        newSentinel.GetComponent<BlginkrakSentinel>().bossScript = this;
+        newSentinel.GetComponent<BlginkrakSentinel>().newSpawn = true;
+        sentinelIdle[index] = false;
+        sentinels[index] = newSentinel;
+        sentinelsKilled[index] = false;
+        sentinelsLeft++;
+        yield return new WaitForFixedUpdate();
+        while (allSentinelsReturned == false)
+        {
+            yield return null;
+        }
+        spawnSentinel = false;
         idle = true;
     }
 }

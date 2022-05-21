@@ -1611,7 +1611,6 @@ public class Box : MonoBehaviour
         }
         bool waveland = false;
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Projectiles"), true);
-        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Enemy Device"), true);
         SpriteRenderer sprite = GetComponent<SpriteRenderer>();
         sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0.4f);
         Vector2 initialPosition = rigidBody.position;
@@ -1673,7 +1672,6 @@ public class Box : MonoBehaviour
         isInvulnerable = false;
         dodgeInvulActive = false;
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Projectiles"), false);
-        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Box"), LayerMask.NameToLayer("Enemy Device"), false);
         window = dodgeDuration;
         bool startsGrounded2 = isGrounded;
         bool canfastfall = false;

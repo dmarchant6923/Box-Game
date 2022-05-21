@@ -39,7 +39,7 @@ public class HitSwitch : MonoBehaviour
         {
             foreach (RaycastHit2D item in Box.attackRayCast)
             {
-                if (item.transform.root == transform && invulnerable == false)
+                if (item.collider != null && item.transform.root != null && item.transform.root == transform && invulnerable == false)
                 {
                     Hit();
                     Box.activateHitstop = true;

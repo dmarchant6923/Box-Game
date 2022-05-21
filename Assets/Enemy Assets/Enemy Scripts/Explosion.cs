@@ -39,8 +39,9 @@ public class Explosion : MonoBehaviour
                 new Vector2(0, 0), 0f, LayerMask.GetMask("Box", "Enemies", "Enemy Device"));
             if (circleExplosion == false)
             {
-                explosionClose = Physics2D.BoxCast(transform.position, Vector2.one * (explosionRadius / 8), 0, Vector2.zero, boxLM);
-                explosion = Physics2D.BoxCastAll(transform.position, Vector2.one * explosionRadius * 2, 0, Vector2.zero, LayerMask.GetMask("Box", "Enemies", "Enemy Device"));
+                explosionClose = Physics2D.BoxCast(transform.position, Vector2.one * (explosionRadius / 2), 0, Vector2.zero, 0, boxLM);
+                explosion = Physics2D.BoxCastAll(transform.position, Vector2.one * (explosionRadius * 2), 0, Vector2.zero, LayerMask.GetMask("Box", "Enemies", "Enemy Device"));
+                explosionRadius *= 10;
             }
             foreach (RaycastHit2D item in explosion)
             {

@@ -5,6 +5,7 @@ using UnityEngine;
 public class BlginkrakSentinel : MonoBehaviour
 {
     public Blginkrak bossScript;
+    GameObject boss;
     EnemyManager EM;
     Rigidbody2D bossRB;
     Rigidbody2D sentinelRB;
@@ -14,6 +15,7 @@ public class BlginkrakSentinel : MonoBehaviour
     bool boomerangCR = false;
     float damage = 30;
     bool sentinelHitstopActive = false;
+    Vector2 posPrevFrame;
 
     bool explosionCR = false;
 
@@ -27,18 +29,27 @@ public class BlginkrakSentinel : MonoBehaviour
     public GameObject enemy3;
     public GameObject enemy4;
     public GameObject enemy5;
+    public GameObject enemy6;
     public GameObject mine;
     public GameObject perk;
-    GameObject[] spawns = new GameObject[7];
+    GameObject[] spawns = new GameObject[8];
     GameObject newEnemy;
+    float spawnMaxMoveSpeed = 20;
+    float spawnMaxRotateSpeed = 600;
 
     bool laserCR = false;
     bool laserActive = false;
-    float laserDamage = 30;
     public GameObject fire;
     GameObject newFire;
 
     [HideInInspector] public bool newSpawn = false;
+
+    [HideInInspector] public bool sawBladeCR = false;
+    [HideInInspector] public bool readyForSawBlade = false;
+    public GameObject sawBlade;
+    GameObject newSawBlade;
+    float bladeSpawnTime = 2f;
+    float bladeSpeed = 17;
 
     LineRenderer line;
     Color lineColor;
@@ -56,6 +67,7 @@ public class BlginkrakSentinel : MonoBehaviour
         EM = GetComponent<EnemyManager>();
         sentinelRB = GetComponent<Rigidbody2D>();
         bossRB = bossScript.GetComponent<Rigidbody2D>();
+        boss = bossScript.gameObject;
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
         line = GetComponent<LineRenderer>();
         line.SetPosition(0, sentinelRB.position); line.SetPosition(1, sentinelRB.position);
@@ -70,8 +82,9 @@ public class BlginkrakSentinel : MonoBehaviour
         spawns[2] = enemy3;
         spawns[3] = enemy4;
         spawns[4] = enemy5;
-        spawns[5] = mine;
-        spawns[6] = perk;
+        spawns[5] = enemy6;
+        spawns[6] = mine;
+        spawns[7] = perk;
 
         lineColor = line.startColor;
         lineLaserColor = new Color(1, 0.2f, 0.2f);
@@ -81,56 +94,24 @@ public class BlginkrakSentinel : MonoBehaviour
         if (newSpawn)
         {
             StartCoroutine(NewSpawn());
+            if (bossScript.upset)
+            {
+                NextState();
+            }
+            if (bossScript.pissed)
+            {
+                NextState();
+            }
         }
     }
 
     private void Update()
     {
-        bool hitboxActive = false;
-        if (((bossScript.sentinelMoveSpeed <= bossScript.initialSentinelMoveSpeed && bossScript.sentinelIdle[index] && bossScript.sentinelsReturned[index] && bossScript.idle) ||
-                (bossScript.boomerangAttack && boomerangCR) || laserActive || bossScript.dashAttack || (bossScript.spawnSentinel && newSpawn == false)) && 
-                EM.hitstopImpactActive == false && EM.enemyWasKilled == false)
+        if (boss.GetComponent<EnemyManager>().enemyWasKilled && EM.enemyWasKilled == false)
         {
-            hitboxActive = true;
-            hitboxGlow.SetActive(true);
-        }
-        else
-        {
-            hitboxGlow.SetActive(false);
-        }
-
-        float radius = 0.4f;
-        RaycastHit2D hitbox = Physics2D.CircleCast(sentinelRB.position, radius, Vector2.zero, 0, LayerMask.GetMask("Box"));
-        if (hitbox.collider != null)
-        {
-            if (hitboxActive)
-            {
-                if (Box.isInvulnerable == false)
-                {
-                    Box.activateDamage = true;
-                    Box.damageTaken = damage;
-                    Box.boxDamageDirection = new Vector2(Mathf.Sign(sentinelRB.velocity.x), 1).normalized;
-                    if (bossScript.sentinelIdle[index])
-                    {
-                        Box.boxDamageDirection = new Vector2(Mathf.Sign(bossScript.sentinelPositions[index].x), 1).normalized;
-                    }
-                    if (bossScript.dashActive)
-                    {
-                        Box.damageTaken = bossScript.dashDamage;
-                        Box.boxDamageDirection = new Vector2(bossScript.dashDirection, 1).normalized;
-                        StartCoroutine(bossScript.EnemyHitstop());
-                    }
-                    StartCoroutine(EnemyHitstop());
-                }
-            }
-            else if (Box.boxHitboxActive)
-            {
-                EM.enemyWasDamaged = true;
-                if (EM.enemyIsInvulnerable == false)
-                {
-                    Box.activateHitstop = true;
-                }
-            }
+            EM.enemyHealth = 0;
+            EM.enemyWasDamaged = true;
+            StartCoroutine(SentinelDeath());
         }
     }
 
@@ -168,6 +149,96 @@ public class BlginkrakSentinel : MonoBehaviour
             sentinelRB.GetComponent<SpriteRenderer>().color = damageColor2;
             StartCoroutine(LowHealth());
         }
+
+        float radius = transform.localScale.y * 0.6f;
+        bool hitboxActive = false;
+        if (((bossScript.sentinelMoveSpeed <= bossScript.initialSentinelMoveSpeed && bossScript.sentinelIdle[index] && bossScript.sentinelsReturned[index] && bossScript.idle) ||
+                bossScript.boomerangAttack || laserActive || bossScript.dashAttack || (bossScript.spawnSentinel && newSpawn == false) || bossScript.spawnSawBlade) &&
+                EM.hitstopImpactActive == false && EM.enemyWasKilled == false)
+        {
+            hitboxActive = true;
+            hitboxGlow.SetActive(true);
+        }
+        else
+        {
+            hitboxGlow.SetActive(false);
+        }
+
+        int casts = 3;
+        for (int i = 0; i < casts; i++)
+        {
+            Vector2 difference = sentinelRB.position - posPrevFrame;
+            Vector2 increment = difference / casts;
+            Vector2 position = posPrevFrame + (increment * (i + 1));
+            RaycastHit2D hitbox = Physics2D.CircleCast(position, radius, Vector2.zero, 0, LayerMask.GetMask("Box"));
+            if (hitbox.collider != null)
+            {
+                if (hitboxActive)
+                {
+                    if (Box.isInvulnerable == false)
+                    {
+                        Box.activateDamage = true;
+                        Box.damageTaken = damage;
+                        Box.boxDamageDirection = new Vector2(Mathf.Sign(sentinelRB.velocity.x), 1).normalized;
+                        if (bossScript.sentinelIdle[index])
+                        {
+                            Box.boxDamageDirection = new Vector2(Mathf.Sign(bossScript.sentinelPositions[index].x), 1).normalized;
+                        }
+                        if (bossScript.dashAttack)
+                        {
+                            StartCoroutine(bossScript.EnemyHitstop());
+                            if (bossScript.dashActive)
+                            {
+                                Box.damageTaken = bossScript.dashDamage;
+                                Box.boxDamageDirection = new Vector2(bossScript.dashDirection, 1).normalized;
+                            }
+                        }
+                        StartCoroutine(EnemyHitstop());
+                    }
+                }
+                else if (Box.boxHitboxActive)
+                {
+                    EM.enemyWasDamaged = true;
+                    if (EM.enemyIsInvulnerable == false)
+                    {
+                        Box.activateHitstop = true;
+                    }
+                }
+                break;
+            }
+
+            if (bossScript.debugEnabled)
+            {
+                Debug.DrawRay(position + Vector2.up * radius, Vector2.down * radius * 2);
+                Debug.DrawRay(position + Vector2.right * radius, Vector2.left * radius * 2);
+            }
+        }
+
+        posPrevFrame = sentinelRB.position;
+    }
+
+    public void NextState()
+    {
+        if (bossScript.pissed)
+        {
+            damage += 5;
+
+            bladeSpawnTime *= 0.75f;
+            bladeSpeed *= 1.2f;
+
+            spawnMaxMoveSpeed *= 1.2f;
+            spawnMaxRotateSpeed *= 1.2f;
+        }
+        else if (bossScript.upset)
+        {
+            damage += 5;
+
+            bladeSpawnTime *= 0.75f;
+            bladeSpeed *= 1.2f;
+
+            spawnMaxMoveSpeed *= 1.2f;
+            spawnMaxRotateSpeed *= 1.2f;
+        }
     }
 
     IEnumerator EnemyHitstop()
@@ -180,6 +251,7 @@ public class BlginkrakSentinel : MonoBehaviour
         yield return null;
         while (Box.boxHitstopActive)
         {
+            sentinelRB.velocity = new Vector2(0, 0);
             yield return null;
         }
         if (EM.shockActive)
@@ -208,6 +280,16 @@ public class BlginkrakSentinel : MonoBehaviour
             Instantiate(smoke, sentinelRB.position, Quaternion.identity);
         }
     }
+    IEnumerator SentinelDeath()
+    {
+        yield return null;
+        while (EM.hitstopImpactActive)
+        {
+            yield return null;
+        }
+        sentinelRB.velocity += new Vector2(Mathf.Sign(sentinelRB.position.x - bossRB.position.x) * Random.Range(3, 10f), Random.Range(0, 5f));
+        Destroy(this);
+    }
 
 
     IEnumerator Boomerang()
@@ -220,7 +302,7 @@ public class BlginkrakSentinel : MonoBehaviour
         Vector2 vectorToBox = boxRB.position - sentinelRB.position;
         float distance = Mathf.Max(15, vectorToBox.magnitude + 8f);
         Vector2 target = sentinelRB.position + (vectorToBox.normalized * distance);
-        while (Mathf.Abs((sentinelRB.position - target).magnitude) > 0.2f)
+        while (Mathf.Abs((sentinelRB.position - target).magnitude) > 0.2f && EM.enemyWasKilled == false)
         {
             float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 3 * (sentinelRB.position - target).magnitude / distance);
             if (sentinelHitstopActive == false)
@@ -234,14 +316,14 @@ public class BlginkrakSentinel : MonoBehaviour
         if (bossScript.upset) { window -= 0.2f; }
         if (bossScript.pissed) { window -= 0.3f; }
         float timer = 0;
-        while (timer < window)
+        while (timer < window && EM.enemyWasKilled == false)
         {
             sentinelRB.velocity = Vector2.zero;
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
 
-        while ((sentinelRB.position - bossRB.position).magnitude > 1.5f)
+        while ((sentinelRB.position - bossRB.position).magnitude > 1.5f && EM.enemyWasKilled == false)
         {
             float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 3 * (sentinelRB.position - target).magnitude / distance);
             if (sentinelHitstopActive == false)
@@ -251,7 +333,7 @@ public class BlginkrakSentinel : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        while ((sentinelRB.position - (bossRB.position + bossScript.sentinelPositions[index])).magnitude > 0.5f)
+        while ((sentinelRB.position - (bossRB.position + bossScript.sentinelPositions[index])).magnitude > 0.5f && EM.enemyWasKilled == false)
         {
             float speed = minSpeed + Mathf.Min(maxSpeed, maxSpeed * 3 * (sentinelRB.position - target).magnitude / distance);
             if (sentinelHitstopActive == false)
@@ -284,8 +366,9 @@ public class BlginkrakSentinel : MonoBehaviour
         line.positionCount = 2;
         line.startColor = lineColor;
         line.endColor = lineColor;
-        while (bossScript.explosionBoundaryConnected == false && timer < initialTimer + timeBetweenRays * 5)
+        while (timer < initialTimer + timeBetweenRays * 5 && bossScript.sentinelsLeft == 4)
         {
+            sentinelRB.velocity = Vector2.zero;
             float rotation = -135 + 90 * index;
             float x = -1;
             if (index == 2 || index == 3) { x = 1; }
@@ -303,10 +386,6 @@ public class BlginkrakSentinel : MonoBehaviour
                 Vector2 rayPosition = sentinelRB.position + Vector2.down * rayDistance;
                 line.SetPosition(0, sentinelRB.position);
                 line.SetPosition(1, rayPosition);
-                if ((rayPosition - bossScript.sentinels[index + 1].GetComponent<Rigidbody2D>().position).magnitude < 0.05f)
-                {
-                    bossScript.boundaryConnected[index] = true;
-                }
             }
             if (index == 1 && timer > initialTimer + timeBetweenRays * 2)
             {
@@ -315,10 +394,6 @@ public class BlginkrakSentinel : MonoBehaviour
                 Vector2 rayPosition = sentinelRB.position + Vector2.right * rayDistance;
                 line.SetPosition(0, sentinelRB.position);
                 line.SetPosition(1, rayPosition);
-                if ((rayPosition - bossScript.sentinels[index + 1].GetComponent<Rigidbody2D>().position).magnitude < 0.05f)
-                {
-                    bossScript.boundaryConnected[index] = true;
-                }
             }
             if (index == 2 && timer > initialTimer + timeBetweenRays * 3)
             {
@@ -327,10 +402,6 @@ public class BlginkrakSentinel : MonoBehaviour
                 Vector2 rayPosition = sentinelRB.position + Vector2.up * rayDistance;
                 line.SetPosition(0, sentinelRB.position);
                 line.SetPosition(1, rayPosition);
-                if ((rayPosition - bossScript.sentinels[index + 1].GetComponent<Rigidbody2D>().position).magnitude < 0.05f)
-                {
-                    bossScript.boundaryConnected[index] = true;
-                }
             }
             if (index == 3 && timer > initialTimer + timeBetweenRays * 4)
             {
@@ -339,16 +410,16 @@ public class BlginkrakSentinel : MonoBehaviour
                 Vector2 rayPosition = sentinelRB.position + Vector2.left * rayDistance;
                 line.SetPosition(0, sentinelRB.position);
                 line.SetPosition(1, rayPosition);
-                if ((rayPosition - bossScript.sentinels[0].GetComponent<Rigidbody2D>().position).magnitude < 0.05f)
-                {
-                    bossScript.boundaryConnected[index] = true;
-                }
             }
 
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
         bossScript.explosionBoundaryConnected = true;
+        if (bossScript.sentinelsLeft != 4)
+        {
+            line.enabled = false;
+        }
         yield return new WaitForSeconds(1f);
         Color color = line.startColor;
         Color initialColor = line.startColor;
@@ -431,8 +502,8 @@ public class BlginkrakSentinel : MonoBehaviour
 
         //moving sentinel to a point above enemyPosition, telling boss script that it's reached its destination afterwards. 
         offset = 1.7f;
-        float minSpeed = 5 + (4 - bossScript.sentinelsLeft) * 2;
-        float maxSpeed = 20 + (4 - bossScript.sentinelsLeft) * 3;
+        float maxSpeed = spawnMaxMoveSpeed;
+        float minSpeed = spawnMaxMoveSpeed / 4;
         Vector2 target = enemyPosition + Vector2.up * offset;
         float distance = (sentinelRB.position - target).magnitude;
         while ((sentinelRB.position - target).magnitude > 0.2f && EM.enemyWasKilled == false)
@@ -461,8 +532,8 @@ public class BlginkrakSentinel : MonoBehaviour
 
 
         //rotate sentinel position and rotation around enemyPosition at a certain speed and offset. Enable and draw line renderer points.
-        minSpeed = 100 + (4 - bossScript.sentinelsLeft) * 20;
-        maxSpeed = 600 + (4 - bossScript.sentinelsLeft) * 100;
+        maxSpeed = spawnMaxRotateSpeed;
+        minSpeed = spawnMaxRotateSpeed / 6;
         float angle = 0;
         Vector2 vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2),
             Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
@@ -520,7 +591,7 @@ public class BlginkrakSentinel : MonoBehaviour
                 num = spawns.Length - 1;
             }
             newEnemy = Instantiate(spawns[num], enemyPosition, Quaternion.identity);
-            if (newEnemy.GetComponent<perks>() == null && newEnemy.GetComponent<ProximityMine>() == null)
+            if (newEnemy.GetComponent<EnemyManager>() != null)
             {
                 bossScript.spawnedEnemies.Add(newEnemy);
             }
@@ -558,7 +629,7 @@ public class BlginkrakSentinel : MonoBehaviour
         line.positionCount = 2;
         line.enabled = true;
 
-        while (bossScript.laserActive == false)
+        while (bossScript.laserActive == false && EM.enemyWasKilled == false)
         {
             line.SetPosition(0, sentinelRB.position);
             Vector2 vector = new Vector2(Mathf.Cos(sentinelRB.rotation * Mathf.Deg2Rad + Mathf.PI / 2),
@@ -583,7 +654,7 @@ public class BlginkrakSentinel : MonoBehaviour
         line.widthMultiplier = initialMult;
         laserActive = true;
         float rotationPrevFrame = sentinelRB.rotation;
-        while (bossScript.laserActive)
+        while (bossScript.laserActive && EM.enemyWasKilled == false)
         {
             line.SetPosition(0, sentinelRB.position);
 
@@ -603,19 +674,19 @@ public class BlginkrakSentinel : MonoBehaviour
                 line.SetPosition(1, raycast.point + vector * 0.1f);
             }
 
-            int casts = 4;
+            int casts = 4 + (4 - bossScript.sentinelsLeft) * 3;
             float increment = (sentinelRB.rotation - rotationPrevFrame) / (casts);
             for (int i = 0; i < casts; i++)
             {
                 vector = new Vector2(Mathf.Cos((rotationPrevFrame + increment * (i + 1)) * Mathf.Deg2Rad + Mathf.PI / 2),
                     Mathf.Sin((rotationPrevFrame + increment * (i + 1)) * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
-                raycast = Physics2D.Raycast(sentinelRB.position, vector, 100, LayerMask.GetMask("Obstacles", "Box"));
+                raycast = Physics2D.Raycast(bossRB.position + vector * bossScript.sentinelDistance, vector, 100, LayerMask.GetMask("Obstacles", "Box"));
                 if (raycast.collider != null)
                 {
                     if (raycast.collider.GetComponent<Box>() != null && Box.damageActive == false)
                     {
                         Box.activateDamage = true;
-                        Box.damageTaken = laserDamage;
+                        Box.damageTaken = damage;
                         Box.boxDamageDirection = new Vector2(Mathf.Sign(vector.x), 1).normalized;
                     }
                     if (1 << raycast.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
@@ -644,12 +715,12 @@ public class BlginkrakSentinel : MonoBehaviour
 
                 if (bossScript.debugEnabled)
                 {
-                    Debug.DrawRay(sentinelRB.position, vector * raycast.distance);
+                    Debug.DrawRay(bossRB.position + vector * bossScript.sentinelDistance, vector * raycast.distance);
                 }
             }
 
             rotationPrevFrame = sentinelRB.rotation;
-            yield return null;
+            yield return new WaitForFixedUpdate();
         }
         line.enabled = false;
         laserActive = false;
@@ -662,14 +733,14 @@ public class BlginkrakSentinel : MonoBehaviour
     }
     IEnumerator NewSpawn()
     {
-        Vector2 vector = Vector2.down;
+        Vector2 vector = bossScript.sentinelPositions[index].normalized; //Vector2.down;
         float distance = 8;
         Vector2 target = sentinelRB.position + (vector * distance);
         float maxSpeed = 20;
         if (bossScript.upset) { maxSpeed *= 1.3f; }
         if (bossScript.pissed) { maxSpeed *= 1.3f; }
         sentinelRB.angularVelocity = 200f;
-        while (Mathf.Abs((sentinelRB.position - target).magnitude) > 0.5f)
+        while (Mathf.Abs((sentinelRB.position - target).magnitude) > 0.5f && EM.enemyWasKilled == false)
         {
             float speed = ((sentinelRB.position - target).magnitude / distance) * maxSpeed;
             if (sentinelHitstopActive == false)
@@ -685,5 +756,51 @@ public class BlginkrakSentinel : MonoBehaviour
             yield return null;
         }
         newSpawn = false;
+    }
+    public IEnumerator SawBlade()
+    {
+        sawBladeCR = true;
+        sentinelRB.angularVelocity = 0;
+        float window = bladeSpawnTime * 0.3f;
+        float speed = 5000 / window;
+        Vector2 initialScale = transform.localScale;
+        while (Mathf.Abs(sentinelRB.angularVelocity) < 5000)
+        {
+            sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + bossScript.vectorToBox * bossScript.sentinelDistance * 1.3f, 15 * Time.fixedDeltaTime);
+            sentinelRB.angularVelocity += speed * Time.fixedDeltaTime;
+            transform.localScale = Vector2.MoveTowards(transform.localScale, initialScale * 1.5f, 0.3f * Time.fixedDeltaTime);
+            yield return new WaitForFixedUpdate();
+        }
+
+        window = bladeSpawnTime - window;
+        float timer = 0;
+        newSawBlade = Instantiate(sawBlade, sentinelRB.position, Quaternion.identity);
+        newSawBlade.GetComponent<SawBlade>().fadeIn = true;
+        newSawBlade.GetComponent<SawBlade>().fadeTime = window;
+
+        while (timer < window)
+        {
+            sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + bossScript.vectorToBox * bossScript.sentinelDistance * 1.3f, 15 * Time.fixedDeltaTime);
+            newSawBlade.transform.position = sentinelRB.position;
+            foreach (SpriteRenderer sprite in GetComponentsInChildren<SpriteRenderer>())
+            {
+                Color color = sprite.color;
+                color.a -= (1 / window) * Time.fixedDeltaTime;
+                sprite.color = color;
+            }
+
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+
+        newSawBlade.GetComponent<SawBlade>().speed = bladeSpeed;
+        newSawBlade.GetComponent<SawBlade>().direction = bossScript.vectorToBox;
+        newSawBlade.GetComponent<SawBlade>().damage = damage;
+        newSawBlade.GetComponent<SawBlade>().Launch();
+        bossScript.bladeThrown = true;
+        bossScript.blade = newSawBlade;
+        Destroy(gameObject);
+
+
     }
 }

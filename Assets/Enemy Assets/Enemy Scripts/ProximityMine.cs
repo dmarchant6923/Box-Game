@@ -164,7 +164,7 @@ public class ProximityMine : MonoBehaviour
                         break;
                     }
 
-                    Debug.DrawRay(rb.position, vector * distance);
+                    //Debug.DrawRay(rb.position, vector * distance);
                 }
             }
         }

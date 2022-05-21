@@ -67,14 +67,20 @@ public class BlginkrakEye : MonoBehaviour
             {
                 while (damageBlink == false && forceBlink == false && spriteMask.localScale.y > 0)
                 {
-                    spriteMask.localScale = new Vector2(spriteMask.localScale.x, Mathf.MoveTowards(spriteMask.localScale.y, 0, 15 * Time.fixedDeltaTime));
+                    if (bossScript.bossHitstopActive == false)
+                    {
+                        spriteMask.localScale = new Vector2(spriteMask.localScale.x, Mathf.MoveTowards(spriteMask.localScale.y, 0, 15 * Time.fixedDeltaTime));
+                    }
                     yield return new WaitForFixedUpdate();
                 }
                 spriteMask.localScale = new Vector2(spriteMask.localScale.x, 0);
                 yield return new WaitForSeconds(0.1f);
                 while (damageBlink == false && forceBlink == false && spriteMask.localScale.y < initialYScale)
                 {
-                    spriteMask.localScale = new Vector2(spriteMask.localScale.x, Mathf.MoveTowards(spriteMask.localScale.y, initialYScale, 15 * Time.fixedDeltaTime));
+                    if (bossScript.bossHitstopActive == false)
+                    {
+                        spriteMask.localScale = new Vector2(spriteMask.localScale.x, Mathf.MoveTowards(spriteMask.localScale.y, initialYScale, 15 * Time.fixedDeltaTime));
+                    }
                     yield return new WaitForFixedUpdate();
                 }
                 if (damageBlink == false && forceBlink == false)

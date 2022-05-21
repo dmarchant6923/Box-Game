@@ -28,7 +28,7 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public bool pulseActive = false;
     [HideInInspector] public bool enemyWasPulsed = false;
     [HideInInspector] public bool enemyIsInvulnerable = false;
-    [HideInInspector] public bool enemyWasDamaged = false;
+    public bool enemyWasDamaged = false;
     [HideInInspector] public bool enemyWasKilled = false;
 
     [HideInInspector] public bool instantKill = false;

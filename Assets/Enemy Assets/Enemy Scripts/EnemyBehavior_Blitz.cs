@@ -506,7 +506,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
         {
             GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
             GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo =
-                new Vector2(10, (boxRB.position - enemyRB.position).magnitude);
+                new Vector2(6, (boxRB.position - enemyRB.position).magnitude);
         }
         enemyRB.gravityScale = 2f;
         enemyRB.velocity = collisionDirection * 8;

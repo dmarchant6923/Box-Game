@@ -760,6 +760,7 @@ public class BlginkrakSentinel : MonoBehaviour
     public IEnumerator SawBlade()
     {
         sawBladeCR = true;
+        bossScript.sentinelIdle[index] = false;
         sentinelRB.angularVelocity = 0;
         float window = bladeSpawnTime * 0.3f;
         float speed = 5000 / window;
@@ -799,7 +800,16 @@ public class BlginkrakSentinel : MonoBehaviour
         newSawBlade.GetComponent<SawBlade>().Launch();
         bossScript.bladeThrown = true;
         bossScript.blade = newSawBlade;
-        Destroy(gameObject);
+        //Destroy(gameObject);
+        bossScript.sentinelIdle[index] = true;
+        sawBladeCR = false;
+        sentinelRB.angularVelocity = 0;
+        foreach (SpriteRenderer sprite in GetComponentsInChildren<SpriteRenderer>())
+        {
+            Color color = sprite.color;
+            color.a = 1;
+            sprite.color = color;
+        }
 
 
     }

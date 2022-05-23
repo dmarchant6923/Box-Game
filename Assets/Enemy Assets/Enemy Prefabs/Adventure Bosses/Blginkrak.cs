@@ -455,7 +455,7 @@ public class Blginkrak : MonoBehaviour
                 num = 4;
                 Debug.Log("manually selected explosion");
             }
-            else if (attacksStarted % 5 == 3 && sentinelsLeft > 0 && lastAttackNum != num)
+            else if (attacksStarted % 5 == 3 && pissed == false && sentinelsLeft > 0 && lastAttackNum != num)
             {
                 StartCoroutine(LaserAttack());
                 attackSelected = true;
@@ -483,7 +483,7 @@ public class Blginkrak : MonoBehaviour
                 attackSelected = true;
                 Debug.Log("randomly selected boomerang");
             }
-            else if (num == 5 && sentinelsLeft > 0 && lastAttackNum != num && (attacksStarted + 1) % 5 != 3)
+            else if (num == 5 && sentinelsLeft > 0 && pissed == false && lastAttackNum != num && (attacksStarted + 1) % 5 != 3)
             {
                 StartCoroutine(LaserAttack());
                 attackSelected = true;
@@ -925,7 +925,6 @@ public class Blginkrak : MonoBehaviour
             if (sentinelsKilled[i] == false)
             {
                 StartCoroutine(sentinels[i].GetComponent<BlginkrakSentinel>().SawBlade());
-                sentinelIdle[i] = false;
                 break;
             }
         }

@@ -36,6 +36,7 @@ public class BlginkrakSentinel : MonoBehaviour
     GameObject newEnemy;
     float spawnMaxMoveSpeed = 20;
     float spawnMaxRotateSpeed = 600;
+    public bool canSpawnPerk = false;
 
     bool laserCR = false;
     bool laserActive = false;
@@ -49,7 +50,7 @@ public class BlginkrakSentinel : MonoBehaviour
     public GameObject sawBlade;
     GameObject newSawBlade;
     float bladeSpawnTime = 2f;
-    float bladeSpeed = 17;
+    float bladeSpeed = 14;
 
     LineRenderer line;
     Color lineColor;
@@ -111,6 +112,10 @@ public class BlginkrakSentinel : MonoBehaviour
         {
             EM.enemyHealth = 0;
             EM.enemyWasDamaged = true;
+            if (newSawBlade != null)
+            {
+                newSawBlade.GetComponent<SawBlade>().death = true;
+            }
             StartCoroutine(SentinelDeath());
         }
     }
@@ -586,7 +591,7 @@ public class BlginkrakSentinel : MonoBehaviour
         {
             bossScript.sentinelSpawnedEnemy[index] = true;
             int num = Random.Range(0, spawns.Length - 1);
-            if (Random.Range(0, 15) == 14)
+            if (canSpawnPerk)// && Random.Range(0,4) == 0)
             {
                 num = spawns.Length - 1;
             }
@@ -603,6 +608,7 @@ public class BlginkrakSentinel : MonoBehaviour
                 yield return null;
             }
         }
+        canSpawnPerk = false;
         line.enabled = false;
         line.startColor = initialColor;
         line.endColor = initialColor;

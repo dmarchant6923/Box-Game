@@ -25,7 +25,7 @@ public class SawBlade : MonoBehaviour
     public GameObject hitbox;
     GameObject newHitbox;
 
-    bool death = false;
+    public bool death = false;
 
     void Start()
     {

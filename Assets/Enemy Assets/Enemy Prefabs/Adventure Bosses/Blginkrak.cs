@@ -624,6 +624,12 @@ public class Blginkrak : MonoBehaviour
         }
         enemySpawnAttack = true;
 
+        int num = Random.Range(0, 4);
+        if (sentinelsKilled[num] == false)
+        {
+            sentinels[num].GetComponent<BlginkrakSentinel>().canSpawnPerk = true;
+        }
+
         //wait for all 4 sentinels to arrive, then set startSpawns = true to trigger sentinels to begin spinning
         bool sentinelsArrived = false;
         while (sentinelsArrived == false)

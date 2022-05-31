@@ -13,11 +13,18 @@ public class BlginkrakEye : MonoBehaviour
     public Transform eyeLine;
     Transform eye;
     float initialYScale;
+    float maskPosition = 0;
     EnemyManager bossEM;
     Blginkrak bossScript;
     bool damageBlink = false;
 
     bool forceBlink = false;
+
+    public bool isBoss = true;
+    SpikeSentry sentryScript;
+    bool scared = false;
+    public GameObject sweat;
+    GameObject newSweat;
 
 
     void Start()
@@ -25,8 +32,16 @@ public class BlginkrakEye : MonoBehaviour
         box = GameObject.Find("Box").transform;
         eye = transform.GetChild(0);
         bossEM = transform.root.GetComponent<EnemyManager>();
-        bossScript = transform.root.GetComponent<Blginkrak>();
         initialYScale = spriteMask.localScale.y;
+
+        if (isBoss)
+        {
+            bossScript = transform.root.GetComponent<Blginkrak>();
+        }
+        else
+        {
+            sentryScript = transform.root.GetComponent<SpikeSentry>();
+        }
 
         StartCoroutine(Blink());
     }
@@ -35,25 +50,46 @@ public class BlginkrakEye : MonoBehaviour
     void FixedUpdate()
     {
         vectorToBox = (box.position - transform.position).normalized;
-        angletoBox = -Mathf.Atan2(vectorToBox.x, vectorToBox.y) * Mathf.Rad2Deg;
 
-        if (damageBlink == false && bossScript.dashActive == false && forceBlink == false)
+        if (isBoss)
         {
-            transform.localEulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(transform.localEulerAngles.z, angletoBox, 500 * Time.fixedDeltaTime));
+            angletoBox = -Mathf.Atan2(vectorToBox.x, vectorToBox.y) * Mathf.Rad2Deg;
+            if (damageBlink == false && bossScript.dashActive == false && forceBlink == false)
+            {
+                transform.localEulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(transform.localEulerAngles.z, angletoBox, 500 * Time.fixedDeltaTime));
+            }
+            if (bossScript.dashActive)
+            {
+                Vector2 vector = new Vector2(bossScript.dashDirection, 0);
+                float angle = -Mathf.Atan2(vector.x, vector.y) * Mathf.Rad2Deg;
+                transform.localEulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(transform.localEulerAngles.z, angle, 500 * Time.fixedDeltaTime));
+            }
         }
-        if (bossScript.dashActive)
+        else if (damageBlink == false)
         {
-            Vector2 vector = new Vector2(bossScript.dashDirection, 0);
-            float angle = -Mathf.Atan2(vector.x, vector.y) * Mathf.Rad2Deg;
-            transform.localEulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(transform.localEulerAngles.z, angle, 500 * Time.fixedDeltaTime));
+            angletoBox = -Mathf.Atan2(sentryScript.visibleVectorToBox.x, sentryScript.visibleVectorToBox.y) * Mathf.Rad2Deg;
+            if (sentryScript.stopIdleMovement)
+            {
+                transform.localEulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(transform.localEulerAngles.z, angletoBox, 500 * Time.fixedDeltaTime));
+            }
+            else
+            {
+                float directionAngle = -Mathf.Atan2(sentryScript.direction, -0.5f) * Mathf.Rad2Deg;
+                transform.localEulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(transform.localEulerAngles.z, directionAngle, 500 * Time.fixedDeltaTime));
+            }
         }
-        spriteMask.position = eye.position;
+        spriteMask.position = eye.position + Vector3.up * maskPosition;
         eyeLine.position = eye.position;
 
-        if (bossEM.hitstopImpactActive && damageBlink == false)
+        if (bossEM.hitstopImpactActive && damageBlink == false && bossEM.enemyIsInvulnerable)
         {
             damageBlink = true;
             StartCoroutine(BlinkDamage());
+        }
+
+        if (isBoss == false && sentryScript.sentinelsKilled[0] && sentryScript.sentinelsKilled[1] && scared == false)
+        {
+            StartCoroutine(ScaredCR());
         }
     }
 
@@ -65,24 +101,8 @@ public class BlginkrakEye : MonoBehaviour
             int blinks = Random.Range(0, 2) + 1;
             while (blinks > 0 && damageBlink == false && forceBlink == false)
             {
-                while (damageBlink == false && forceBlink == false && spriteMask.localScale.y > 0)
-                {
-                    if (bossScript.bossHitstopActive == false)
-                    {
-                        spriteMask.localScale = new Vector2(spriteMask.localScale.x, Mathf.MoveTowards(spriteMask.localScale.y, 0, 15 * Time.fixedDeltaTime));
-                    }
-                    yield return new WaitForFixedUpdate();
-                }
                 spriteMask.localScale = new Vector2(spriteMask.localScale.x, 0);
-                yield return new WaitForSeconds(0.1f);
-                while (damageBlink == false && forceBlink == false && spriteMask.localScale.y < initialYScale)
-                {
-                    if (bossScript.bossHitstopActive == false)
-                    {
-                        spriteMask.localScale = new Vector2(spriteMask.localScale.x, Mathf.MoveTowards(spriteMask.localScale.y, initialYScale, 15 * Time.fixedDeltaTime));
-                    }
-                    yield return new WaitForFixedUpdate();
-                }
+                yield return new WaitForSeconds(0.15f);
                 if (damageBlink == false && forceBlink == false)
                 {
                     spriteMask.localScale = new Vector2(spriteMask.localScale.x, initialYScale);
@@ -90,7 +110,7 @@ public class BlginkrakEye : MonoBehaviour
                 if (blinks > 0)
                 {
                     blinks--;
-                    yield return new WaitForSeconds(0.05f);
+                    yield return new WaitForSeconds(0.08f);
                 }
                 while (damageBlink || forceBlink)
                 {
@@ -136,5 +156,60 @@ public class BlginkrakEye : MonoBehaviour
             spriteMask.localScale = new Vector2(spriteMask.localScale.x, initialYScale);
         }
         forceBlink = false;
+    }
+
+    IEnumerator ScaredCR()
+    {
+        scared = true;
+        float window = 1.2f;
+        yield return new WaitForSeconds(window / 2);
+
+        Vector2 facingVector = new Vector2(Mathf.Cos(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2),
+            Mathf.Sin(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+        while (true)
+        {
+            Vector2 position = new Vector2(transform.position.x - Mathf.Sign(facingVector.x) * 0.5f, transform.position.y + transform.lossyScale.y / 2);
+            newSweat = Instantiate(sweat, position, Quaternion.identity);
+            SpriteRenderer sprite = sweat.GetComponent<SpriteRenderer>();
+            Color color = sprite.color;
+            color.a = 0.7f;
+            sprite.color = color;
+            StartCoroutine(SweatDrips(newSweat));
+
+            float timer = 0;
+            while (timer < window)
+            {
+                facingVector = new Vector2(Mathf.Cos(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2),
+                    Mathf.Sin(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+                maskPosition = 0.17f + facingVector.y * 0.08f;
+
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+    }
+    IEnumerator SweatDrips(GameObject sweat)
+    {
+        float window = 0.8f;
+        float timer = 0;
+        while (timer < window && sentryScript.GetComponent<EnemyManager>().enemyWasKilled == false)
+        {
+            sweat.transform.position += Vector3.down * Time.deltaTime * 0.5f;
+            if (timer > window * 0.75f)
+            {
+                SpriteRenderer sprite = sweat.GetComponent<SpriteRenderer>();
+                Color color = sprite.color;
+                color.a -= (4 * 0.7f / window) * Time.deltaTime;
+                sprite.color = color;
+            }
+            Vector2 facingVector = new Vector2(Mathf.Cos(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2),
+                Mathf.Sin(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+            Vector2 position = new Vector2(transform.position.x - Mathf.Sign(facingVector.x) * 0.5f, sweat.transform.position.y);
+            sweat.transform.position = position;
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        Destroy(sweat);
     }
 }

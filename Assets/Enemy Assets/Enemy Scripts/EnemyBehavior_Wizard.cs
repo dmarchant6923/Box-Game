@@ -305,6 +305,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                         (item.transform.GetComponent<Grenade>() != null && item.transform.GetComponent<Grenade>().grenadeWasReflected == true) ||
                         (item.transform.GetComponent<EnemyBehavior_Flying>() != null && item.transform.GetComponent<EnemyBehavior_Flying>().diveWasReflected == true) ||
                         (item.transform.GetComponent<EnemyBehavior_Grounded>() != null && item.transform.GetComponent<EnemyBehavior_Grounded>().willDamageEnemies == true) ||
+                        (item.transform.GetComponent<SpikeSentinel>() != null && item.transform.GetComponent<SpikeSentinel>().reflectActive) ||
                         (item.transform.GetComponent<Box>() != null))
                     {
                         checkSuccessful = true;
@@ -463,6 +464,17 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                         Rigidbody2D RB = item.transform.GetComponent<Rigidbody2D>();
                         Vector2 enemyReflectVector = (RB.position - enemyRB.position).normalized;
                         RB.velocity = enemyReflectVector * RB.velocity.magnitude;
+                    }
+
+                    //sentry sentinel
+                    if (item.transform.GetComponent<SpikeSentinel>() != null && item.transform.GetComponent<SpikeSentinel>().reflectActive)
+                    {
+                        Rigidbody2D RB = item.transform.GetComponent<Rigidbody2D>();
+                        Vector2 enemyReflectVector = (RB.position - enemyRB.position).normalized;
+                        RB.velocity = enemyReflectVector * RB.velocity.magnitude * 1.2f;
+                        item.transform.GetComponent<SpikeSentinel>().reflectTimer = 0;
+                        item.transform.GetComponent<SpikeSentinel>().willDamageEnemies = false;
+                        item.transform.GetComponent<SpikeSentinel>().damage *= 1.2f;
                     }
                 }
             }

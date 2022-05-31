@@ -21,7 +21,7 @@ public class perks : MonoBehaviour
     public bool unlimitedJumps = true;
 
     public bool willDespawn = true;
-    float activeTime = 12;
+    public float activeTime = 12;
     void Start()
     {
         if (willDespawn)

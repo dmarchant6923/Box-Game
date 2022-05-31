@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1787351707634092455}
   m_Layer: 11
   m_Name: Sentinel Hitbox
-  m_TagString: Untagged
+  m_TagString: Effect
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -160,7 +160,7 @@ SpriteRenderer:
   m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 3fcfdf5bd5339f84d9a11bd707f6b8fb, type: 3}
-  m_Color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  m_Color: {r: 0.9, g: 0.9, b: 0.9, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -184,6 +184,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   multipleParts: 0
   enemyRB: {fileID: 0}
+  enemyChildren: []
   exclamation: {fileID: 3364276225366665692, guid: ac28d28127d78e8438dddc2e65c38c74, type: 3}
   pulseActive: 0
   enemyWasPulsed: 0
@@ -240,8 +241,10 @@ MonoBehaviour:
   enemy4: {fileID: 1455908726195974841, guid: 9a02adf35844cbe41954c3d13827e220, type: 3}
   enemy5: {fileID: 5813661966276729620, guid: 001ab344e360a6a4aab109894b547c66, type: 3}
   enemy6: {fileID: 2193496508546508246, guid: 8ed1a759e78866d4aba7fc4db7e5117b, type: 3}
+  enemy7: {fileID: 3370969176895724216, guid: 02330c58c7403ee4fac943bb18db3c74, type: 3}
   mine: {fileID: 7908764803543489511, guid: 9b96db2c36fe9f54cb47aed63993da49, type: 3}
   perk: {fileID: 247569352566294278, guid: e694c8a3082ba314a8d5119a8136e071, type: 3}
+  canSpawnPerk: 0
   fire: {fileID: 4677626524065600173, guid: b9affa55bbb74fa4599156f913f3ccdc, type: 3}
   newSpawn: 0
   sawBladeCR: 0

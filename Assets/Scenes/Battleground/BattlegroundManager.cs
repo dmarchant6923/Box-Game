@@ -86,6 +86,8 @@ public class BattlegroundManager : MonoBehaviour
     public GameObject blitz2;
     public GameObject blitz3;
 
+    public GameObject spikeSentry;
+
     int groundedEnemy1Points = 1;
     int groundedEnemy2Points = 1;
     int groundedEnemy3Points = 1;
@@ -123,6 +125,8 @@ public class BattlegroundManager : MonoBehaviour
     int blitz1Points = 3;
     int blitz2Points = 5;
     int blitz3Points = 9;
+
+    int spikeSentryPoints = 9;
 
     Enemy groundedEnemyLvl1;
     Enemy groundedEnemyLvl2;
@@ -162,6 +166,8 @@ public class BattlegroundManager : MonoBehaviour
     Enemy blitzLvl2;
     Enemy blitzLvl3;
 
+    Enemy spikeSentryLvl1;
+
     EnemyType groundedEnemy;
     EnemyType flyingShooter;
     EnemyType flyingSniper;
@@ -173,6 +179,7 @@ public class BattlegroundManager : MonoBehaviour
     EnemyType thunder;
     EnemyType duplicate;
     EnemyType blitz;
+    EnemyType sentry;
 
     List<EnemyType> enemies = new List<EnemyType>();
     List<GameObject> spawnedEnemies = new List<GameObject>();
@@ -257,6 +264,8 @@ public class BattlegroundManager : MonoBehaviour
         blitzLvl2 = new Enemy(blitz2, blitz2Points);
         blitzLvl3 = new Enemy(blitz3, blitz3Points);
 
+        spikeSentryLvl1 = new Enemy(spikeSentry, spikeSentryPoints);
+
         groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemylvl3);
         flyingShooter = new EnemyType(flyingShooterLvl1, flyingShooterLvl2, flyingShooterLvl3);
         flyingSniper = new EnemyType(flyingSniperLvl1, flyingSniperLvl2, flyingSniperLvl3);
@@ -268,6 +277,7 @@ public class BattlegroundManager : MonoBehaviour
         thunder = new EnemyType(thunderGuyLvl1, thunderGuyLvl1, thunderGuyLvl1);
         duplicate = new EnemyType(dupeWizardLvl1, dupeWizardLvl1, dupeWizardLvl1);
         blitz = new EnemyType(blitzLvl1, blitzLvl2, blitzLvl3);
+        sentry = new EnemyType(spikeSentryLvl1, spikeSentryLvl1, spikeSentryLvl1);
 
         enemies.Add(groundedEnemy); //0
         enemies.Add(flyingShooter); //1
@@ -280,6 +290,7 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(thunder); //8
         enemies.Add(duplicate); //9
         enemies.Add(blitz); //10
+        enemies.Add(sentry); //11
 
         wave = startingWave;
         enemiesKilled = 0;
@@ -521,6 +532,15 @@ public class BattlegroundManager : MonoBehaviour
                     dupeWizards++;
                 }
             }
+            //no sentries before wave 20
+            if (enemies[enemyTypeSelected] == sentry)
+            {
+                if (wave < 20)
+                {
+                    continue;
+                }
+                Debug.Log("you are here");
+            }
 
 
             //preset waves
@@ -682,10 +702,8 @@ public class BattlegroundManager : MonoBehaviour
             RaycastHit2D spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.5f, Vector2.zero, 0f, groundLM);
             RaycastHit2D spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
             RaycastHit2D spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, groundLM);
-            if (enemies[enemyTypeSelected] == groundedVehicle)
-            {
-                spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, obstacleLM);
-            }
+
+            //grounded enemies
             int numberOfNewCoordinates = 0;
             if (enemies[enemyTypeSelected] == groundedEnemy)
             {
@@ -697,10 +715,6 @@ public class BattlegroundManager : MonoBehaviour
                     spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.5f, Vector2.zero, 0f, groundLM);
                     spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
                     spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, groundLM);
-                    if (enemies[enemyTypeSelected] == groundedVehicle)
-                    {
-                        spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, obstacleLM);
-                    }
                     int rand = Random.Range(0, 5);
                     if (rand == 4)
                     {
@@ -709,8 +723,10 @@ public class BattlegroundManager : MonoBehaviour
                 }
             }
 
+            //grounded vehicles
             if (enemies[enemyTypeSelected] == groundedVehicle)
             {
+                spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, obstacleLM);
                 while (spawnObstacleCheck.collider != null || spawnGroundCheck.collider == null || spawnBoxCheck.collider != null ||
                     spawnCoordinates.y > spawnLimits[0].y)// + (spawnLimits[1].y * 2/3))
                 {
@@ -719,11 +735,7 @@ public class BattlegroundManager : MonoBehaviour
                                spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
                     spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.5f, Vector2.zero, 0f, groundLM);
                     spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
-                    spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, groundLM);
-                    if (enemies[enemyTypeSelected] == groundedVehicle)
-                    {
-                        spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, obstacleLM);
-                    }
+                    spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, obstacleLM);
                     int rand = Random.Range(0, 5);
                     if (rand == 4)
                     {
@@ -732,10 +744,11 @@ public class BattlegroundManager : MonoBehaviour
                 }
             }
 
+            //flying enemies, blitz, and sentry
             RaycastHit2D spawnCircleGroundCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
             if (enemies[enemyTypeSelected] == flyingShooter || enemies[enemyTypeSelected] == flyingKamikaze ||
                 enemies[enemyTypeSelected] == flyingSniper || enemies[enemyTypeSelected] == flyingShotgun ||
-                enemies[enemyTypeSelected] == blitz)
+                enemies[enemyTypeSelected] == blitz || enemies[enemyTypeSelected] == sentry)
             {
                 while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null)
                 {
@@ -751,6 +764,7 @@ public class BattlegroundManager : MonoBehaviour
                 }
             }
 
+            //wizard, thunder, dupe wizard, or sentry
             RaycastHit2D enemyCircleCheck = Physics2D.CircleCast(spawnCoordinates, 8f, Vector2.zero, 0f, enemyLM);
             RaycastHit2D insideEnemyCirclecheck = Physics2D.CircleCast(spawnCoordinates, 1f, Vector2.zero, 0f, enemyLM);
             if (enemies[enemyTypeSelected] == wizard || enemies[enemyTypeSelected] == thunder || enemies[enemyTypeSelected] == duplicate)

@@ -30,9 +30,10 @@ public class BlginkrakSentinel : MonoBehaviour
     public GameObject enemy4;
     public GameObject enemy5;
     public GameObject enemy6;
+    public GameObject enemy7;
     public GameObject mine;
     public GameObject perk;
-    GameObject[] spawns = new GameObject[8];
+    GameObject[] spawns = new GameObject[9];
     GameObject newEnemy;
     float spawnMaxMoveSpeed = 20;
     float spawnMaxRotateSpeed = 600;
@@ -50,7 +51,7 @@ public class BlginkrakSentinel : MonoBehaviour
     public GameObject sawBlade;
     GameObject newSawBlade;
     float bladeSpawnTime = 2f;
-    float bladeSpeed = 14;
+    float bladeSpeed = 10;
 
     LineRenderer line;
     Color lineColor;
@@ -84,8 +85,9 @@ public class BlginkrakSentinel : MonoBehaviour
         spawns[3] = enemy4;
         spawns[4] = enemy5;
         spawns[5] = enemy6;
-        spawns[6] = mine;
-        spawns[7] = perk;
+        spawns[6] = enemy7;
+        spawns[7] = mine;
+        spawns[8] = perk;
 
         lineColor = line.startColor;
         lineLaserColor = new Color(1, 0.2f, 0.2f);
@@ -159,7 +161,7 @@ public class BlginkrakSentinel : MonoBehaviour
         bool hitboxActive = false;
         if (((bossScript.sentinelMoveSpeed <= bossScript.initialSentinelMoveSpeed && bossScript.sentinelIdle[index] && bossScript.sentinelsReturned[index] && bossScript.idle) ||
                 bossScript.boomerangAttack || laserActive || bossScript.dashAttack || (bossScript.spawnSentinel && newSpawn == false) || bossScript.spawnSawBlade) &&
-                EM.hitstopImpactActive == false && EM.enemyWasKilled == false)
+                EM.enemyIsInvulnerable == false && EM.enemyWasKilled == false)
         {
             hitboxActive = true;
             hitboxGlow.SetActive(true);
@@ -229,7 +231,7 @@ public class BlginkrakSentinel : MonoBehaviour
             damage += 5;
 
             bladeSpawnTime *= 0.75f;
-            bladeSpeed *= 1.2f;
+            bladeSpeed *= 1.3f;
 
             spawnMaxMoveSpeed *= 1.2f;
             spawnMaxRotateSpeed *= 1.2f;
@@ -239,7 +241,7 @@ public class BlginkrakSentinel : MonoBehaviour
             damage += 5;
 
             bladeSpawnTime *= 0.75f;
-            bladeSpeed *= 1.2f;
+            bladeSpeed *= 1.3f;
 
             spawnMaxMoveSpeed *= 1.2f;
             spawnMaxRotateSpeed *= 1.2f;
@@ -320,10 +322,12 @@ public class BlginkrakSentinel : MonoBehaviour
         float window = 0.8f;
         if (bossScript.upset) { window -= 0.2f; }
         if (bossScript.pissed) { window -= 0.3f; }
+        Vector2 direction = sentinelRB.velocity.normalized;
         float timer = 0;
         while (timer < window && EM.enemyWasKilled == false)
         {
-            sentinelRB.velocity = Vector2.zero;
+            sentinelRB.velocity -= direction * (minSpeed * 2 / window) * Time.deltaTime;
+            //sentinelRB.velocity = Vector2.zero;
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
@@ -599,6 +603,14 @@ public class BlginkrakSentinel : MonoBehaviour
             if (newEnemy.GetComponent<EnemyManager>() != null)
             {
                 bossScript.spawnedEnemies.Add(newEnemy);
+                if (newEnemy.GetComponent<SpikeSentry>() != null)
+                {
+                    newEnemy.GetComponent<EnemyManager>().enemyHealth = 1;
+                }
+            }
+            if (newEnemy.GetComponent<ProximityMine>() != null)
+            {
+                bossScript.spawnedMines.Add(newEnemy);
             }
             while (color.a > 0 && EM.enemyWasKilled == false)
             {
@@ -771,9 +783,26 @@ public class BlginkrakSentinel : MonoBehaviour
         float window = bladeSpawnTime * 0.3f;
         float speed = 5000 / window;
         Vector2 initialScale = transform.localScale;
+        float moveSpeed = 15;
+        float angleMoveSpeed = 90;
+        if (bossScript.upset)
+        {
+            angleMoveSpeed += 30;
+        }
+        if (bossScript.pissed)
+        {
+            angleMoveSpeed += 30;
+        }
+        float angle = -Mathf.Atan2(bossScript.vectorToBox.x, bossScript.vectorToBox.y) * Mathf.Rad2Deg;
+        Vector2 vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2),
+                Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+
         while (Mathf.Abs(sentinelRB.angularVelocity) < 5000)
         {
-            sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + bossScript.vectorToBox * bossScript.sentinelDistance * 1.3f, 15 * Time.fixedDeltaTime);
+            float boxAngle = -Mathf.Atan2(bossScript.vectorToBox.x, bossScript.vectorToBox.y) * Mathf.Rad2Deg;
+            angle = Mathf.MoveTowardsAngle(angle, boxAngle, angleMoveSpeed * Time.deltaTime);
+            vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2), Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+            sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + vector * bossScript.sentinelDistance * 1.3f, moveSpeed * Time.fixedDeltaTime);
             sentinelRB.angularVelocity += speed * Time.fixedDeltaTime;
             transform.localScale = Vector2.MoveTowards(transform.localScale, initialScale * 1.5f, 0.3f * Time.fixedDeltaTime);
             yield return new WaitForFixedUpdate();
@@ -787,7 +816,10 @@ public class BlginkrakSentinel : MonoBehaviour
 
         while (timer < window)
         {
-            sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + bossScript.vectorToBox * bossScript.sentinelDistance * 1.3f, 15 * Time.fixedDeltaTime);
+            float boxAngle = -Mathf.Atan2(bossScript.vectorToBox.x, bossScript.vectorToBox.y) * Mathf.Rad2Deg;
+            angle = Mathf.MoveTowardsAngle(angle, boxAngle, angleMoveSpeed * Time.deltaTime);
+            vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2), Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+            sentinelRB.position = Vector2.MoveTowards(sentinelRB.position, bossRB.position + vector * bossScript.sentinelDistance * 1.3f, moveSpeed * Time.fixedDeltaTime);
             newSawBlade.transform.position = sentinelRB.position;
             foreach (SpriteRenderer sprite in GetComponentsInChildren<SpriteRenderer>())
             {
@@ -801,7 +833,7 @@ public class BlginkrakSentinel : MonoBehaviour
         }
 
         newSawBlade.GetComponent<SawBlade>().speed = bladeSpeed;
-        newSawBlade.GetComponent<SawBlade>().direction = bossScript.vectorToBox;
+        newSawBlade.GetComponent<SawBlade>().direction = vector;
         newSawBlade.GetComponent<SawBlade>().damage = damage;
         newSawBlade.GetComponent<SawBlade>().Launch();
         bossScript.bladeThrown = true;
@@ -810,6 +842,7 @@ public class BlginkrakSentinel : MonoBehaviour
         bossScript.sentinelIdle[index] = true;
         sawBladeCR = false;
         sentinelRB.angularVelocity = 0;
+        transform.localScale = initialScale;
         foreach (SpriteRenderer sprite in GetComponentsInChildren<SpriteRenderer>())
         {
             Color color = sprite.color;

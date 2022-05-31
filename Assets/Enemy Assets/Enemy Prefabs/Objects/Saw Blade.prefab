@@ -275,7 +275,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.4
 --- !u!50 &5612813828466088743
 Rigidbody2D:
   serializedVersion: 4
@@ -315,6 +315,7 @@ MonoBehaviour:
   fadeIn: 0
   fadeTime: 2
   hitbox: {fileID: 1076762318421421928}
+  death: 0
 --- !u!1 &1001351322492883133
 GameObject:
   m_ObjectHideFlags: 0

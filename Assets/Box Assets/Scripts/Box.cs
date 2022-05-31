@@ -137,6 +137,7 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static bool boxEnemyPulseActive = false;
     [System.NonSerialized] public static float boxEnemyPulseMagnitude;
     [System.NonSerialized] public static Vector2 boxEnemyPulseDirection;
+    [System.NonSerialized] public static bool boxPulsedWhileInvulnerable = false;
 
     [System.NonSerialized] public static bool canDodge = true;
     [System.NonSerialized] public static bool dodgeActive = false;
@@ -188,7 +189,7 @@ public class Box : MonoBehaviour
     bool shockCR = false;
 
     [System.NonSerialized] public static bool onFire;
-    [System.NonSerialized] public static float fireDOT = 3.5f;
+    [System.NonSerialized] public static float fireDOT = 4.5f;
 
     bool forceInputsDisabled = false;
 
@@ -685,10 +686,10 @@ public class Box : MonoBehaviour
             teleportActive = true; canTeleport = false;
             StartCoroutine(TeleportEnum());
         }
-        if (teleportActive)
-        {
-            rigidBody.velocity = new Vector2(teleportSpeedx / 4, teleportspeedy / 4);
-        }
+        //if (teleportActive)
+        //{
+        //    rigidBody.velocity = new Vector2(teleportSpeedx / 4, teleportspeedy / 4);
+        //}
         //dash attack
         if ((dashUnlocked && canDash && inputs.dashButtonDown && dashActive == false && teleportActive == false && techCRActive == false) || dashActive)
         {
@@ -739,12 +740,13 @@ public class Box : MonoBehaviour
         //enemy pulse
         if (boxWasPulsed && boxEnemyPulseActive == false)
         {
-            if (isInvulnerable == false)
+            if (isInvulnerable == false || (damageActive == false && boxPulsedWhileInvulnerable))
             {
                 boxEnemyPulseActive = true;
                 StartCoroutine(EnemyPulse());
             }
             boxWasPulsed = false;
+            boxPulsedWhileInvulnerable = false;
         }
         //dodge
         if (inputs.dodgeButtonDown && canDodge)
@@ -1079,7 +1081,7 @@ public class Box : MonoBehaviour
             rigidBody.position = new Vector2(rigidBody.position.x, ceilingPositionY - transform.localScale.y / 2);
             if (inputs.leftStick.x > 0.2f || inputs.leftStick.x < -0.2f)
             {
-                BoxVelocity.velocitiesX[0] = spikeClimbSpeed * inputs.leftStick.x;
+                BoxVelocity.velocitiesX[0] = spikeClimbSpeed * Mathf.Sign(inputs.leftStick.x) * Mathf.Min(Mathf.Abs(inputs.leftStick.x), 0.5f) * 2;
             }
             else
             {
@@ -1102,12 +1104,13 @@ public class Box : MonoBehaviour
         }
 
         touchingWall = false;
-        if ((1 << collision.gameObject.layer == obstacleLayerMask && collision.gameObject.tag != "Hazard") || (collision.gameObject.tag == "Hazard" && isInvulnerable))
+        if ((1 << collision.gameObject.layer == obstacleLayerMask && collision.gameObject.tag != "Hazard") || (collision.gameObject.tag == "Hazard" && isInvulnerable) &&
+            collision.collider.GetComponent<Bumper>() == null)
         {
             RaycastHit2D wallcast = Physics2D.BoxCast(rigidBody.position + Vector2.up * transform.localScale.y / 4, new Vector2(transform.localScale.x * 1.1f, transform.localScale.y / 3),
                 0, Vector2.zero, 0, obstacleLayerMask);
             //Direction + key press + wallbounce condition for being on the right side of the wall
-            if (touchingLeftWall && wallcast.collider != null)
+            if (touchingLeftWall && wallcast.collider != null && ignoreProjectileDamage == false)
             {
                 wallJumpDirection = 1;
                 if (InputBroker.Controller)
@@ -1132,7 +1135,7 @@ public class Box : MonoBehaviour
                 }
             }
             //Direction + key press + wallbounce condition for being on the left side of the wall
-            if (touchingRightWall && wallcast.collider != null)
+            if (touchingRightWall && wallcast.collider != null && ignoreProjectileDamage == false)
             {
                 wallJumpDirection = -1;
                 if (InputBroker.Controller)
@@ -1146,7 +1149,7 @@ public class Box : MonoBehaviour
                     pressToWall = inputs.leftStick.x > 0;
                 }
 
-                if (BoxVelocity.velocitiesX[0] > 0)
+                if (BoxVelocity.velocitiesX[0] > 0 && ignoreProjectileDamage == false)
                 {
                     BoxVelocity.velocitiesX[0] = 0;
                 }
@@ -1157,7 +1160,7 @@ public class Box : MonoBehaviour
                 }
             }
             //Condition for being on either side of the wall
-            if (touchingWall == true && isGrounded == false && (collision.gameObject.tag != "Ice" || (collision.gameObject.tag == "Ice" && sticky == true)))
+            if (touchingWall == true && (collision.gameObject.tag != "Ice" || (collision.gameObject.tag == "Ice" && sticky == true)))
             {
                 //wall cling + walljumptime
                 if (pressToWall)
@@ -1184,13 +1187,10 @@ public class Box : MonoBehaviour
                     }
                     else
                     { 
-                        if (inputs.leftStick.y > 0.2f)
+                        if (inputs.leftStick.y > 0.2f || inputs.leftStick.y < -0.2f)
                         {
-                            rigidBody.velocity = new Vector2(rigidBody.velocity.x, spikeClimbSpeed * inputs.leftStick.y);
-                        }
-                        else if (inputs.leftStick.y < -0.2f)
-                        {
-                            rigidBody.velocity = new Vector2(rigidBody.velocity.x, spikeClimbSpeed * inputs.leftStick.y);
+                            rigidBody.velocity = new Vector2(rigidBody.velocity.x, spikeClimbSpeed * Mathf.Sign(inputs.leftStick.y) * 
+                                Mathf.Min(Mathf.Abs(inputs.leftStick.y), 0.5f) * 2);
                         }
                         else
                         {
@@ -1237,8 +1237,8 @@ public class Box : MonoBehaviour
             if (col.normal.y < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingCeiling = true; }
         }
 
-        if ((touchingLeftWall || touchingRightWall) && touchingGround == false && touchingCeiling == false && dashActive == false
-            && 1 << (collision.gameObject.layer) != platformLayerMask && isGrounded == false && damageActive == false && collision.rigidbody != null)
+        if ((touchingLeftWall || touchingRightWall) && touchingGround == false && touchingCeiling == false && collision.collider.GetComponent<Bumper>() == null
+            && 1 << (collision.gameObject.layer) != platformLayerMask && isGrounded == false && damageActive == false && collision.rigidbody != null && dashActive == false)
         {
             BoxVelocity.velocitiesX[0] = collision.rigidbody.velocity.x;
         }
@@ -1249,7 +1249,8 @@ public class Box : MonoBehaviour
             rigidBody.rotation = 0;
         }
 
-        if ((touchingLeftWall || touchingRightWall || touchingCeiling || touchingGround) && damageActive && damageTime > boxHitstopDelay + 0.05f && techWindowActive)
+        if ((touchingLeftWall || touchingRightWall || touchingCeiling || touchingGround) && techWindowActive && 
+            ((damageActive && damageTime > boxHitstopDelay + 0.05f) || boxEnemyPulseActive))
         {
             techSuccessful = true;
             if ((touchingLeftWall && inputs.leftStickDisabled.x > 0.8f) ||
@@ -1433,6 +1434,7 @@ public class Box : MonoBehaviour
         while (timer <= window && damageActive == false && boxEnemyPulseActive == false && blastZoneCRActive == false)
         {
             timer += Time.deltaTime;
+            rigidBody.velocity = new Vector2(teleportSpeedx / 4, teleportspeedy / 4);
             yield return null;
         }
         successfulTeleport = newTeleportCheck.GetComponent<TeleportCheck>().successfulTeleport;
@@ -1441,6 +1443,7 @@ public class Box : MonoBehaviour
         {
             successfulTeleport = false;
         }
+
         if (successfulTeleport == true)
         {
             transform.position = new Vector2(transform.position.x + teleportDistancex, transform.position.y);
@@ -1449,7 +1452,7 @@ public class Box : MonoBehaviour
         {
             int direction = (int)Mathf.Sign(teleportDistancex);
             RaycastHit2D rayToWall = Physics2D.Raycast(rigidBody.position, Vector2.right * direction, teleportRange, obstacleLayerMask);
-            transform.position = rayToWall.point + Vector2.left * direction * transform.lossyScale.x / 2;
+            transform.position = rayToWall.point + Vector2.left * direction * transform.lossyScale.x * 0.45f;
         }
         rigidBody.angularVelocity *= 4;
         rigidBody.angularDrag *= 100;
@@ -1770,6 +1773,8 @@ public class Box : MonoBehaviour
         isInvulnerable = true;
         damageActive = true;
         rigidBody.isKinematic = true;
+        ignoreProjectileDamage = true;
+        Vector2 damageDirection = boxDamageDirection.normalized;
         if (isCrouching == true)
         {
             transform.localScale = new Vector2(originalScale.x, originalScale.y);
@@ -1780,7 +1785,8 @@ public class Box : MonoBehaviour
         float currentVertVelocity = rigidBody.velocity.y;
         rigidBody.angularVelocity = 0;
         Vector2 freezePosition = rigidBody.position;
-        float shuffleDelay = 0.02f;
+        float freezeRotation = rigidBody.rotation;
+        float shuffleDelay = 0.06f; //0.02f;
         int shuffleCount = 0;
         float shuffleRangeX = 0.3f;
         float shuffleRangeY = 0.05f;
@@ -1788,35 +1794,59 @@ public class Box : MonoBehaviour
         while (damageTime <= boxHitstopDelay)
         {
             bool shuffleFinished = false;
+            float window = shuffleDelay;
+            float timer = 0;
             if (shuffleCount == 0 || shuffleCount == 2 && shuffleFinished == false)
             {
-                rigidBody.position = new Vector2(freezePosition.x,
-                    freezePosition.y + (-shuffleRangeY / 2) + Random.value * shuffleRangeY);
                 shuffleCount += 1;
                 shuffleFinished = true;
+                float rand = Random.value;
+                while (timer < window && damageTime <= boxHitstopDelay)
+                {
+                    rigidBody.position = new Vector2(freezePosition.x,
+                        freezePosition.y + (-shuffleRangeY / 2) + rand * shuffleRangeY);
+                    rigidBody.rotation = freezeRotation;
+                    timer += Time.deltaTime;
+                    yield return null;
+                }
             }
             if (shuffleCount == 1 && shuffleFinished == false)
             {
-                rigidBody.position = new Vector2(freezePosition.x + shuffleRangeX,
-                    freezePosition.y + (-shuffleRangeY / 2) + Random.value * shuffleRangeY);
+
                 shuffleCount += 1;
                 shuffleFinished = true;
+                float rand = Random.value;
+                while (timer < window && damageTime <= boxHitstopDelay)
+                {
+                    rigidBody.position = new Vector2(freezePosition.x + shuffleRangeX,
+                        freezePosition.y + (-shuffleRangeY / 2) + rand * shuffleRangeY);
+                    rigidBody.rotation = freezeRotation;
+                    timer += Time.deltaTime;
+                    yield return null;
+                }
             }
             if (shuffleCount == 3 && shuffleFinished == false)
             {
-                rigidBody.position = new Vector2(freezePosition.x - shuffleRangeX / 5,
-                    freezePosition.y + (-shuffleRangeY / 2) + Random.value * shuffleRangeY);
                 shuffleCount = 0;
+                float rand = Random.value;
+                while (timer < window && damageTime <= boxHitstopDelay)
+                {
+                    rigidBody.position = new Vector2(freezePosition.x - shuffleRangeX / 5,
+                        freezePosition.y + (-shuffleRangeY / 2) + rand * shuffleRangeY);
+                    rigidBody.rotation = freezeRotation;
+                    timer += Time.deltaTime;
+                    yield return null;
+                }
             }
-            yield return new WaitForSeconds(shuffleDelay);
+            //yield return new WaitForSeconds(shuffleDelay);
         }
-        rigidBody.position = freezePosition;
+        rigidBody.position = freezePosition + damageDirection * 0.2f;
         //gameObject.GetComponent<BoxCollider2D>().enabled = true;
         boxHitstopActive = false;
         rigidBody.isKinematic = false;
         if (BoxPerks.shieldActive == false)
         {
-            StartCoroutine(DamageLaunch(damageTaken));
+            StartCoroutine(DamageLaunch(damageTaken, damageDirection));
         }
         else
         {
@@ -1829,9 +1859,10 @@ public class Box : MonoBehaviour
             yield return new WaitForSeconds(1.5f);
             isInvulnerable = false;
             shockActive = false;
+            ignoreProjectileDamage = false;
         }
     } //for when the player is damaged
-    IEnumerator DamageLaunch(float damageTaken)
+    IEnumerator DamageLaunch(float damageTaken, Vector2 damageDirection)
     {
         damageTaken = Mathf.Min(damageTaken, 200);
         float maxDamageStunTime = 0.4f + damageTaken * 0.014f + boxHitstopDelay;
@@ -1848,11 +1879,11 @@ public class Box : MonoBehaviour
             DI = DI.normalized;
         }
         DI *= DIMult;
-        Vector2 perpVector = Vector2.Perpendicular(boxDamageDirection).normalized * Vector2.Dot(DI, Vector2.Perpendicular(boxDamageDirection).normalized);
-        Vector2 trueDamageVelocity = (boxDamageDirection.normalized + perpVector).normalized * launchSpeed;
-        if (Vector2.Dot(trueDamageVelocity.normalized, boxDamageDirection.normalized) > 0.999f)
+        Vector2 perpVector = Vector2.Perpendicular(damageDirection).normalized * Vector2.Dot(DI, Vector2.Perpendicular(damageDirection).normalized);
+        Vector2 trueDamageVelocity = (damageDirection.normalized + perpVector).normalized * launchSpeed;
+        if (Vector2.Dot(trueDamageVelocity.normalized, damageDirection.normalized) > 0.999f)
         {
-            trueDamageVelocity = boxDamageDirection.normalized * launchSpeed;
+            trueDamageVelocity = damageDirection.normalized * launchSpeed;
         }
         if (BoxPerks.speedActive)
         {
@@ -1863,7 +1894,6 @@ public class Box : MonoBehaviour
             trueDamageVelocity = Vector2.zero;
         }
 
-        ignoreProjectileDamage = true;
         BoxVelocity.velocitiesX[0] = trueDamageVelocity.x;
         rigidBody.velocity = new Vector2(rigidBody.velocity.x, trueDamageVelocity.y);
 
@@ -1889,6 +1919,7 @@ public class Box : MonoBehaviour
             }
             launchTime += Time.deltaTime;
         }
+        ignoreProjectileDamage = false;
         float remainderTime = 0;
         while (remainderTime <= 0.3f && techSuccessful == false)
         {
@@ -2024,11 +2055,20 @@ public class Box : MonoBehaviour
                 {
                     timer += Time.deltaTime * 1.5f;
                 }
+
+                if (rigidBody.velocity.magnitude < 0.5f)
+                {
+                    break;
+                }
             }
-            Debug.DrawRay(launchPosition, boxEnemyPulseDirection.normalized * 3);
-            Debug.DrawRay(launchPosition + boxEnemyPulseDirection.normalized * 3, DI * 3, Color.green);
-            Debug.DrawRay(launchPosition + boxEnemyPulseDirection.normalized * 3, perpVector * 3, Color.yellow);
-            Debug.DrawRay(launchPosition, pulseVelocity.normalized * 3, Color.blue);
+
+            if (debugEnabled)
+            {
+                Debug.DrawRay(launchPosition, boxEnemyPulseDirection.normalized * 3);
+                Debug.DrawRay(launchPosition + boxEnemyPulseDirection.normalized * 3, DI * 3, Color.green);
+                Debug.DrawRay(launchPosition + boxEnemyPulseDirection.normalized * 3, perpVector * 3, Color.yellow);
+                Debug.DrawRay(launchPosition, pulseVelocity.normalized * 3, Color.blue);
+            }
             yield return null;
         }
         if (techSuccessful == true)

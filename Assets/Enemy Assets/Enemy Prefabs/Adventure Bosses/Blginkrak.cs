@@ -61,6 +61,7 @@ public class Blginkrak : MonoBehaviour
     [HideInInspector] public bool[] sentinelSpawnedEnemy = new bool[4];
     [HideInInspector] public bool startSpawns = false;
     [HideInInspector] public List<GameObject> spawnedEnemies = new List<GameObject>();
+    [HideInInspector] public List<GameObject> spawnedMines = new List<GameObject>();
 
     [HideInInspector] public bool laserAttack = false;
     [HideInInspector] public bool laserActive = false;
@@ -130,6 +131,9 @@ public class Blginkrak : MonoBehaviour
 
         laserTime = initialLaserTime;
 
+        attacksStarted = 0;
+        lastAttackNum = 0;
+
 
         if (debugEnabled == false)
         {
@@ -147,6 +151,13 @@ public class Blginkrak : MonoBehaviour
             {
                 enemy.GetComponent<EnemyManager>().enemyHealth = 0;
                 enemy.GetComponent<EnemyManager>().enemyWasDamaged = true;
+            }
+            foreach (GameObject mine in spawnedMines)
+            {
+                if (mine != null)
+                {
+                    Destroy(mine);
+                }
             }
             Destroy(this);
         }
@@ -462,7 +473,7 @@ public class Blginkrak : MonoBehaviour
                 num = 5;
                 Debug.Log("manually selected laser");
             }
-            else if (attacksStarted % 5 == 4 && sentinelsLeft > 2 && bladeThrown == false && lastAttackNum != num)
+            else if (attacksStarted % 5 == 4 && sentinelsLeft > 0 && bladeThrown == false && lastAttackNum != num)
             {
                 StartCoroutine(SawBlade());
                 attackSelected = true;
@@ -489,7 +500,7 @@ public class Blginkrak : MonoBehaviour
                 attackSelected = true;
                 Debug.Log("randomly selected laser");
             }
-            else if (num == 6 && sentinelsLeft > 2 && bladeThrown == false && lastAttackNum != num && (attacksStarted + 1) % 5 != 4)
+            else if (num == 6 && sentinelsLeft > 0 && bladeThrown == false && lastAttackNum != num && (attacksStarted + 1) % 5 != 4)
             {
                 StartCoroutine(SawBlade());
                 attackSelected = true;
@@ -774,7 +785,7 @@ public class Blginkrak : MonoBehaviour
         float minSpeed = 1;
         if (pissed == false)
         {
-            target = new Vector2(area.transform.position.x + ((area.transform.localScale.x / 2) + 10) * -dashDirection, height);
+            target = new Vector2(area.transform.position.x + ((area.transform.localScale.x / 2) + 7) * -dashDirection, height);
             while ((enemyRB.position - target).magnitude > 0.2f)
             {
                 

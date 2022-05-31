@@ -33,7 +33,7 @@ public class SawBlade : MonoBehaviour
         sprites = GetComponentsInChildren<SpriteRenderer>();
         posLastFrame = bladeRB.position;
 
-        bladeRB.angularVelocity = 800;
+        bladeRB.angularVelocity = -700;
         if (fadeIn)
         {
             foreach (SpriteRenderer sprite in sprites)

@@ -31,6 +31,7 @@ public class TeleportCheck : MonoBehaviour
     bool pointGCovered; //E
     bool pointHCovered; //W
 
+    bool teleportBlocked = false;
     public bool successfulTeleport = true;
 
     bool debugEnabled = false;
@@ -39,6 +40,10 @@ public class TeleportCheck : MonoBehaviour
     {
         inputs = GameObject.Find("Box").GetComponent<InputBroker>();
         followBox = GameObject.Find("Box").GetComponent<Transform>();
+        if (followBox.GetComponent<Box>().debugEnabled)
+        {
+            debugEnabled = true;
+        }
         StartCoroutine(teleport());
 
         mask = LayerMask.GetMask("Obstacles");
@@ -80,8 +85,32 @@ public class TeleportCheck : MonoBehaviour
             Debug.DrawLine(boxPointC, boxPointE);
         }
 
-        if (pointACovered == true && pointBCovered == true && pointCCovered == true && pointDCovered == true && centerCovered == true
-            && pointECovered == true && pointFCovered == true && pointGCovered == true && pointHCovered == true)
+
+
+        teleportBlocked = false;
+        RaycastHit2D[] blockCast = Physics2D.RaycastAll(followBox.position, (transform.position - followBox.position).normalized,
+            (transform.position - followBox.position).magnitude, mask);
+        foreach (RaycastHit2D item in blockCast)
+        {
+            if (item.collider.GetComponent<Teleblock>() != null)
+            {
+                teleportBlocked = true;
+                item.collider.GetComponent<Teleblock>().xHeight = item.point.y;
+                item.collider.GetComponent<Teleblock>().xActive = true;
+            }
+        }
+
+        if (debugEnabled)
+        {
+            Color color = Color.white;
+            if (teleportBlocked) { color = Color.red; }
+            Debug.DrawLine(transform.position, followBox.position, color);
+        }
+
+
+
+        if ((pointACovered == true && pointBCovered == true && pointCCovered == true && pointDCovered == true && centerCovered == true
+            && pointECovered == true && pointFCovered == true && pointGCovered == true && pointHCovered == true) || teleportBlocked)
         {
             successfulTeleport = false;
             gameObject.GetComponent<Renderer>().material.color = Color.red;

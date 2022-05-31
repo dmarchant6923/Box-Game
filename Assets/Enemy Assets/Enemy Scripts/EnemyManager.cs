@@ -7,7 +7,7 @@ public class EnemyManager : MonoBehaviour
     public bool multipleParts = false; // multiple parts all children of empty gameobject, first object contains rigidbody.
 
     [HideInInspector] public Rigidbody2D enemyRB;
-    Transform[] enemyChildren;
+    [HideInInspector] public Transform[] enemyChildren;
     Rigidbody2D boxRB;
     Transform cameraTransform;
     Camera mainCamera;
@@ -24,6 +24,9 @@ public class EnemyManager : MonoBehaviour
     [System.NonSerialized] public bool attackActive = false;
     public GameObject exclamation;
     GameObject newExclamation;
+
+    [HideInInspector] public bool outsidePulseActive = false;
+    [HideInInspector] public Vector2 outsidePulseDirection;
 
     [HideInInspector] public bool pulseActive = false;
     [HideInInspector] public bool enemyWasPulsed = false;
@@ -73,10 +76,10 @@ public class EnemyManager : MonoBehaviour
     float shockTime = 4f;
     public GameObject lightning;
     GameObject newLightning;
-    List<SpriteRenderer> enemyObjects;
-    List<Color> enemyColors;
+    [HideInInspector] public List<SpriteRenderer> enemyObjects;
+    [HideInInspector] public List<Color> enemyColors;
 
-    public float enemyHealth = 1; //all damage from Box will deal 1 damage
+    public float enemyHealth = 1; //all damage will take 1 health
     [HideInInspector] public float invulnerabilityPeriod = 2f;
     float invulnerabilityTime = 0;
 
@@ -263,6 +266,12 @@ public class EnemyManager : MonoBehaviour
             pulseActive = false;
             StartCoroutine(PulseRecord());
         }
+
+        if (outsidePulseActive && normalPulse && enemyWasKilled == false)
+        {
+            enemyRB.velocity = outsidePulseDirection * 16;
+            outsidePulseActive = false;
+        }
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -431,11 +440,11 @@ public class EnemyManager : MonoBehaviour
         {
             foreach (Transform transform in enemyChildren)
             {
-                if (transform.GetComponent<Renderer>() != null)
+                if (transform != null && transform.GetComponent<Renderer>() != null)
                 {
                     transform.GetComponent<Renderer>().sortingLayerName = "Dead Enemy";
                 }
-                if (transform.GetComponent<Collider2D>() != null)
+                if (transform != null && transform.GetComponent<Collider2D>() != null)
                 {
                     foreach (Collider2D c in transform.GetComponents<Collider2D>()) { c.enabled = false; }
                 }
@@ -465,7 +474,7 @@ public class EnemyManager : MonoBehaviour
         {
             foreach (Transform transform in enemyChildren)
             {
-                if (transform.GetComponent<Renderer>() != null)
+                if (transform != null && transform.GetComponent<Renderer>() != null)
                 {
                     transform.GetComponent<Renderer>().enabled = true;
                 }
@@ -476,9 +485,13 @@ public class EnemyManager : MonoBehaviour
             }
             foreach (Transform transform in enemyChildren)
             {
-                if (transform.GetComponent<Renderer>() != null && transform.tag != "Effect")
+                if (transform != null && transform.GetComponent<Renderer>() != null && transform.tag != "Effect")
                 {
                     transform.GetComponent<Renderer>().enabled = false;
+                    if (transform.GetComponent<SpikeSentinel>() != null && gameObject.GetComponent<SpikeSentry>() != null)
+                    {
+                        Debug.Log("you are here");
+                    }
                 }
             }
             if (enemyIsInvulnerable == true)
@@ -488,7 +501,7 @@ public class EnemyManager : MonoBehaviour
         }
         foreach (Transform transform in enemyChildren)
         {
-            if (transform.GetComponent<Renderer>() != null)
+            if (transform != null && transform.GetComponent<Renderer>() != null)
             {
                 transform.GetComponent<Renderer>().enabled = true;
             }

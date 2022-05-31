@@ -95,7 +95,6 @@ public class Grenade : MonoBehaviour
                 Debug.DrawRay(grenadeRB.position, -vectorToBox.normalized, Color.red);
                 grenadeRB.velocity = (-grenadeRB.velocity.normalized - vectorToBox.normalized).normalized * grenadeRB.velocity.magnitude;
 
-                Debug.Log(velocityList[2].magnitude);
                 if (velocityList[2].magnitude >= 20)
                 {
                     Box.activateDamage = true;
@@ -117,7 +116,7 @@ public class Grenade : MonoBehaviour
             Explosion();
         }
 
-        if (explosionTimer == false && collision.contactCount > 0 && ((collision.contacts[0].normal.y >= 0.8f && 
+        if (explosionTimer == false && collision.contactCount > 0 && ((collision.contacts[0].normal.y >= 0.8f && collision.collider.GetComponent<Bumper>() == null &&
             (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles") || 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms")) && velocityList[2].y <= 0) || 
             1 << collision.gameObject.layer == LayerMask.GetMask("Box")))
         {

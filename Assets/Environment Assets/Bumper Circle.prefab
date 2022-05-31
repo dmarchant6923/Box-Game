@@ -256,12 +256,11 @@ GameObject:
   m_Component:
   - component: {fileID: 8183204602919221925}
   - component: {fileID: 5002839603609447704}
-  - component: {fileID: 2068081032437393681}
   - component: {fileID: 423620419771096968}
   - component: {fileID: 659164137277653463}
   - component: {fileID: 1595860143162087306}
   m_Layer: 6
-  m_Name: Bumper
+  m_Name: Bumper Circle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -335,22 +334,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!58 &2068081032437393681
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8366851920404879737}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.5
 --- !u!50 &423620419771096968
 Rigidbody2D:
   serializedVersion: 4
@@ -400,4 +383,4 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.45
+  m_Radius: 0.5

@@ -350,7 +350,7 @@ public class Blginkrak : MonoBehaviour
     {
         teleportCR = true;
         yield return new WaitForSeconds(0.3f);
-        if (canTeleport)
+        if (canTeleport && EM.hitstopImpactActive == false)
         {
             float minDist = 15;
             Vector2 newPosition = telePositions[Random.Range(0, telePositions.Count - 1)];

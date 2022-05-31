@@ -252,7 +252,7 @@ public class Box : MonoBehaviour
             groundVerticalVelocity = 0;
         }
 
-        if (ground != null && Mathf.Abs(rigidBody.velocity.y - groundVerticalVelocity) < 0.05f && boxHitstopActive == false)
+        if (ground != null && Mathf.Abs(rigidBody.velocity.y - groundVerticalVelocity) < 0.05f && boxHitstopActive == false && ground.GetComponent<Bumper>() == null)
         {
             if (1 << ground.gameObject.layer == platformLayerMask && PlatformDrop.platformsEnabled == true)
             {
@@ -2018,7 +2018,7 @@ public class Box : MonoBehaviour
             yield return null;
         }
         yield return null;
-        float DIMult = 0.75f;
+        float DIMult = 0.5f;
         Vector2 DI = inputs.leftStickDisabled;
         if (DI.magnitude < 0.1f)
         {

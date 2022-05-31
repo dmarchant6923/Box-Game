@@ -27,6 +27,7 @@ public class EnemyManager : MonoBehaviour
 
     [HideInInspector] public bool outsidePulseActive = false;
     [HideInInspector] public Vector2 outsidePulseDirection;
+    [HideInInspector] public float outsidePulseMagnitude = 16;
 
     [HideInInspector] public bool pulseActive = false;
     [HideInInspector] public bool enemyWasPulsed = false;
@@ -269,7 +270,7 @@ public class EnemyManager : MonoBehaviour
 
         if (outsidePulseActive && normalPulse && enemyWasKilled == false)
         {
-            enemyRB.velocity = outsidePulseDirection * 16;
+            enemyRB.velocity = outsidePulseDirection * outsidePulseMagnitude;
             outsidePulseActive = false;
         }
     }

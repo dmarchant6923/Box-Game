@@ -63,7 +63,7 @@ public class Fire : MonoBehaviour
             {
                 surfaceNormal = new Vector2(Mathf.Sign(surfaceNormal.x), 1).normalized;
             }
-            float angle = -Mathf.Atan2(surfaceNormal.x, surfaceNormal.y) * Mathf.Rad2Deg;
+            float angle = Tools.VectorToAngle(surfaceNormal);
             transform.eulerAngles = new Vector3(0, 0, angle);
         }
     }
@@ -82,7 +82,7 @@ public class Fire : MonoBehaviour
             {
                 stopFire = true;
             }
-            if (objectOnFire.transform.root.GetComponent<EnemyManager>() != null && objectOnFire.transform.root.GetComponent<EnemyManager>().enemyWasKilled)
+            else if (objectOnFire.transform.root.GetComponent<EnemyManager>() != null && objectOnFire.transform.root.GetComponent<EnemyManager>().enemyWasKilled)
             {
                 stopFire = true;
             }
@@ -137,7 +137,7 @@ public class Fire : MonoBehaviour
         {
             yield return new WaitForSeconds(smokeTime * 0.7f + Random.Range(0f, smokeTime * 0.6f));
             float angle = transform.eulerAngles.z;
-            Vector3 vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2), Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+            Vector3 vector = Tools.AngleToVector(angle);
             Instantiate(smoke, transform.position + vector * 0.5f, Quaternion.identity);
         }
     }

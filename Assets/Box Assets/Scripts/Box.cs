@@ -7,10 +7,11 @@ using Random = UnityEngine.Random;
 public class Box : MonoBehaviour
 {
     InputBroker inputs;
+    [System.NonSerialized] public static bool boxInputsEnabled = true;
     [HideInInspector] public static bool endForcedDisable = false;
 
-    private Rigidbody2D rigidBody; //this box rigidbody properties
-    private BoxCollider2D boxCollider; //this box boxcollider properties
+    Rigidbody2D rigidBody; //this box rigidbody properties
+    Color initialColor;
 
     int groundLayerMask; //layermask for both platforms and obstacles
     int platformLayerMask; //layermask for platforms
@@ -18,8 +19,8 @@ public class Box : MonoBehaviour
     int enemyLayerMask; //layermask for enemies
     int obstacleLayerMask;
 
-    float initialGravityScale = 4; //keeps initial gravity scale so it can be modified and returned to normal
-    float gravityScale = 4;
+    float initialGravityScale; //keeps initial gravity scale so it can be modified and returned to normal
+    float gravityScale;
     [System.NonSerialized] public float gravityMult = 1;
     [System.NonSerialized] public static float windGravity = 0;
 
@@ -193,15 +194,23 @@ public class Box : MonoBehaviour
 
     bool forceInputsDisabled = false;
 
+    public bool normalControls = true;
+
     public bool debugEnabled = false;
     public bool playtesting = false;
 
     private void Awake()
     {
-        inputs = GetComponent<InputBroker>();
+        foreach (InputBroker input in GetComponents<InputBroker>())
+        {
+            if (input.main)
+            {
+                inputs = input;
+                break;
+            }
+        }
 
         rigidBody = GetComponent<Rigidbody2D>();
-        boxCollider = GetComponent<BoxCollider2D>();
 
         originalScale = transform.lossyScale;
 
@@ -230,6 +239,9 @@ public class Box : MonoBehaviour
         onFire = false;
         wallBounceActive = false;
 
+        initialColor = GetComponent<SpriteRenderer>().color;
+        initialGravityScale = rigidBody.gravityScale;
+        gravityScale = initialGravityScale;
         initialGroundFriction = groundFriction;
         stickyFriction = initialGroundFriction * 4;
         airAccel = initialAirAccel;
@@ -240,7 +252,7 @@ public class Box : MonoBehaviour
     private void checkIsGrounded()
     {
         groundVerticalVelocity = 0;
-        groundRayCast = Physics2D.BoxCast(new Vector2(boxCollider.bounds.center.x,boxCollider.bounds.center.y-(transform.lossyScale.y/2)-0.02f),
+        groundRayCast = Physics2D.BoxCast(new Vector2(rigidBody.position.x,rigidBody.position.y-(transform.lossyScale.y/2)-0.02f),
             new Vector2(transform.lossyScale.x/2*0.9f,0.05f), 0, Vector2.down, 0f, groundLayerMask);
         Collider2D ground = groundRayCast.collider;
         if (ground != null && ground.GetComponent<MovingObjects>() != null)
@@ -324,6 +336,8 @@ public class Box : MonoBehaviour
         {
             inputs.inputsEnabled = true;
         }
+        if (inputs.inputsEnabled) { boxInputsEnabled = true; }
+        else { boxInputsEnabled = false; }
 
         //normal movement if hitstop is not active
         if (enemyHitstopActive == false)
@@ -355,7 +369,7 @@ public class Box : MonoBehaviour
 
         float adjustedCrouchSpeed = crouchMaxSpeed * Mathf.Min(Mathf.Abs(inputs.leftStick.x), 0.5f) * 2;
         float adjustedHorizSpeed = horizMaxSpeed * Mathf.Max(Mathf.Abs(inputs.leftStick.x), 0.2f);
-        if (isGrounded == true)
+        if (isGrounded && normalControls)
         {
             //crouch activation / deactivation and conditions
             if (inputs.leftStick.y <= crouchThreshold && isCrouching == false && teleportActive == false && dashActive == false)
@@ -528,7 +542,7 @@ public class Box : MonoBehaviour
             airTime += Time.deltaTime;
         }
         //air acceleration L/R and air friction + larger air friction if moving faster than horiz max speed
-        if ((isGrounded == false || isOnIce == true) && ceilingCling == false && enemyHitstopActive == false)
+        if ((isGrounded == false || isOnIce == true) && ceilingCling == false && enemyHitstopActive == false && normalControls)
         {
             if (Mathf.Abs(BoxVelocity.velocitiesX[0]) > horizMaxSpeed)
             {
@@ -757,7 +771,7 @@ public class Box : MonoBehaviour
         //
         //enemy interactions to activate when boxcast covering player body encounters an enemy. Mostly used in other scripts.
         //
-        if (GetComponent<BoxCollider2D>().enabled == true)
+        if (GetComponent<Collider2D>().enabled == true)
         {
             attackRayCast = Physics2D.BoxCastAll(rigidBody.position, new Vector2(transform.localScale.x, transform.localScale.y),
                 rigidBody.rotation, Vector2.down, 0f, attackLayerMask);
@@ -928,38 +942,38 @@ public class Box : MonoBehaviour
             //debug color changes (will probably keep walljump color in normal game)
             if (inputs.inputsEnabled == false && boxHitboxActive == false)
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.red;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.red;
             } // red = inputs disabled, aka damage or emeny pulse or anything that disables inputs, but not when hitbox is active
             else if (boxHitboxActive)
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.green;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.green;
             } // green = spin or dash attack is active
             else if (isGrounded == true)
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.cyan;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.cyan;
             } //cyan = grounded
             else if (startAirTimer == true && shortJumpEnum == true)
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.blue;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
             } // blue = After grounded jump and within short jump window
             else if (canWallJump == true)
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.magenta;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.magenta;
             } // magenta = can wall jump
             else
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.white;
+                gameObject.GetComponent<SpriteRenderer>().color = initialColor;
             } // white = none of the above
         }
         else
         {
             if (damageActive)
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.red;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.red;
             }
             else
             {
-                gameObject.GetComponent<Renderer>().material.color = Color.white;
+                gameObject.GetComponent<SpriteRenderer>().color = initialColor;
             }
         }
 

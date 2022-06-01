@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class InputBroker : MonoBehaviour
 {
+    public bool main = true;
+
     [HideInInspector] public bool inputsEnabled;
 
     public static bool Keyboard { get; private set; } = true;

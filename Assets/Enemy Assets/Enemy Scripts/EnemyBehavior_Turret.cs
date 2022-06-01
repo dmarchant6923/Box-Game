@@ -134,8 +134,7 @@ public class EnemyBehavior_Turret : MonoBehaviour
 
         bool barrelAngleCheck = false;
         float currentBarrelAngle = barrelAngle;
-        Vector2 currentBarrelVector = new Vector2(Mathf.Cos(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                Mathf.Sin(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+        Vector2 currentBarrelVector = Tools.AngleToVector(currentBarrelAngle);
         bool foundOne = false;
         float angleTraveled = 0;
         while (barrelAngleCheck == false && foundWall == true)
@@ -144,16 +143,14 @@ public class EnemyBehavior_Turret : MonoBehaviour
             if (checkRay.collider == null && foundOne == false)
             {
                 currentBarrelAngle += 2;
-                currentBarrelVector = new Vector2(Mathf.Cos(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                    Mathf.Sin(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+                currentBarrelVector = Tools.AngleToVector(currentBarrelAngle);
                 angleTraveled += 2;
                 continue;
             }
             if (checkRay.collider != null && foundOne == false)
             {
                 currentBarrelAngle -= 2;
-                currentBarrelVector = new Vector2(Mathf.Cos(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                    Mathf.Sin(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+                currentBarrelVector = Tools.AngleToVector(currentBarrelAngle);
                 barrelAngleLimits[0] = currentBarrelAngle;
                 barrelVectorLimits[0] = currentBarrelVector;
                 foundOne = true;
@@ -163,15 +160,13 @@ public class EnemyBehavior_Turret : MonoBehaviour
             if (checkRay.collider == null && foundOne == true)
             {
                 currentBarrelAngle -= 2;
-                currentBarrelVector = new Vector2(Mathf.Cos(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                    Mathf.Sin(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+                currentBarrelVector = Tools.AngleToVector(currentBarrelAngle);
                 continue;
             }
             if (checkRay.collider != null && foundOne == true)
             {
                 currentBarrelAngle += 2;
-                currentBarrelVector = new Vector2(Mathf.Cos(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                    Mathf.Sin(currentBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+                currentBarrelVector = Tools.AngleToVector(currentBarrelAngle);
                 barrelAngleLimits[1] = currentBarrelAngle;
                 barrelVectorLimits[1] = currentBarrelVector;
                 barrelAngleCheck = true;
@@ -214,7 +209,7 @@ public class EnemyBehavior_Turret : MonoBehaviour
         //barrelVector
         vectorToBox = (boxRB.position - enemyRB.position).normalized;
         //barrelAngle
-        angleToBox = -Mathf.Atan2(vectorToBox.x, vectorToBox.y) * Mathf.Rad2Deg;
+        angleToBox = Tools.VectorToAngle(vectorToBox);
         enemyRC_RayToBox = Physics2D.Raycast(enemyRB.position, vectorToBox, shootBoxRadius, obstacleAndBoxLM);
         enemyRC_ShootBox = Physics2D.CircleCast(enemyRB.position, shootBoxRadius * 1.05f, new Vector2(0, 0), 0f, boxLM);
 
@@ -257,8 +252,7 @@ public class EnemyBehavior_Turret : MonoBehaviour
                     vy = deltaY / T + T * g / 2;
 
                     barrelAngle = -Mathf.Atan2(vx, vy) * Mathf.Rad2Deg;
-                    barrelVector = new Vector2(Mathf.Cos(barrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                        Mathf.Sin(barrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+                    barrelVector = Tools.AngleToVector(barrelAngle);
                     RaycastHit2D detectObstacle = Physics2D.Raycast(transform.position, barrelVector, 5, obstacleLM);
 
                     if (detectObstacle.collider != null)
@@ -278,8 +272,7 @@ public class EnemyBehavior_Turret : MonoBehaviour
                     }
                 }
             }
-            barrelVector = new Vector2(Mathf.Cos(barrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                Mathf.Sin(barrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+            barrelVector = Tools.AngleToVector(barrelAngle);
         }
         else
         {
@@ -335,8 +328,7 @@ public class EnemyBehavior_Turret : MonoBehaviour
             }
         }
 
-        realBarrelVector = new Vector2(Mathf.Cos(realBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-            Mathf.Sin(realBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+        realBarrelVector = Tools.AngleToVector(realBarrelAngle);
 
         transform.eulerAngles = Vector3.forward * (realBarrelAngle);
 

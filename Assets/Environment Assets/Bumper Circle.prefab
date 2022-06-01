@@ -259,6 +259,7 @@ GameObject:
   - component: {fileID: 423620419771096968}
   - component: {fileID: 659164137277653463}
   - component: {fileID: 1595860143162087306}
+  - component: {fileID: 6682199550677901657}
   m_Layer: 6
   m_Name: Bumper Circle
   m_TagString: Untagged
@@ -367,6 +368,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bbe6a05e1ecc5f4da02012dc7341a9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  circle: 1
+  box: 0
+  mounted: 0
   bounceMagnitude: 20
 --- !u!58 &1595860143162087306
 CircleCollider2D:
@@ -384,3 +388,35 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &6682199550677901657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8366851920404879737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e1484f83a992ed41a180fa71899899f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialDelay: 0
+  randomInitialDelay: 0
+  distance: 5
+  horizontal: 1
+  movementType1: 0
+  type1Velocity1: 2.6
+  type1Velocity2: 2.6
+  type1StayTime1: 1
+  type1StayTime2: 1
+  movementType2: 0
+  type2Period: 1
+  isMoving: 0
+  startReverse: 0
+  activateBySwitch: 0
+  startActive: 0
+  stayActive: 0
+  active: 1
+  pauseOnDeactivate: 0
+  bufferDeactivate: 0
+  interactableObstacle: 0

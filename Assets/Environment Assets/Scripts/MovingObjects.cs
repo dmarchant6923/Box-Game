@@ -47,6 +47,8 @@ public class MovingObjects : MonoBehaviour
     bool reachedInitialPosition = false;
     float storedVelocity;
 
+    public bool interactableObstacle = true;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();

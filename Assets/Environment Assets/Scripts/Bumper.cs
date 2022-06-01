@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Bumper : MonoBehaviour
 {
-    GameObject box;
+    GameObject player;
 
     CircleCollider2D circleCol;
     float initialColRadius;
@@ -12,27 +12,37 @@ public class Bumper : MonoBehaviour
     BoxCollider2D boxCol;
     Vector2 initialColSize;
 
+    Transform mountedBumper;
 
     public bool circle = true;
+    public bool box = false;
+    public bool mounted = false;
 
     bool bounce = false;
     public float bounceMagnitude = 20;
     Vector2 initialScale;
+    Vector2 bouncePosition;
 
     void Start()
     {
-        box = GameObject.Find("Box");
+        player = GameObject.Find("Box");
         if (circle)
         {
             circleCol = GetComponent<CircleCollider2D>();
             initialColRadius = circleCol.radius;
+            initialScale = transform.localScale;
         }
-        else
+        else if (box)
         {
             boxCol = GetComponent<BoxCollider2D>();
             initialColSize = boxCol.size;
+            initialScale = transform.localScale;
         }
-        initialScale = transform.localScale;
+        else if (mounted)
+        {
+            mountedBumper = transform.GetChild(0);
+            initialScale = mountedBumper.localScale;
+        }
 
 
     }
@@ -46,51 +56,25 @@ public class Bumper : MonoBehaviour
         }
     }
 
-    //private void OnTriggerEnter2D(Collider2D collision)
-    //{
-    //    if (collision.gameObject == box)
-    //    {
-    //        if (Box.damageActive)
-    //        {
-    //            Vector2 launch = (boxRB.position - bumperRB.position).normalized * bounceMagnitude;
-    //            BoxVelocity.velocitiesX[0] = launch.x;
-    //            collision.GetComponent<Rigidbody2D>().velocity = new Vector2(collision.GetComponent<Rigidbody2D>().velocity.x, launch.y);
-    //            StartCoroutine(Bounce());
-    //            Debug.Log("you are here");
-    //        }
-    //        else if (Box.boxWasPulsed == false)
-    //        {
-    //            Box.boxPulsedWhileInvulnerable = true;
-    //            Box.boxWasPulsed = true;
-    //            Box.boxEnemyPulseDirection = (boxRB.position - bumperRB.position).normalized;
-    //            Box.boxEnemyPulseMagnitude = bounceMagnitude;
-    //            StartCoroutine(Bounce());
-    //        }
-    //    }
-    //    if (collision.gameObject.GetComponent<EnemyManager>() != null)
-    //    {
-    //        Vector2 direction = new Vector2(collision.transform.position.x - bumperRB.position.x, collision.transform.position.y - bumperRB.position.y).normalized;
-    //        collision.gameObject.GetComponent<EnemyManager>().outsidePulseDirection = direction;
-    //        collision.gameObject.GetComponent<EnemyManager>().outsidePulseActive = true;
-    //    }
-    //    if (collision.gameObject.GetComponent<Grenade>() != null)
-    //    {
-    //        Rigidbody2D grenadeRB = collision.GetComponent<Rigidbody2D>();
-    //        Vector2 enemyReflectVector = (grenadeRB.position - bumperRB.position).normalized;
-    //        grenadeRB.velocity = enemyReflectVector * bounceMagnitude;
-    //    }
-    //}
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Vector2 launch = -collision.GetContact(0).normal;
-        if (collision.gameObject == box)
+        if (mounted)
+        {
+            launch = Tools.AngleToVector(transform.eulerAngles.z);
+        }
+        if (collision.gameObject == player)
         {
             if (Box.damageActive)
             {
-                BoxVelocity.velocitiesX[0] = launch.x;
-                collision.collider.GetComponent<Rigidbody2D>().velocity = new Vector2(collision.collider.GetComponent<Rigidbody2D>().velocity.x, launch.y);
+                BoxVelocity.velocitiesX[0] = launch.x * bounceMagnitude;
+                collision.collider.GetComponent<Rigidbody2D>().velocity = new Vector2(collision.collider.GetComponent<Rigidbody2D>().velocity.x, launch.y * bounceMagnitude);
                 bounce = true;
+                bouncePosition = player.GetComponent<Rigidbody2D>().position;
+                if (mounted)
+                {
+                    StartCoroutine(DisableCollision());
+                }
             }
             else if (Box.boxWasPulsed == false)
             {
@@ -99,13 +83,16 @@ public class Bumper : MonoBehaviour
                 Box.boxEnemyPulseDirection = launch;
                 Box.boxEnemyPulseMagnitude = bounceMagnitude;
                 bounce = true;
+                bouncePosition = player.GetComponent<Rigidbody2D>().position;
+                if (mounted)
+                {
+                    StartCoroutine(DisableCollision());
+                }
             }
         }
 
         if (collision.gameObject.GetComponent<EnemyManager>() != null)
         {
-            //Vector2 direction = new Vector2(collision.transform.position.x - bumperRB.position.x, collision.transform.position.y - bumperRB.position.y).normalized;
-            //collision.gameObject.GetComponent<EnemyManager>().outsidePulseDirection = direction;
             collision.gameObject.GetComponent<EnemyManager>().outsidePulseDirection = launch;
             collision.gameObject.GetComponent<EnemyManager>().outsidePulseActive = true;
             collision.gameObject.GetComponent<EnemyManager>().outsidePulseMagnitude = bounceMagnitude;
@@ -116,8 +103,6 @@ public class Bumper : MonoBehaviour
         if (collision.gameObject.GetComponent<Grenade>() != null)
         {
             Rigidbody2D grenadeRB = collision.collider.GetComponent<Rigidbody2D>();
-            //Vector2 enemyReflectVector = (grenadeRB.position - bumperRB.position).normalized;
-            //grenadeRB.velocity = enemyReflectVector * bounceMagnitude;
             grenadeRB.velocity = launch * bounceMagnitude;
             bounce = true;
         }
@@ -125,34 +110,72 @@ public class Bumper : MonoBehaviour
 
     IEnumerator Bounce()
     {
+        player.GetComponent<Rigidbody2D>().position = bouncePosition;
         yield return new WaitForFixedUpdate();
-        float mult = 1.3f;
-        transform.localScale = Vector2.one * initialScale * mult;
-        float shrinkSpeed = 1;
+        float mult = 1.35f;
+        float shrinkSpeed = 3;
+        if (circle)
+        {
+            transform.localScale = Vector2.one * initialScale * mult;
+        }
+        else if (box)
+        {
+            mult += (mult - 1) * 2;
+            shrinkSpeed *= 1.5f;
+            transform.localScale = new Vector2(transform.localScale.x + transform.localScale.y * (mult - 1), transform.localScale.y * mult);
+        }
+        else if (mounted)
+        {
+            mountedBumper.localScale = Vector2.one * initialScale * mult;
+        }
         float timer = 0;
-        while (transform.localScale.y > initialScale.y && bounce == false)
+        while (((transform.localScale.y > initialScale.y && mounted == false) || 
+                (mountedBumper != null && mountedBumper.transform.localScale.y > initialScale.y && mounted))
+                 && bounce == false)
         {
             if (circle)
             {
                 circleCol.radius = initialColRadius * (initialScale.y / transform.localScale.y);
-                
+
+                transform.localScale = new Vector2(transform.localScale.x - shrinkSpeed * initialScale.y * Time.deltaTime,
+                                                   transform.localScale.y - shrinkSpeed * initialScale.y * Time.deltaTime);
+
             }
-            else
+            else if (box)
             {
-                boxCol.size = initialColSize * (initialScale.y / transform.localScale.y);
+                boxCol.size = new Vector2(initialColSize.x * (initialScale.x / transform.localScale.x), 
+                                          initialColSize.y * (initialScale.y / transform.localScale.y));
+
+                transform.localScale = new Vector2(transform.localScale.x - shrinkSpeed * initialScale.y * Time.deltaTime,
+                                                   transform.localScale.y - shrinkSpeed * initialScale.y * Time.deltaTime);
             }
-            transform.localScale = new Vector2(transform.localScale.x - shrinkSpeed * initialScale.x * Time.deltaTime, transform.localScale.y - shrinkSpeed * initialScale.y * Time.deltaTime);
+            else if (mounted)
+            {
+                mountedBumper.localScale = new Vector2(mountedBumper.localScale.x - shrinkSpeed * initialScale.y * Time.deltaTime,
+                                                       mountedBumper.localScale.y - shrinkSpeed * initialScale.y * Time.deltaTime);
+            }
             timer += Time.deltaTime;
             yield return null;
         }
-        transform.localScale = Vector2.one * initialScale;
         if (circle)
         {
             circleCol.radius = initialColRadius;
+            transform.localScale = Vector2.one * initialScale;
         }
-        else
+        else if (box)
         {
             boxCol.size = initialColSize;
+            transform.localScale = Vector2.one * initialScale;
         }
+        else if (mounted)
+        {
+            mountedBumper.localScale = Vector2.one * initialScale;
+        }
+    }
+    IEnumerator DisableCollision()
+    {
+        GetComponent<PolygonCollider2D>().enabled = false;
+        yield return new WaitForFixedUpdate();
+        GetComponent<PolygonCollider2D>().enabled = true;
     }
 }

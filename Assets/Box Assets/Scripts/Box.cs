@@ -252,7 +252,8 @@ public class Box : MonoBehaviour
             groundVerticalVelocity = 0;
         }
 
-        if (ground != null && Mathf.Abs(rigidBody.velocity.y - groundVerticalVelocity) < 0.05f && boxHitstopActive == false && ground.GetComponent<Bumper>() == null)
+        if (ground != null && Mathf.Abs(rigidBody.velocity.y - groundVerticalVelocity) < 0.05f && boxHitstopActive == false && 
+            ground.GetComponent<MovingObjects>().interactableObstacle)
         {
             if (1 << ground.gameObject.layer == platformLayerMask && PlatformDrop.platformsEnabled == true)
             {
@@ -746,7 +747,6 @@ public class Box : MonoBehaviour
                 StartCoroutine(EnemyPulse());
             }
             boxWasPulsed = false;
-            boxPulsedWhileInvulnerable = false;
         }
         //dodge
         if (inputs.dodgeButtonDown && canDodge)
@@ -1017,36 +1017,40 @@ public class Box : MonoBehaviour
         bool touchingCeiling = false;
         float ceilingPositionY = 0;
         Vector2 ceilingVelocity = Vector2.zero;
-        foreach (ContactPoint2D col in collision.contacts)
+        if (collision.collider.GetComponent<MovingObjects>().interactableObstacle)
         {
-            if (col.normal.y > 0.8f && (1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles") || 1 << col.collider.gameObject.layer == LayerMask.GetMask("Platforms")))
-            { 
-                touchedGround = true; groundVelocityY = col.collider.GetComponent<Rigidbody2D>().velocity.y;
-            }
-            if (col.normal.x > 0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
+            foreach (ContactPoint2D col in collision.contacts)
             {
-                touchingLeftWall = true;
-                wallVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
-                wall = col.collider.gameObject;
-            }
-            if (col.normal.x < -0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
-            { 
-                touchingRightWall = true;
-                wallVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
-                wall = col.collider.gameObject;
-            }
-            if (col.normal.y < -0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
-            { 
-                touchingCeiling = true; ceilingPositionY = col.point.y;
-                ceilingVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
-            }
-            if (col.collider.gameObject.tag == "Fence")
-            {
-                sticky = true;
-            }
-            else if (BoxPerks.spikesActive == false)
-            {
-                sticky = false;
+                if (col.normal.y > 0.8f && (1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles") || 
+                    1 << col.collider.gameObject.layer == LayerMask.GetMask("Platforms")))
+                {
+                    touchedGround = true; groundVelocityY = col.collider.GetComponent<Rigidbody2D>().velocity.y;
+                }
+                if (col.normal.x > 0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
+                {
+                    touchingLeftWall = true;
+                    wallVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
+                    wall = col.collider.gameObject;
+                }
+                if (col.normal.x < -0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
+                {
+                    touchingRightWall = true;
+                    wallVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
+                    wall = col.collider.gameObject;
+                }
+                if (col.normal.y < -0.8f && 1 << col.collider.gameObject.layer == LayerMask.GetMask("Obstacles"))
+                {
+                    touchingCeiling = true; ceilingPositionY = col.point.y;
+                    ceilingVelocity = col.collider.gameObject.GetComponent<Rigidbody2D>().velocity;
+                }
+                if (col.collider.gameObject.tag == "Fence")
+                {
+                    sticky = true;
+                }
+                else if (BoxPerks.spikesActive == false)
+                {
+                    sticky = false;
+                }
             }
         }
 
@@ -1104,8 +1108,7 @@ public class Box : MonoBehaviour
         }
 
         touchingWall = false;
-        if ((1 << collision.gameObject.layer == obstacleLayerMask && collision.gameObject.tag != "Hazard") || (collision.gameObject.tag == "Hazard" && isInvulnerable) &&
-            collision.collider.GetComponent<Bumper>() == null)
+        if ((1 << collision.gameObject.layer == obstacleLayerMask && collision.gameObject.tag != "Hazard") || (collision.gameObject.tag == "Hazard" && isInvulnerable))
         {
             RaycastHit2D wallcast = Physics2D.BoxCast(rigidBody.position + Vector2.up * transform.localScale.y / 4, new Vector2(transform.localScale.x * 1.1f, transform.localScale.y / 3),
                 0, Vector2.zero, 0, obstacleLayerMask);
@@ -1229,15 +1232,18 @@ public class Box : MonoBehaviour
         bool touchingLeftWall = false;
         bool touchingRightWall = false;
         bool touchingCeiling = false;
-        foreach (ContactPoint2D col in collision.contacts)
+        if (collision.collider.GetComponent<MovingObjects>().interactableObstacle)
         {
-            if (col.normal.y > 0.6f) { touchingGround = true; }
-            if (col.normal.x > 0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingLeftWall = true; }
-            if (col.normal.x < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingRightWall = true; }
-            if (col.normal.y < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingCeiling = true; }
+            foreach (ContactPoint2D col in collision.contacts)
+            {
+                if (col.normal.y > 0.6f) { touchingGround = true; }
+                if (col.normal.x > 0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingLeftWall = true; }
+                if (col.normal.x < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingRightWall = true; }
+                if (col.normal.y < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingCeiling = true; }
+            }
         }
 
-        if ((touchingLeftWall || touchingRightWall) && touchingGround == false && touchingCeiling == false && collision.collider.GetComponent<Bumper>() == null
+        if ((touchingLeftWall || touchingRightWall) && touchingGround == false && touchingCeiling == false
             && 1 << (collision.gameObject.layer) != platformLayerMask && isGrounded == false && damageActive == false && collision.rigidbody != null && dashActive == false)
         {
             BoxVelocity.velocitiesX[0] = collision.rigidbody.velocity.x;
@@ -2019,6 +2025,11 @@ public class Box : MonoBehaviour
         }
         yield return null;
         float DIMult = 0.5f;
+        if (boxPulsedWhileInvulnerable)
+        {
+            DIMult = 0.25f;
+            boxPulsedWhileInvulnerable = false;
+        }
         Vector2 DI = inputs.leftStickDisabled;
         if (DI.magnitude < 0.1f)
         {

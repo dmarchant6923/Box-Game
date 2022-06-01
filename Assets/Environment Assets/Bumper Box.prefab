@@ -177,6 +177,7 @@ GameObject:
   - component: {fileID: 2703016818773738870}
   - component: {fileID: 2974585449843530537}
   - component: {fileID: 8404330664037462946}
+  - component: {fileID: 6681313174446127194}
   m_Layer: 6
   m_Name: Bumper Box
   m_TagString: Untagged
@@ -286,6 +287,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   circle: 0
+  box: 1
+  mounted: 0
   bounceMagnitude: 20
 --- !u!61 &8404330664037462946
 BoxCollider2D:
@@ -313,6 +316,38 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &6681313174446127194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6088598979164210055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e1484f83a992ed41a180fa71899899f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialDelay: 0
+  randomInitialDelay: 0
+  distance: 5
+  horizontal: 1
+  movementType1: 0
+  type1Velocity1: 2.6
+  type1Velocity2: 2.6
+  type1StayTime1: 1
+  type1StayTime2: 1
+  movementType2: 0
+  type2Period: 1
+  isMoving: 0
+  startReverse: 0
+  activateBySwitch: 0
+  startActive: 0
+  stayActive: 0
+  active: 1
+  pauseOnDeactivate: 0
+  bufferDeactivate: 0
+  interactableObstacle: 0
 --- !u!1 &6177159930474863667
 GameObject:
   m_ObjectHideFlags: 0

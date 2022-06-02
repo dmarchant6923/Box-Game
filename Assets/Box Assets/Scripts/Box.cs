@@ -1068,16 +1068,16 @@ public class Box : MonoBehaviour
             }
         }
 
-        if (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles") || 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms"))
-        {
-            //stop spinning when pressing down
-            if (touchedGround && inputs.attackButton == false && Mathf.Abs(rigidBody.velocity.y - groundVelocityY) < 0.05f)
-            {
-                canDoubleJump = true;
-                rigidBody.angularVelocity = 0;
-                rigidBody.rotation = 0;
-            }
-        }
+        //if (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles") || 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms"))
+        //{
+        //    //stop spinning when pressing down
+        //    if (touchedGround && inputs.attackButton == false && Mathf.Abs(rigidBody.velocity.y - groundVelocityY) < 0.05f)
+        //    {
+        //        canDoubleJump = true;
+        //        rigidBody.angularVelocity = 0;
+        //        rigidBody.rotation = 0;
+        //    }
+        //}
         if ((touchingLeftWall || touchingRightWall) && dashActive)
         {
             if (touchingLeftWall && leftWallCheck.collider != null)
@@ -1263,10 +1263,12 @@ public class Box : MonoBehaviour
             BoxVelocity.velocitiesX[0] = collision.rigidbody.velocity.x;
         }
 
-        if ((touchingLeftWall && inputs.leftStick.x < -0.8f) || (touchingRightWall && inputs.leftStick.x > 0.8f))
+        if ((touchingLeftWall|| touchingRightWall) && inputs.attackButton == false && inputs.inputsEnabled)
         {
+            int direction = (touchingLeftWall) ? 1 : -1;
             rigidBody.angularVelocity = 0;
             rigidBody.rotation = 0;
+            rigidBody.position = new Vector2(collision.GetContact(0).point.x + transform.localScale.x * direction / 2, rigidBody.position.y);
         }
 
         if ((touchingLeftWall || touchingRightWall || touchingCeiling || touchingGround) && techWindowActive && 
@@ -1285,6 +1287,13 @@ public class Box : MonoBehaviour
             {
                 BoxVelocity.velocitiesX[0] *= -0.6f;
             }
+        }
+
+        if (touchingGround && inputs.attackButton == false && inputs.inputsEnabled)
+        {
+            rigidBody.angularVelocity = 0;
+            rigidBody.rotation = 0;
+            rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y + transform.localScale.y / 2);
         }
     }
     private void OnCollisionExit2D(Collision2D collision)

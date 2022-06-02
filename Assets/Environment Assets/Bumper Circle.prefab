@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8818017758338972050}
   - component: {fileID: 7468135636390853003}
   m_Layer: 6
-  m_Name: Circle (1)
+  m_Name: ring
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -72,7 +72,7 @@ SpriteRenderer:
   m_SortingLayer: 1
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 3c3f0ce6c6c80e34fadc65dcd41bbdf0, type: 3}
-  m_Color: {r: 1, g: 0.97032934, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -93,7 +93,7 @@ GameObject:
   - component: {fileID: 1266486716856298541}
   - component: {fileID: 1770653246520791048}
   m_Layer: 6
-  m_Name: Circle
+  m_Name: blue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -175,7 +175,7 @@ GameObject:
   - component: {fileID: 6233978728758241418}
   - component: {fileID: 7823665408155724447}
   m_Layer: 6
-  m_Name: Circle (2)
+  m_Name: star
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -236,7 +236,7 @@ SpriteRenderer:
   m_SortingLayer: 1
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 8390b475bd731214da4b96fa3558d6e9, type: 3}
-  m_Color: {r: 1, g: 0.97032934, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

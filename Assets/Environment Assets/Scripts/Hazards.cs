@@ -25,7 +25,7 @@ public class Hazards : MonoBehaviour
         float periodTime = 0.8f;
         while (true)
         {
-            color.g = initialColor.g + 0.15f * Mathf.Sin(timer * Mathf.PI * 2 / periodTime);
+            color.g = initialColor.g + 0.3f * Mathf.Sin(timer * Mathf.PI * 2 / periodTime);
             sprite.color = color;
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();

@@ -498,16 +498,23 @@ public class EnemyBehavior_Blitz : MonoBehaviour
     IEnumerator Knockback(bool pulsed)
     {
         knockbackActive = true;
-        if (pulsed)
-        {
-            yield return null;
-        }
+        yield return null;
         if (GameObject.Find("Main Camera") != null && pulsed == false)
         {
             GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
             GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo =
                 new Vector2(6, (boxRB.position - enemyRB.position).magnitude);
         }
+        while (EM.hitstopImpactActive)
+        {
+            Debug.Log("you are here");
+            yield return null;
+            attacksLeft = 0;
+        }
+        //if (pulsed)
+        //{
+        //    yield return null;
+        //}
         enemyRB.gravityScale = 2f;
         enemyRB.velocity = collisionDirection * 8;
         if (pulsed)

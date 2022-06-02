@@ -21,7 +21,6 @@ public class Bumper : MonoBehaviour
     bool bounce = false;
     public float bounceMagnitude = 20;
     Vector2 initialScale;
-    Vector2 bouncePosition;
 
     void Start()
     {
@@ -70,7 +69,6 @@ public class Bumper : MonoBehaviour
                 BoxVelocity.velocitiesX[0] = launch.x * bounceMagnitude;
                 collision.collider.GetComponent<Rigidbody2D>().velocity = new Vector2(collision.collider.GetComponent<Rigidbody2D>().velocity.x, launch.y * bounceMagnitude);
                 bounce = true;
-                bouncePosition = player.GetComponent<Rigidbody2D>().position;
                 if (mounted)
                 {
                     StartCoroutine(DisableCollision());
@@ -83,7 +81,6 @@ public class Bumper : MonoBehaviour
                 Box.boxEnemyPulseDirection = launch;
                 Box.boxEnemyPulseMagnitude = bounceMagnitude;
                 bounce = true;
-                bouncePosition = player.GetComponent<Rigidbody2D>().position;
                 if (mounted)
                 {
                     StartCoroutine(DisableCollision());
@@ -110,7 +107,6 @@ public class Bumper : MonoBehaviour
 
     IEnumerator Bounce()
     {
-        player.GetComponent<Rigidbody2D>().position = bouncePosition;
         yield return new WaitForFixedUpdate();
         float mult = 1.35f;
         float shrinkSpeed = 3;

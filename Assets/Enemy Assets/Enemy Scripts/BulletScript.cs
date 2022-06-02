@@ -120,9 +120,26 @@ public class BulletScript : MonoBehaviour
     {
         Vector2 vel = bulletRB.velocity.normalized;
         float frameDistance = bulletRB.velocity.magnitude * Time.deltaTime;
-        RaycastHit2D raycast = Physics2D.Raycast(bulletRB.position, vel, frameDistance, LayerMask.GetMask("Obstacles"));
-        //Debug.DrawRay(bulletRB.position, vel * frameDistance, Color.red);
-        if (raycast.collider != null && raycast.collider.gameObject.tag == "Reflect")
+        //RaycastHit2D raycast = Physics2D.Raycast(bulletRB.position, vel, frameDistance, LayerMask.GetMask("Obstacles"));
+        RaycastHit2D[] raycast = Physics2D.RaycastAll(bulletRB.position, vel, frameDistance, LayerMask.GetMask("Obstacles"));
+
+
+        float distToRegular = 1000;
+        float distToReflect = 1000;
+        foreach (RaycastHit2D col in raycast)
+        {
+            if (col.collider != null && col.collider.tag == "Untagged")
+            {
+                distToRegular = Mathf.Min(col.distance, distToRegular);
+            }
+            if (col.collider != null && col.collider.tag == "Reflect")
+            {
+                distToReflect = Mathf.Min(col.distance, distToReflect);
+            }
+        }
+
+
+        if (distToReflect < 1000 && distToReflect < distToRegular)
         {
             Vector2 newVel = vel;
             Vector2 newPosition = bulletRB.position;

@@ -15,6 +15,8 @@ public class DestructibleBlock : MonoBehaviour
 
     void Start()
     {
+        blockSize = new Vector2(Mathf.Max(0.1f, blockSize.x), Mathf.Max(0.1f, blockSize.y));
+
         int gridX = Mathf.Max(1, (int)Mathf.Floor(transform.localScale.x / blockSize.x));
         float sizeX = transform.localScale.x / gridX;
 
@@ -81,8 +83,8 @@ public class DestructibleBlock : MonoBehaviour
         {
             block.transform.parent = null;
             block.GetComponent<Rigidbody2D>().isKinematic = false;
-            block.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(-5f, 5f), Random.Range(8f, 25f));
-            block.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(600f, 1000f) * (Random.Range(0, 2) * 2 - 1);
+            block.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(-5f, 5f), Random.Range(5f, 25f));
+            block.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(300f, 1000f) * (Random.Range(0, 2) * 2 - 1);
             block.GetComponent<Rigidbody2D>().gravityScale = 7;
             block.GetComponent<SpriteRenderer>().sortingLayerName = "Above All";
         }

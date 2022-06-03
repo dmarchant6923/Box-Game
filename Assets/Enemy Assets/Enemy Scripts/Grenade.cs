@@ -111,7 +111,7 @@ public class Grenade : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (1 << collision.gameObject.layer == LayerMask.GetMask("Hazards"))
+        if (collision.gameObject.tag == "Hazard")
         {
             Explosion();
         }

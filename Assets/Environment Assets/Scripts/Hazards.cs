@@ -7,6 +7,8 @@ public class Hazards : MonoBehaviour
     Color initialColor;
     SpriteRenderer sprite;
 
+    public float damage = 40;
+
     void Start()
     {
         sprite = GetComponent<SpriteRenderer>();

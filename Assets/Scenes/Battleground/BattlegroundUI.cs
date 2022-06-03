@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class BattlegroundUI : MonoBehaviour
 {
-    int stage;
+    public int stage;
     InputBroker UIInputs;
     UITools UITools;
 
@@ -38,7 +38,6 @@ public class BattlegroundUI : MonoBehaviour
 
     private void Start()
     {
-        stage = BattlegroundManager.stage;
         UIInputs = GetComponent<InputBroker>();
         UITools = GetComponent<UITools>();
         if (SaveManager.FileExists(fileName))

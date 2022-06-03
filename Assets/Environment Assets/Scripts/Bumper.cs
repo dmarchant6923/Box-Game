@@ -58,6 +58,16 @@ public class Bumper : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Vector2 launch = -collision.GetContact(0).normal;
+        if (circle)
+        {
+            launch = (collision.transform.position - transform.position).normalized;
+            Debug.DrawRay(collision.GetContact(0).point, launch);
+            float angle = Tools.VectorToAngle(launch);
+            angle += 22.5f;
+            angle = Mathf.Floor(angle / 45) * 45;
+            launch = Tools.AngleToVector(angle);
+            Debug.DrawRay(collision.GetContact(0).point, launch, Color.green);
+        }
         if (mounted)
         {
             launch = Tools.AngleToVector(transform.eulerAngles.z);

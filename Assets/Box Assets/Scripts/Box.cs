@@ -985,7 +985,7 @@ public class Box : MonoBehaviour
         if (collision.gameObject.tag == "Hazard" && isInvulnerable == false)
         {
             activateDamage = true;
-            damageTaken = 40;
+            damageTaken = collision.gameObject.GetComponent<Hazards>().damage;
             boxDamageDirection = collision.contacts[0].normal;
             if (Mathf.Abs(boxDamageDirection.y) < 0.1f)
             {
@@ -1272,7 +1272,7 @@ public class Box : MonoBehaviour
         }
 
         if ((touchingLeftWall || touchingRightWall || touchingCeiling || touchingGround) && techWindowActive && 
-            ((damageActive && damageTime > boxHitstopDelay + 0.05f) || boxEnemyPulseActive))
+            ((damageActive && damageTime > boxHitstopDelay + 0.05f) || (boxEnemyPulseActive && collision.collider.tag != "Hazard")))
         {
             techSuccessful = true;
             if ((touchingLeftWall && inputs.leftStickDisabled.x > 0.8f) ||

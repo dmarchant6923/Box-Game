@@ -34,6 +34,9 @@ public class BulletScript : MonoBehaviour
     bool flickerActive = false;
     float flickerMult = 0.85f;
 
+    bool touchedWall = false;
+    bool touchedReflect = false;
+
     private void Start()
     {
         boxLM = LayerMask.GetMask("Box");
@@ -71,6 +74,14 @@ public class BulletScript : MonoBehaviour
     }
     void Update()
     {
+        if (touchedWall && touchedReflect == false)
+        {
+            DestroyBullet();
+            Debug.Log("bullet destroyed");
+        }
+        touchedWall = false;
+        touchedReflect = false;
+
         if (bulletRB.velocity.magnitude >= 35)
         {
             transform.localScale = new Vector2(transform.localScale.x, 0.4f);
@@ -120,26 +131,10 @@ public class BulletScript : MonoBehaviour
     {
         Vector2 vel = bulletRB.velocity.normalized;
         float frameDistance = bulletRB.velocity.magnitude * Time.deltaTime;
-        //RaycastHit2D raycast = Physics2D.Raycast(bulletRB.position, vel, frameDistance, LayerMask.GetMask("Obstacles"));
-        RaycastHit2D[] raycast = Physics2D.RaycastAll(bulletRB.position, vel, frameDistance, LayerMask.GetMask("Obstacles"));
+        RaycastHit2D raycast = Physics2D.Raycast(bulletRB.position, vel, frameDistance, LayerMask.GetMask("Obstacles"));
 
 
-        float distToRegular = 1000;
-        float distToReflect = 1000;
-        foreach (RaycastHit2D col in raycast)
-        {
-            if (col.collider != null && col.collider.tag == "Untagged")
-            {
-                distToRegular = Mathf.Min(col.distance, distToRegular);
-            }
-            if (col.collider != null && col.collider.tag == "Reflect")
-            {
-                distToReflect = Mathf.Min(col.distance, distToReflect);
-            }
-        }
-
-
-        if (distToReflect < 1000 && distToReflect < distToRegular)
+        if (raycast.collider != null && raycast.collider.gameObject.tag == "Reflect")
         {
             Vector2 newVel = vel;
             Vector2 newPosition = bulletRB.position;
@@ -174,6 +169,10 @@ public class BulletScript : MonoBehaviour
             bulletRB.velocity = newVel * bulletRB.velocity.magnitude;
             bulletRB.position = newPosition + newVel * (bulletRB.velocity.magnitude * -Time.deltaTime * 3/4);
         }
+        else if(raycast.collider != null && raycast.collider.tag != "Reflect" && raycast.collider.tag != "Fence")
+        {
+            DestroyBullet();
+        }
     }
 
     public void DestroyBullet()
@@ -196,7 +195,7 @@ public class BulletScript : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
+    void OnTriggerStay2D(Collider2D collision)
     {
         RaycastHit2D boxRC = Physics2D.Raycast(bulletRB.position - bulletRB.velocity.normalized * transform.lossyScale.y, 
             bulletRB.velocity.normalized, transform.lossyScale.y * 2, boxLM);
@@ -226,13 +225,24 @@ public class BulletScript : MonoBehaviour
         else if (1 << collision.gameObject.layer == enemyLM && bulletWasReflected == false)
         {
         }
-        else if (collision.gameObject.tag == "Reflect")
-        {
+        //else if (collision.gameObject.tag == "Reflect")
+        //{
 
-        }
+        //}
         else if (1 << collision.gameObject.layer != LayerMask.GetMask("Pulse") && collision.isTrigger == false && collision.tag != "Fence")
         {
-            DestroyBullet();
+            if (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles"))
+            {
+                touchedWall = true;
+                if (collision.gameObject.tag == "Reflect")
+                {
+                    touchedReflect = true;
+                }
+            }
+            else
+            {
+                DestroyBullet();
+            }
         }
 
         if (collision.transform.root.GetComponent<HitSwitch>() != null)

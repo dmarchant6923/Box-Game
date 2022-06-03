@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class BattlegroundManager : MonoBehaviour
 {
-    [HideInInspector] public static int stage = 1;
-    [HideInInspector] public static int wave = 1;
-    [HideInInspector] public static int enemiesKilled = 0;
+    public static int stage = 1;
+    public static int wave = 1;
+    public static int enemiesKilled = 0;
+
     public int startingWave = 15;
     public bool usePresetWaves = true;
     public bool infiniteHealth = false;
@@ -793,7 +794,8 @@ public class BattlegroundManager : MonoBehaviour
                 RaycastHit2D spawnTurretCeilingCheck = Physics2D.Raycast(spawnCoordinates,
                     Vector2.up, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
                 while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null ||
-                    (spawnTurretWallCheck.collider == null && spawnTurretCeilingCheck.collider == null))
+                    ((spawnTurretWallCheck.collider == null || spawnTurretWallCheck.collider.tag == "Hazard") && 
+                    (spawnTurretCeilingCheck.collider == null || spawnTurretCeilingCheck.collider.tag == "Hazard")))
                 {
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                         spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));

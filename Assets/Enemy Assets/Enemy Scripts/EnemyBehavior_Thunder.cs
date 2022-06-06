@@ -206,7 +206,7 @@ public class EnemyBehavior_Thunder : MonoBehaviour
             currentAngVel = regAngVel;
         }
 
-        if (enemyHitstopActive == false)
+        if (enemyHitstopActive == false && EM.enemyWasKilled == false)
         {
             enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, Mathf.Sign(enemyRB.angularVelocity) * currentAngVel, 1500 * Time.deltaTime);
         }
@@ -349,7 +349,7 @@ public class EnemyBehavior_Thunder : MonoBehaviour
                     stage++;
                 }
                 yield return new WaitForSeconds(1f);
-                if (stage == 4)
+                if (stage == 4 && EM.enemyWasKilled == false)
                 {
                     if (shockPrepared)
                     {

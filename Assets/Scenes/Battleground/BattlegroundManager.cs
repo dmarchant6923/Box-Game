@@ -793,10 +793,11 @@ public class BattlegroundManager : MonoBehaviour
                     Vector2.right, enemySelected.enemyObject.transform.lossyScale.x * 4, obstacleLM);
                 RaycastHit2D spawnTurretCeilingCheck = Physics2D.Raycast(spawnCoordinates,
                     Vector2.up, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
+                bool recheck = false;
                 while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null ||
-                    ((spawnTurretWallCheck.collider == null || spawnTurretWallCheck.collider.tag == "Hazard") && 
-                    (spawnTurretCeilingCheck.collider == null || spawnTurretCeilingCheck.collider.tag == "Hazard")))
+                    (spawnTurretWallCheck.collider == null && spawnTurretCeilingCheck.collider == null) || recheck)
                 {
+                    recheck = false;
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                         spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
                     spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.2f, Vector2.zero, 0f, groundLM);
@@ -805,6 +806,11 @@ public class BattlegroundManager : MonoBehaviour
                         Vector2.right, enemySelected.enemyObject.transform.lossyScale.x * 4, obstacleLM);
                     spawnTurretCeilingCheck = Physics2D.Raycast(spawnCoordinates, 
                         Vector2.up, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
+                    if ((spawnTurretWallCheck.collider != null && spawnTurretWallCheck.collider.GetComponent<Hazards>() != null) ||
+                        (spawnTurretCeilingCheck.collider != null && spawnTurretCeilingCheck.collider.GetComponent<Hazards>() != null))
+                    {
+                        recheck = true;
+                    }
                     int rand = Random.Range(0, 5);
                     if (rand == 4)
                     {

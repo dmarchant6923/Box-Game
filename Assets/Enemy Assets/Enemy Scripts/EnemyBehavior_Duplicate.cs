@@ -21,6 +21,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     Rigidbody2D boxRB;
     EnemyManager EM;
     Rigidbody2D enemyRB;
+    AreaAnalyze areaAnalyze;
+    LineRenderer lr;
 
     public float flipTime = 6;
     float flipTransitionTime = 1f;
@@ -77,6 +79,14 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         enemyRB.velocity = Vector2.up * 3;
 
         EM.normalDeath = false;
+
+        areaAnalyze = GetComponent<AreaAnalyze>();
+        lr = GetComponent<LineRenderer>();
+        areaAnalyze.radius = radius;
+        Color color = area.GetComponent<SpriteRenderer>().color;
+        color.a = 0.6f;
+        lr.startColor = color;
+        lr.endColor = color;
     }
 
     void FixedUpdate()
@@ -536,6 +546,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         {
             areaColor.a -= Time.deltaTime / 3;
             areaSprite.color = areaColor;
+            lr.startColor = areaColor;
+            lr.endColor = areaColor;
             yield return null;
         }
         area.gameObject.SetActive(false);

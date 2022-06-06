@@ -20,6 +20,10 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: idleWaitTime
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
       propertyPath: attackCooldownTime
       value: 1.4
       objectReference: {fileID: 0}

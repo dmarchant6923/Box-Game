@@ -56,6 +56,13 @@ public class EnemyBehavior_Blitz : MonoBehaviour
 
     bool aggroActive = false;
 
+    bool idle = true;
+    bool idleCR = false;
+    bool idleMoveActive = false;
+    public float idleWaitTime = 4;
+    float idleRadius = 7;
+    float idleOffset = 2;
+
 
     int obstacleAndBoxLM;
     int obstacleLM;
@@ -203,8 +210,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
 
     private void FixedUpdate()
     {
-        float distance = 2;
-        RaycastHit2D circleCast = Physics2D.CircleCast(enemyRB.position, distance, Vector2.zero, 0, LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
+        RaycastHit2D circleCast = Physics2D.CircleCast(enemyRB.position, idleOffset, Vector2.zero, 0, LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
         if ((knockbackActive == false || (knockbackActive && attacksLeft > 0)) && delayActive == false && attackActive == false && circleCast.collider != null)
         {
             for (int i = 0; i < 17; i++)
@@ -213,7 +219,8 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 float offset = 0.9f;
                 Vector2 vector = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2),
                 Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
-                RaycastHit2D cast = Physics2D.Raycast(enemyRB.position + vector * offset, vector, distance - vector.magnitude * offset, LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
+                RaycastHit2D cast = Physics2D.Raycast(enemyRB.position + vector * offset, vector, idleOffset - vector.magnitude * offset, 
+                    LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
                 Color color = Color.white;
                 if (cast.collider != null)
                 {
@@ -222,9 +229,14 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 }
                 if (debugEnabled)
                 {
-                    Debug.DrawRay(enemyRB.position + vector * offset, vector * (distance - vector.magnitude * offset), color);
+                    Debug.DrawRay(enemyRB.position + vector * offset, vector * (idleOffset - vector.magnitude * offset), color);
                 }
             }
+        }
+
+        if (idle && idleCR == false)
+        {
+            StartCoroutine(IdleMovement());
         }
 
         //aggro
@@ -248,6 +260,18 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             attackCooldownTime /= EM.aggroDecreaseMult;
             attackAngularVelocity /= EM.aggroIncreaseMult;
         }
+
+        if (debugEnabled)
+        {
+            if (idle)
+            {
+                transform.GetChild(2).GetComponent<SpriteRenderer>().color = Color.green;
+            }
+            else
+            {
+                transform.GetChild(2).GetComponent<SpriteRenderer>().color = Color.red;
+            }
+        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -269,7 +293,8 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 }
                 else
                 {
-                    Vector2 dot = Vector2.Dot(Vector2.Perpendicular(collision.contacts[0].normal), enemyRB.velocity.normalized) * Vector2.Perpendicular(collision.contacts[0].normal);
+                    Vector2 dot = Vector2.Dot(Vector2.Perpendicular(collision.contacts[0].normal), enemyRB.velocity.normalized) * 
+                        Vector2.Perpendicular(collision.contacts[0].normal);
                     collisionDirection = (collisionDirection + dot).normalized;
                 }
                 float radius = 0.7f;
@@ -294,6 +319,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
     IEnumerator BlitzAttack()
     {
         blitzActive = true;
+        idle = false;
         while (attacksLeft > 0 && EM.enemyWasKilled == false)
         {
             delayActive = true;
@@ -326,7 +352,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             {
                 attackActive = true;
                 EM.physicalHitboxActive = true;
-                StartCoroutine(Fire());
+                StartCoroutine(Fire(true));
                 StartCoroutine(SpawnSmoke());
                 angularVelocity = attackAngularVelocity;
                 enemyRB.velocity += vectorFacing * launchSpeed;
@@ -416,6 +442,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
         }
         angularVelocity = normalAngularVelocity;
         attackCooldown = false;
+        idle = true;
         blitzActive = false;
         attacksLeft = numAttacks;
     }
@@ -441,16 +468,17 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             shiftMult += 0.02f * 1.5f / attackDelay;
         }
     }
-    IEnumerator Fire()
+    IEnumerator Fire(bool attack)
     {
         float initialPosY = fireTransform.localPosition.y;
-        while (attackActive && EM.enemyWasKilled == false)
+        float activeScale = (attack) ? activeFireScale : activeFireScale * 0.6f;
+        while (((attackActive && attack) || (idleMoveActive && attack == false)) && EM.enemyWasKilled == false)
         {
             float window = 0.05f;
             float timer = 0;
-            fireTransform.localScale = new Vector2(fireTransform.localScale.x, activeFireScale);
+            fireTransform.localScale = new Vector2(fireTransform.localScale.x, activeScale);
             fireTransform.localPosition = new Vector2(fireTransform.localPosition.x, initialPosY - 0.2f);
-            while (timer < window && attackActive && EM.enemyWasKilled == false)
+            while (timer < window && ((attackActive && attack) || (idleMoveActive && attack == false)) && EM.enemyWasKilled == false)
             {
                 if (enemyHitstopActive == false)
                 {
@@ -460,9 +488,9 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             }
 
             timer = 0;
-            fireTransform.localScale = new Vector2(fireTransform.localScale.x, (initialFireScale + activeFireScale) / 2);
+            fireTransform.localScale = new Vector2(fireTransform.localScale.x, (initialFireScale + activeScale) / 2);
             fireTransform.localPosition = new Vector2(fireTransform.localPosition.x, initialPosY - 0.1f);
-            while (timer < window && attackActive && EM.enemyWasKilled == false)
+            while (timer < window && ((attackActive && attack) || (idleMoveActive && attack == false)) && EM.enemyWasKilled == false)
             {
                 if (enemyHitstopActive == false)
                 {
@@ -578,5 +606,92 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             yield return null;
         }
         ignoreBoxLaunchDamage = false;
+    }
+    IEnumerator IdleMovement()
+    {
+        idleCR = true;
+        angularVelocity = normalAngularVelocity / 3;
+        while (idle)
+        {
+            float waitTime = idleWaitTime * Random.Range(0.7f, 1.3f);
+            yield return new WaitForSeconds(waitTime);
+
+            if (idle)
+            {
+                float minDist = 3;
+                float angle = Random.Range(0f, 360f);
+                Vector2 vector = Tools.AngleToVector(angle);
+                float distance = Random.Range(minDist, idleRadius);
+                int groundLM = LayerMask.GetMask("Obstacles", "Platforms");
+                int avoidLM = LayerMask.GetMask("Obstacles", "Platforms", "Enemies");
+
+                RaycastHit2D ray = Physics2D.Raycast(enemyRB.position, vector, distance, groundLM);
+                Vector2 point = (ray.collider != null) ? ray.point - (vector * 2) : enemyRB.position + vector * distance;
+
+                RaycastHit2D largeCircle = Physics2D.CircleCast(point, 10, Vector2.zero, 0, groundLM);
+                RaycastHit2D smallCircle = Physics2D.CircleCast(point, idleOffset * 0.6f, Vector2.zero, 0, avoidLM);
+
+                int i = 0;
+                bool pointFound = true;
+                while ((ray.collider != null && ray.distance - 2 < minDist) || largeCircle.collider == null || smallCircle.collider != null)
+                {
+                    minDist -= 0.1f;
+                    angle = Random.Range(0f, 360f);
+                    vector = Tools.AngleToVector(angle);
+                    distance = Random.Range(minDist, idleRadius);
+
+                    ray = Physics2D.Raycast(enemyRB.position, vector, distance, groundLM);
+                    point = (ray.collider != null) ? ray.point - (vector * 2) : enemyRB.position + vector * distance;
+
+                    largeCircle = Physics2D.CircleCast(point, 10, Vector2.zero, 0, groundLM);
+                    smallCircle = Physics2D.CircleCast(point, idleOffset * 0.6f, Vector2.zero, 0, avoidLM);
+                    i++;
+                    if (i > 15)
+                    {
+                        pointFound = false;
+                        break;
+                    }
+                }
+                if (pointFound)
+                {
+                    float window = 0.5f;
+                    float timer = 0;
+                    while (timer < window && idle)
+                    {
+                        enemyRB.rotation = Mathf.MoveTowardsAngle(enemyRB.rotation, angle, angularVelocity * Time.deltaTime);
+                        timer += Time.deltaTime;
+                        yield return null;
+                    }
+
+                    idleMoveActive = true;
+                    StartCoroutine(Fire(false));
+                    float speed = launchSpeed * 0.25f;
+                    window = (point - enemyRB.position).magnitude * 0.85f / speed;
+                    timer = 0;
+                    while (timer < window && idle)
+                    {
+                        if (enemyRB.velocity.magnitude < speed)
+                        {
+                            enemyRB.AddForce(vector * 50, ForceMode2D.Force);
+                        }
+                        float bodyAngle = Tools.VectorToAngle(enemyRB.velocity.normalized);
+                        enemyRB.rotation = Mathf.MoveTowardsAngle(enemyRB.rotation, bodyAngle, angularVelocity * Time.deltaTime);
+                        if (debugEnabled)
+                        {
+                            Debug.DrawRay(point, Vector2.up); Debug.DrawRay(point, Vector2.right);
+                        }
+                        timer += Time.fixedDeltaTime;
+                        yield return new WaitForFixedUpdate();
+                    }
+                    idleMoveActive = false;
+                }
+                else
+                {
+                    Debug.Log("point not found");
+                    yield return new WaitForSeconds(2f);
+                }
+            }
+        }
+        idleCR = false;
     }
 }

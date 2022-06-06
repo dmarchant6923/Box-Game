@@ -24,6 +24,10 @@ PrefabInstance:
       value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
+      propertyPath: idleWaitTime
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 206587812105065851, guid: 70af88173373485418eaa315ce6253a6, type: 3}
       propertyPath: initialRadius
       value: 20
       objectReference: {fileID: 0}

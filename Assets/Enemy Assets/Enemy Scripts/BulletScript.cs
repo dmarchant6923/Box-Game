@@ -77,7 +77,6 @@ public class BulletScript : MonoBehaviour
         if (touchedWall && touchedReflect == false)
         {
             DestroyBullet();
-            Debug.Log("bullet destroyed");
         }
         touchedWall = false;
         touchedReflect = false;

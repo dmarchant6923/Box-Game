@@ -1289,11 +1289,18 @@ public class Box : MonoBehaviour
             }
         }
 
-        if (touchingGround && inputs.attackButton == false && inputs.inputsEnabled)
+        if ((touchingGround || touchingCeiling) && inputs.attackButton == false && inputs.inputsEnabled)
         {
             rigidBody.angularVelocity = 0;
             rigidBody.rotation = 0;
-            rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y + transform.localScale.y / 2);
+            if (touchingGround)
+            {
+                rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y + transform.localScale.y / 2);
+            }
+            else
+            {
+                rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y - transform.localScale.y / 2);
+            }
         }
     }
     private void OnCollisionExit2D(Collision2D collision)

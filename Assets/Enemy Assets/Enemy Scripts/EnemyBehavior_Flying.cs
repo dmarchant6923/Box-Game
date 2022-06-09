@@ -400,8 +400,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         if (EM.hitstopImpactActive == false)
         {
             realBarrelAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, barrelAngle, angularVelocity * Time.deltaTime);
-            realBarrelVector = new Vector2(Mathf.Cos(realBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2),
-                Mathf.Sin(realBarrelAngle * Mathf.Deg2Rad + Mathf.PI / 2));
+            realBarrelVector = Tools.AngleToVector(realBarrelAngle);
             transform.eulerAngles = Vector3.forward * (realBarrelAngle);
         }
 
@@ -638,7 +637,6 @@ public class EnemyBehavior_Flying : MonoBehaviour
         isCurrentlyShooting = true;
         isWaitingToShoot = true;
         float delayBeforeShootingTimer = 0;
-        float shootTimeIntervalTimer = 0;
         StartCoroutine(BarrelColor());
         if (laserScopeEnabled)
         {
@@ -673,6 +671,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         }
         isWaitingToShoot = false;
         int volleysFired = 0;
+        float shootTimeIntervalTimer = 0;
         while (volleysFired < numberOfVolleys && EM.enemyWasKilled == false)
         {
             while (bulletsShot < bulletsPerAttack && EM.enemyWasKilled == false)
@@ -687,7 +686,8 @@ public class EnemyBehavior_Flying : MonoBehaviour
                     bulletSpread = (-bulletSpreadMax / 2) + Random.value * bulletSpreadMax;
                 }
                 Quaternion bulletRotation = Quaternion.Euler(0, 0, realBarrelAngle + bulletSpread);
-                newBullet = Instantiate(bullet, enemyRB.position + realBarrelVector * 0.8f, bulletRotation);
+                float distTraveled = bulletSpeed * shootTimeIntervalTimer;
+                newBullet = Instantiate(bullet, enemyRB.position + (realBarrelVector * 0.8f) + (realBarrelVector * distTraveled), bulletRotation);
                 newBullet.GetComponent<BulletScript>().bulletDespawnWindow = bulletDespawnTime;
                 newBullet.GetComponent<BulletScript>().bulletDamage = bulletDamage;
                 if (heatSeekingBullets)
@@ -712,12 +712,13 @@ public class EnemyBehavior_Flying : MonoBehaviour
                 {
                     if (EM.hitstopImpactActive == false)
                     {
-                        shootTimeIntervalTimer += Time.deltaTime;
+                        shootTimeIntervalTimer += Time.fixedDeltaTime;
                     }
-                    yield return null;
+                    yield return new WaitForFixedUpdate();
                 }
-                shootTimeIntervalTimer = 0;
+                shootTimeIntervalTimer -= shootTimeInterval;
             }
+
             volleysFired++;
             if (volleysFired < numberOfVolleys)
             {

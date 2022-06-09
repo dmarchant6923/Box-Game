@@ -384,6 +384,10 @@ public class EnemyBehavior_Blitz : MonoBehaviour
 
                         timer += Time.deltaTime;
                     }
+                    if (EM.hitstopImpactActive)
+                    {
+                        attacksLeft = 0;
+                    }
                     yield return null;
                 }
                 enemyRB.constraints = RigidbodyConstraints2D.None;
@@ -535,9 +539,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
         }
         while (EM.hitstopImpactActive)
         {
-            Debug.Log("you are here");
             yield return null;
-            attacksLeft = 0;
         }
         //if (pulsed)
         //{

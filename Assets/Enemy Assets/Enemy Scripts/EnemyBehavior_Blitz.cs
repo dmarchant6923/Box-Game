@@ -133,7 +133,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 }
                 StartCoroutine(EnemyHitstop());
             }
-            else if (Box.boxHitboxActive && (attackActive == false || Box.isInvulnerable))
+            else if (Box.boxHitboxActive && (attackActive == false || Box.isInvulnerable) && ignoreBoxLaunchDamage == false)
             {
                 EM.enemyWasDamaged = true;
                 if (EM.enemyIsInvulnerable == false)
@@ -603,6 +603,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
         enemyRB.velocity = enemyHitstopVelocity;
         enemyHitstopActive = false;
         ignoreBoxLaunchDamage = true;
+        yield return new WaitForFixedUpdate();
         while (Box.damageActive)
         {
             yield return null;

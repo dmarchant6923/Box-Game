@@ -65,6 +65,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     bool turretCoolDown = false;
 
     public bool dashAttack = true;
+    bool dashCR = false;
     bool isDashing = false;
     bool dashHitboxActive = false; //only activates when horizontal speed is above a certain amount
     public float dashAttackDistance = 7;
@@ -171,7 +172,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
 
 
         //moveToBox
-        if (moveToBox == true && isDashing == false)
+        if (moveToBox == true && dashCR == false)
         {
             if (Mathf.Abs(enemyRB.velocity.x - movingPlatformsExtraWalkSpeed) <= maxHorizSpeed)
             {
@@ -179,7 +180,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             }
         }
         //moveFromBox
-        else if (moveFromBox == true && isDashing == false)
+        else if (moveFromBox == true && dashCR == false)
         {
             if (Mathf.Abs(enemyRB.velocity.x - movingPlatformsExtraWalkSpeed) <= maxHorizSpeed * 3/4)
             {
@@ -412,7 +413,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             turretAngularVelocity = regularAngularVelocity;
         }
 
-        if (canSeeBox == true && explosionDeathActive == false)
+        if (canSeeBox == true && explosionDeathActive == false && dashCR == false)
         {
             if (Vector2.Dot(realTurretVector, turretVectorToBox) >= 0)
             {
@@ -477,7 +478,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         //attacks
         if (canSeeBox == true && enemyRC_AttackBox.collider != null && explosionDeathActive == false && EM.initialDelay == false)
         {
-            if (turretCRActive == false && isDashing == false && enemyIsGrounded)
+            if (turretCRActive == false && dashCR == false && enemyIsGrounded)
             {
                 StartCoroutine(ShootTurret());
             }
@@ -486,13 +487,13 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
                 StartCoroutine(PlaceMines());
             }
         }
-        if (canSeeBox && enraged && turretCRActive == false && isDashing == false && enemyIsGrounded && EM.initialDelay == false)
+        if (canSeeBox && enraged && turretCRActive == false && dashCR == false && enemyIsGrounded && EM.initialDelay == false)
         {
             StartCoroutine(ShootTurret());
         }
 
         //move if inside moveToBox radius but outside attack radius, attack if inside attack radius, move away if inside moveFromBox radius
-        if (enemyIsGrounded == true && canSeeBox == true && explosionDeathActive == false && isDashing == false)
+        if (enemyIsGrounded == true && canSeeBox == true && explosionDeathActive == false && dashCR == false)
         {
             if (enemyRC_AttackBox.collider == null)
             {
@@ -548,7 +549,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
                 }
             }
             if (corneredTime >= corneredTimeToDash && (turretCoolDown == true || turretCRActive == false)
-                && isDashing == false && enemyRC_DashAttack.collider != null && dashAttack == true && EM.initialDelay == false)
+                && dashCR == false && enemyRC_DashAttack.collider != null && dashAttack == true && EM.initialDelay == false)
             {
                 StartCoroutine(Dash());
                 isCornered = false;
@@ -661,8 +662,8 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         if (Box.pulseActive == true && distanceToBox <= Box.pulseRadius * 1.05 && isDashing == true && explosionDeathActive == false)
         {
             isDashing = false;
-            enemyRB.velocity = new Vector2(10 * directionToBoxX, 10);
-            enemyRB.angularVelocity = 500 * directionToBoxX;
+            enemyRB.velocity = new Vector2(12 * dashDirection, 12);
+            enemyRB.angularVelocity = 400 * dashDirection;
         }
 
         if (EM.enemyWasKilled == true && explodeUponDeath == true &&
@@ -860,7 +861,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         int bulletsShot = 0;
         float bulletSpread;
         bulletDespawnTime = attackBoxRadius * 2.5f / bulletSpeed;
-        while (bulletsShot < bulletsPerVolley && scriptEnabled == true && explosionDeathActive == false && EM.enemyWasKilled == false)
+        while (bulletsShot < bulletsPerVolley && scriptEnabled == true && explosionDeathActive == false && EM.enemyWasKilled == false && EM.hitstopImpactActive == false)
         {
             bulletSpread = (-bulletSpreadMax / 2) + Random.value * bulletSpreadMax;
             Quaternion bulletRotation = Quaternion.Euler(0, 0, realTurretAngle + bulletSpread);
@@ -889,10 +890,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
                 float shootTimeIntervalTimer = 0;
                 while (shootTimeIntervalTimer <= shootTimeInterval)
                 {
-                    if (EM.hitstopImpactActive == false)
-                    {
-                        shootTimeIntervalTimer += Time.deltaTime;
-                    }
+                    shootTimeIntervalTimer += Time.deltaTime;
                     yield return null;
                 }
             }
@@ -920,6 +918,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     }
     IEnumerator Dash()
     {
+        dashCR = true;
         isDashing = true;
         EM.normalPulse = false;
         dashDirection = directionToBoxX;
@@ -937,8 +936,13 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             yield return null;
         }
         EM.physicalHitboxActive = false;
-        EM.normalPulse = true;
         isDashing = false;
+        if (EM.hitstopImpactActive == false)
+        {
+            yield return new WaitForSeconds(0.6f);
+        }
+        EM.normalPulse = true;
+        dashCR = false;
     }
     IEnumerator EnemyHitstop()
     {

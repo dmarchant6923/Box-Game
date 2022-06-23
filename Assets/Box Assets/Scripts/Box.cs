@@ -2031,11 +2031,11 @@ public class Box : MonoBehaviour
                 float afterTechWinow = 0.1f;
                 while (afterTechTime <= afterTechWinow)
                 {
-                    gravityScale *= 0.1f;
+                    //gravityScale *= 0.1f;
                     afterTechTime += Time.deltaTime;
                     yield return null;
                 }
-                gravityScale = initialGravityScale;
+                //gravityScale = initialGravityScale;
             }
             yield return null;
         }

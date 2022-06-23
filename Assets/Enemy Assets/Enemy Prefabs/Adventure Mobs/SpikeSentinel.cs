@@ -96,7 +96,7 @@ public class SpikeSentinel : MonoBehaviour
             }
             if (pulseRC.Length > 0 && distToBox < distToObstacle && boomerangCR)
             {
-                if (reflectActive == false)
+                if (reflectActive == false && hitboxActive)
                 {
                     StartCoroutine(ReflectBoomerang());
                 }

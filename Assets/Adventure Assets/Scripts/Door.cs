@@ -41,12 +41,23 @@ public class Door : MonoBehaviour
         float targetScale = initialScale;
         if (open)
         {
-            targetPosition = initialPosition - initialScale + 1;
+            targetPosition = initialPosition - initialScale + 1f;
             if (moveDoor == false)
             {
-                targetPosition = 0.5f;
+                targetPosition = 0.25f;
             }
-            targetScale = 1;
+            targetScale = 0.5f;
+            if (door.GetComponent<BoxCollider2D>().enabled && door.localScale.y == targetScale)
+            {
+                door.GetComponent<BoxCollider2D>().enabled = false;
+            }
+        }
+        else
+        {
+            if (door.GetComponent<BoxCollider2D>().enabled == false)
+            {
+                door.GetComponent<BoxCollider2D>().enabled = true;
+            }
         }
 
         if (moveDoor)

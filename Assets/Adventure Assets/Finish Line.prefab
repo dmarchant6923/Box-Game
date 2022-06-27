@@ -306,6 +306,7 @@ GameObject:
   - component: {fileID: 8595161887173335677}
   - component: {fileID: 4795728135418418259}
   - component: {fileID: 6245048699775117834}
+  - component: {fileID: 47910854570219244}
   m_Layer: 0
   m_Name: Finish Line
   m_TagString: Untagged
@@ -373,6 +374,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   doorTop: {fileID: 6037047454588531639}
   doorBottom: {fileID: 3118978594043268292}
+--- !u!114 &47910854570219244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558410607542137256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e1484f83a992ed41a180fa71899899f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialDelay: 0
+  randomInitialDelay: 0
+  distance: 5
+  horizontal: 1
+  movementType1: 0
+  type1Velocity1: 2.6
+  type1Velocity2: 2.6
+  type1StayTime1: 1
+  type1StayTime2: 1
+  movementType2: 0
+  type2Period: 1
+  isMoving: 0
+  startReverse: 0
+  activateBySwitch: 0
+  startActive: 0
+  stayActive: 0
+  active: 1
+  pauseOnDeactivate: 0
+  bufferDeactivate: 0
+  interactableObstacle: 0
 --- !u!1 &2763980603796645003
 GameObject:
   m_ObjectHideFlags: 0

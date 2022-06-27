@@ -63,6 +63,8 @@ public class EnemyBehavior_Blitz : MonoBehaviour
     float idleRadius = 7;
     float idleOffset = 2;
 
+    Vector2[] positionList = new Vector2[3];
+
 
     int obstacleAndBoxLM;
     int obstacleLM;
@@ -272,6 +274,13 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 transform.GetChild(2).GetComponent<SpriteRenderer>().color = Color.red;
             }
         }
+
+        if (enemyHitstopActive == false)
+        {
+            positionList[2] = positionList[1];
+            positionList[1] = positionList[0];
+            positionList[0] = enemyRB.position;
+        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -387,6 +396,11 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                     if (EM.hitstopImpactActive)
                     {
                         attacksLeft = 0;
+                    }
+
+                    if ((positionList[2] - positionList[0]).magnitude < enemyRB.velocity.magnitude * Time.fixedDeltaTime && timer > 0.1f)
+                    {
+                        break;
                     }
                     yield return null;
                 }
@@ -690,7 +704,6 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("point not found");
                     yield return new WaitForSeconds(2f);
                 }
             }

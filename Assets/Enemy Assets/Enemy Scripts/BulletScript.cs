@@ -30,6 +30,8 @@ public class BulletScript : MonoBehaviour
     public float explosionContactDamage;
     public GameObject explosion;
     GameObject newExplosion;
+    bool explodeAtPosition = false;
+    Vector2 explodePosition;
 
     bool flickerActive = false;
     float flickerMult = 0.85f;
@@ -76,10 +78,18 @@ public class BulletScript : MonoBehaviour
     {
         if (touchedWall && touchedReflect == false)
         {
-            DestroyBullet();
+            if ((bulletRB.position - boxRB.position).magnitude < 0.1f)
+            {
+                bulletHitPlayer();
+            }
+            else
+            {
+                DestroyBullet(false);
+            }
         }
         touchedWall = false;
         touchedReflect = false;
+        explodeAtPosition = false;
 
         if (bulletRB.velocity.magnitude >= 35)
         {
@@ -117,7 +127,7 @@ public class BulletScript : MonoBehaviour
         bulletTimer += Time.deltaTime;
         if (bulletTimer >= bulletDespawnWindow)
         {
-            DestroyBullet();
+            DestroyBullet(false);
         }
         if (bulletTimer >= bulletDespawnWindow * flickerMult && flickerActive == false)
         {
@@ -168,29 +178,65 @@ public class BulletScript : MonoBehaviour
             bulletRB.velocity = newVel * bulletRB.velocity.magnitude;
             bulletRB.position = newPosition + newVel * (bulletRB.velocity.magnitude * -Time.deltaTime * 3/4);
         }
-        else if(raycast.collider != null && raycast.collider.tag != "Reflect" && raycast.collider.tag != "Fence")
-        {
-            DestroyBullet();
-        }
+        //else if(raycast.collider != null && raycast.collider.tag != "Reflect" && raycast.collider.tag != "Fence")
+        //{
+        //    DestroyBullet(false);
+        //    Debug.Log("destroyed by raycast");
+        //}
     }
 
-    public void DestroyBullet()
+    public void bulletHitPlayer()
+    {
+        Box.damageTaken = bulletDamage;
+        Box.boxDamageDirection = new Vector2(Mathf.Sign(bulletRB.velocity.x), 1).normalized;
+        Box.activateDamage = true;
+        explosionDamage = bulletDamage / 1.6f;
+        if (explodingBullets)
+        {
+            Box.boxWasBurned = true;
+        }
+        DestroyBullet(true);
+    }
+
+    public void DestroyBullet(bool aestheticExplosion)
     {
         if (explodingBullets == true)
         {
-            Explosion(explosionDamage);
+            if (aestheticExplosion)
+            {
+                Explosion(explosionDamage, true);
+            }
+            else
+            {
+                Explosion(explosionDamage, false);
+            }
         }
         Destroy(gameObject);
     }
 
-    private void Explosion(float explosionDamage)
+    private void Explosion(float explosionDamage, bool aesthetic)
     {
-        newExplosion = Instantiate(explosion, bulletRB.position - bulletRB.velocity * Time.deltaTime / 2, Quaternion.identity);
+        Vector2 position = (explodeAtPosition) ? explodePosition : bulletRB.position - bulletRB.velocity * Time.deltaTime / 2;
+        newExplosion = Instantiate(explosion, position, Quaternion.identity);
         newExplosion.GetComponent<Explosion>().explosionRadius = explosionRadius;
         newExplosion.GetComponent<Explosion>().explosionDamage = explosionDamage;
         if (bulletWasReflected)
         {
             newExplosion.GetComponent<Explosion>().damageEnemies = true;
+        }
+        if (aesthetic)
+        {
+            newExplosion.GetComponent<Explosion>().aestheticExplosion = true;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        RaycastHit2D boxRC = Physics2D.Raycast(bulletRB.position - bulletRB.velocity.normalized * transform.lossyScale.y,
+            bulletRB.velocity.normalized, transform.lossyScale.y * 2, boxLM);
+        if ((1 << collision.gameObject.layer == boxLM || boxRC.collider != null) && bulletWasReflected == false && Box.dodgeInvulActive == false)
+        {
+            bulletHitPlayer();
         }
     }
 
@@ -200,14 +246,11 @@ public class BulletScript : MonoBehaviour
             bulletRB.velocity.normalized, transform.lossyScale.y * 2, boxLM);
         if ((1 << collision.gameObject.layer == boxLM || boxRC.collider != null) && bulletWasReflected == false && Box.dodgeInvulActive == false)
         {
-            Box.damageTaken = bulletDamage;
-            Box.boxDamageDirection = new Vector2(Mathf.Sign(bulletRB.velocity.x), 1).normalized;
-            Box.activateDamage = true;
-            explosionDamage = bulletDamage / 1.6f;
-            DestroyBullet();
+            bulletHitPlayer();
         }
         else if (1 << collision.gameObject.layer == boxLM && bulletWasReflected == true)
         {
+
         }
         else if (1 << collision.gameObject.layer == enemyLM && bulletWasReflected == true)
         {
@@ -219,20 +262,25 @@ public class BulletScript : MonoBehaviour
             {
                 collision.GetComponentInParent<EnemyManager>().enemyWasDamaged = true;
             }
-            DestroyBullet();
+            DestroyBullet(false);
         }
         else if (1 << collision.gameObject.layer == enemyLM && bulletWasReflected == false)
         {
-        }
-        //else if (collision.gameObject.tag == "Reflect")
-        //{
 
-        //}
+        }
         else if (1 << collision.gameObject.layer != LayerMask.GetMask("Pulse") && collision.isTrigger == false && collision.tag != "Fence")
         {
             if (1 << collision.gameObject.layer == LayerMask.GetMask("Obstacles"))
             {
                 touchedWall = true;
+                RaycastHit2D wallCast = Physics2D.Raycast(bulletRB.position - bulletRB.velocity * Time.deltaTime * 2, bulletRB.velocity, bulletRB.velocity.magnitude * Time.deltaTime * 4,
+                    LayerMask.GetMask("Obstacles"));
+                if (wallCast.collider != null)
+                {
+                    explodeAtPosition = true;
+                    explodePosition = wallCast.point - bulletRB.velocity.normalized * 0.05f;
+                }
+
                 if (collision.gameObject.tag == "Reflect")
                 {
                     touchedReflect = true;
@@ -240,14 +288,21 @@ public class BulletScript : MonoBehaviour
             }
             else
             {
-                DestroyBullet();
+                if ((bulletRB.position - boxRB.position).magnitude < 0.1f)
+                {
+                    bulletHitPlayer();
+                }
+                else
+                {
+                    DestroyBullet(false);
+                }
             }
         }
 
         if (collision.transform.root.GetComponent<HitSwitch>() != null)
         {
             collision.transform.root.GetComponent<HitSwitch>().Hit();
-            DestroyBullet();
+            DestroyBullet(false);
         }
     }
 

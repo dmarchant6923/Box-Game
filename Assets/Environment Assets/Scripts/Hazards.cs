@@ -8,6 +8,7 @@ public class Hazards : MonoBehaviour
     SpriteRenderer sprite;
 
     public float damage = 40;
+    public bool burn = true;
 
     void Start()
     {

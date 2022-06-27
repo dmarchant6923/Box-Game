@@ -114,12 +114,15 @@ public class EnemyManager : MonoBehaviour
         enemyColors = new List<Color>();
         for (int i = 0; i < enemyObjects.Count; i++)
         {
-            if (enemyObjects[i].gameObject.tag == "Effect")
+            if (enemyObjects[i].gameObject.tag == "Effect" || enemyObjects[i].enabled == false)
             {
                 enemyObjects.RemoveAt(i);
                 i -= 1;
             }
-            enemyColors.Add(enemyObjects[i].color);
+            else
+            {
+                enemyColors.Add(enemyObjects[i].color);
+            }
         }
 
         StartCoroutine(StartDelay());

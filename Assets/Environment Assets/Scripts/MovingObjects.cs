@@ -49,6 +49,10 @@ public class MovingObjects : MonoBehaviour
 
     public bool interactableObstacle = true;
 
+    Transform end1;
+    Transform end2;
+    LineRenderer line;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -92,6 +96,44 @@ public class MovingObjects : MonoBehaviour
         if (activateBySwitch && startActive == false)
         {
             active = false;
+        }
+
+        if ((movementType1 || movementType2) && GetComponent<PlatformDrop>() != null)
+        {
+            end1 = transform.GetChild(0);
+            end2 = transform.GetChild(1);
+            line = GetComponent<LineRenderer>();
+
+            end1.gameObject.SetActive(true); end2.gameObject.SetActive(true); line.enabled = true;
+            end1.parent = null; end2.parent = null;
+            end1.transform.localScale = Vector2.one * 0.5f; end2.transform.localScale = Vector2.one * 0.5f;
+
+            if (horizontal)
+            {
+                if (movementType1)
+                {
+                    end1.position = transform.position; end2.position = transform.position + Vector3.right * distance;
+                    line.SetPosition(0, end1.position); line.SetPosition(1, end2.position);
+                }
+                else
+                {
+                    end1.position = transform.position + Vector3.left * (distance / 2); end2.position = transform.position + Vector3.right * (distance / 2);
+                    line.SetPosition(0, end1.position); line.SetPosition(1, end2.position);
+                }
+            }
+            else
+            {
+                if (movementType1)
+                {
+                    end1.position = transform.position; end2.position = transform.position + Vector3.up * distance;
+                    line.SetPosition(0, end1.position); line.SetPosition(1, end2.position);
+                }
+                else
+                {
+                    end1.position = transform.position + Vector3.down * (distance / 2); end2.position = transform.position + Vector3.up * (distance / 2);
+                    line.SetPosition(0, end1.position); line.SetPosition(1, end2.position);
+                }
+            }
         }
     }
 

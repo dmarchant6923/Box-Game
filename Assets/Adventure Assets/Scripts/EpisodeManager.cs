@@ -26,7 +26,8 @@ public class EpisodeManager : MonoBehaviour
     public GameObject sticker;
     public GameObject duplicateSticker;
 
-    public GameObject checkpoint;
+    GameObject checkpoint;
+    public bool ignoreCheckpoint = false;
 
     public GameObject episodeStartBox;
 
@@ -73,10 +74,14 @@ public class EpisodeManager : MonoBehaviour
         inGameStickersFound = episodeStats.stickersFound;
 
         startAtCheckpoint = false;
+        checkpoint = GameObject.Find("Checkpoint");
         if (episodeStats.checkpoint && bossFight == false)
         {
             checkpoint.GetComponent<Checkpoint>().checkpointActive = true;
-            boxRB.position = checkpoint.transform.position + Vector3.left * 5;
+            if (ignoreCheckpoint == false)
+            {
+                boxRB.position = checkpoint.transform.GetChild(0).position;
+            }
             startAtCheckpoint = true;
         }
 

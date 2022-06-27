@@ -12,6 +12,8 @@ public class BattleSpawner : MonoBehaviour
     bool triggered = false;
     public int numEnemies;
 
+    public bool triggerOnStart = false;
+
     Switch switchScript;
 
     public bool debugEnabled = false;
@@ -35,6 +37,11 @@ public class BattleSpawner : MonoBehaviour
             {
                 enemy.GetComponent<SpriteRenderer>().enabled = false;
             }
+        }
+
+        if (triggerOnStart)
+        {
+            Trigger();
         }
     }
 

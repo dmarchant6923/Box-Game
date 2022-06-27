@@ -14,7 +14,7 @@ public class Checkpoint : MonoBehaviour
     {
         episodeManager = FindObjectOfType<EpisodeManager>();
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
-        lights = transform.GetChild(2);
+        lights = transform.GetChild(3);
         if (checkpointActive)
         {
             foreach (SpriteRenderer light in lights.GetComponentsInChildren<SpriteRenderer>())
@@ -22,6 +22,8 @@ public class Checkpoint : MonoBehaviour
                 light.color = Color.green;
             }
         }
+
+        transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = false;
     }
 
     void Update()

@@ -16,7 +16,7 @@ public class BlginkrakEye : MonoBehaviour
     float maskPosition = 0;
     EnemyManager bossEM;
     Blginkrak bossScript;
-    bool damageBlink = false;
+    public bool damageBlink = false;
 
     bool forceBlink = false;
 

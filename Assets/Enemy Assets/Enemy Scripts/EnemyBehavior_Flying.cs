@@ -62,6 +62,8 @@ public class EnemyBehavior_Flying : MonoBehaviour
     float litColorChangespeed = 1.5f;
     float litColorChangeAcceleration = 7f;
     bool increaseColorG = true;
+    public GameObject smoke;
+    GameObject newSmoke;
 
     bool pulseCanSeeBox = false;
     bool activateDiveReflect = false;
@@ -790,12 +792,21 @@ public class EnemyBehavior_Flying : MonoBehaviour
             }
             yield return null;
         }
+        StartCoroutine(KamikazeSmoke());
         if (diveWasReflected == false)
         {
             isDiving = true;
         }
         yield return new WaitForSeconds(maxDiveTime);
         kamikazeExplode = true;
+    }
+    IEnumerator KamikazeSmoke()
+    {
+        while (true)
+        {
+            newSmoke = Instantiate(smoke, enemyRB.position, Quaternion.identity);
+            yield return new WaitForSeconds(0.2f);
+        }
     }
     IEnumerator GetOffGround()
     {

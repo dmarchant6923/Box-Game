@@ -147,11 +147,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 492168c0672da004a8dbf84322c8d8b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blastZone: {fileID: 0}
   initialHorizMaxSpeed: 15
   teleportCheck: {fileID: 6433080582529654239, guid: 4c62e12110096a14fafe915bf0799284, type: 3}
   pulseField: {fileID: 7369910995373108259, guid: 800a79db91824d341a2b21d1f1e357b1, type: 3}
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
+  smoke: {fileID: 4818743035041792477, guid: aba0005565efec940b1a0b981e4b807d, type: 3}
+  normalControls: 1
+  debugEnabled: 0
+  playtesting: 0
 --- !u!114 &6896992484346975295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,6 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7452f7ec76b9b1244a143391cd340408, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  main: 1
   inputsEnabled: 0
 --- !u!114 &6896992484346975292
 MonoBehaviour:

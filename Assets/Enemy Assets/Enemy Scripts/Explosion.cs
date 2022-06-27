@@ -70,6 +70,7 @@ public class Explosion : MonoBehaviour
                         Box.activateDamage = true;
                         Box.damageTaken = explosionDamage;
                         Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - transform.position.x), 1).normalized;
+                        Box.boxWasBurned = true;
                     }
                 }
                 if (1 << item.collider.gameObject.layer == enemyLM)

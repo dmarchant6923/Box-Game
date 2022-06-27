@@ -72,7 +72,6 @@ public class EnemySpawn : MonoBehaviour
         if (killzoneActive && collision.gameObject == spawn)
         {
             killzoneTimer += Time.deltaTime;
-            Debug.Log(killzoneTimer);
         }
     }
     private void OnTriggerExit2D(Collider2D collision)

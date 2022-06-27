@@ -244,7 +244,6 @@ public class SpikeSentinel : MonoBehaviour
         }
         sentinelRB.angularVelocity *= enemyHitstopRotationSlowDown;
         sentinelRB.velocity = enemyHitstopVelocity;
-        Debug.Log("you are here");
         yield return null;
         sentinelHitstopActive = false;
     }

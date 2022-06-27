@@ -41,9 +41,13 @@ public class SpikeSentry : MonoBehaviour
     bool cooldownActive = false;
 
     [HideInInspector] public bool stopIdleMovement = false;
+    Vector2 posRight;
+    Vector2 posLeft;
     [HideInInspector] public int direction = 1;
     float moveSpeed = 3;
     float waitTime = 1.5f;
+
+    bool scaredMovement = false;
 
     public bool debugEnabled = false;
 
@@ -76,6 +80,22 @@ public class SpikeSentry : MonoBehaviour
         EM.normalPulse = false;
         EM.keepAsKinematic = true;
 
+
+        float maxHalfDist = 5;
+        RaycastHit2D RCLeft = Physics2D.CircleCast(enemyRB.position, transform.lossyScale.y / 2, Vector2.left, maxHalfDist + transform.lossyScale.y, obstacleLM);
+        RaycastHit2D RCRight = Physics2D.CircleCast(enemyRB.position, transform.lossyScale.y / 2, Vector2.right, maxHalfDist + transform.lossyScale.y, obstacleLM);
+        posLeft = enemyRB.position + Vector2.left * maxHalfDist;
+        posRight = enemyRB.position + Vector2.right * maxHalfDist;
+        if (RCLeft.collider != null)
+        {
+            posLeft = enemyRB.position + Vector2.left * (RCLeft.distance - transform.lossyScale.y);
+        }
+        if (RCRight.collider != null)
+        {
+            posRight = enemyRB.position + Vector2.right * (RCRight.distance - transform.lossyScale.y);
+        }
+
+        direction = (Random.Range(0, 2) * 2) - 1;
         StartCoroutine(IdleMovement());
 
     }
@@ -139,6 +159,10 @@ public class SpikeSentry : MonoBehaviour
             if (stopIdleMovement == false)
             {
                 StartCoroutine(StopMovement());
+            }
+            if (stopIdleMovement && scaredMovement == false && sentinelsKilled[0] && sentinelsKilled[1])
+            {
+                StartCoroutine(ScaredMovement());
             }
         }
         else
@@ -315,21 +339,6 @@ public class SpikeSentry : MonoBehaviour
     }
     IEnumerator IdleMovement()
     {
-        float maxHalfDist = 5;
-        RaycastHit2D RCLeft = Physics2D.CircleCast(enemyRB.position, transform.lossyScale.y / 2, Vector2.left, maxHalfDist + transform.lossyScale.y, obstacleLM);
-        RaycastHit2D RCRight = Physics2D.CircleCast(enemyRB.position, transform.lossyScale.y / 2, Vector2.right, maxHalfDist + transform.lossyScale.y, obstacleLM);
-        Vector2 posLeft = enemyRB.position + Vector2.left * maxHalfDist;
-        Vector2 posRight = enemyRB.position + Vector2.right * maxHalfDist;
-        if (RCLeft.collider != null)
-        {
-            posLeft = enemyRB.position + Vector2.left * (RCLeft.distance - transform.lossyScale.y);
-        }
-        if (RCRight.collider != null)
-        {
-            posRight = enemyRB.position + Vector2.right * (RCRight.distance - transform.lossyScale.y);
-        }
-
-        direction = (Random.Range(0, 2) * 2) - 1;
         if ((posLeft - posRight).magnitude > 3)
         {
             while (true)
@@ -380,7 +389,23 @@ public class SpikeSentry : MonoBehaviour
                 }
             }
         }
-
+    }
+    IEnumerator ScaredMovement()
+    {
+        scaredMovement = true;
+        while (stopIdleMovement)
+        {
+            if (boxRB.position.x > enemyRB.position.x && canSeeBox && GetComponentInChildren<BlginkrakEye>().damageBlink == false)
+            {
+                enemyRB.position = Vector2.MoveTowards(enemyRB.position, posLeft, moveSpeed * Time.deltaTime);
+            }
+            else if (canSeeBox && GetComponentInChildren<BlginkrakEye>().damageBlink == false)
+            {
+                enemyRB.position = Vector2.MoveTowards(enemyRB.position, posRight, moveSpeed * Time.deltaTime);
+            }
+            yield return null;
+        }
+        scaredMovement = false;
     }
     IEnumerator StopMovement()
     {

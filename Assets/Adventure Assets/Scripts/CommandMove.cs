@@ -46,7 +46,6 @@ public class CommandMove : MonoBehaviour
     }
     public void Trigger()
     {
-        Debug.Log("you are here");
         if (moveOnce == false || (moveOnce == true && moved == false))
         {
             destination += direction * distance;

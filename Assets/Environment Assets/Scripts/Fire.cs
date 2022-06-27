@@ -57,7 +57,10 @@ public class Fire : MonoBehaviour
 
         if (hazardFire)
         {
-            StartCoroutine(FireDespawn());
+            if (fireWindow > 0)
+            {
+                StartCoroutine(FireDespawn());
+            }
             surfaceNormal = surfaceNormal.normalized;
             if (Mathf.Abs(surfaceNormal.y) < 0.3f)
             {

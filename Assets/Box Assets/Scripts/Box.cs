@@ -150,7 +150,13 @@ public class Box : MonoBehaviour
     [HideInInspector] public static float boxHitstopDelay;
     [HideInInspector] public static float boxHitstopDelayMult = 0.1f/30;
     [HideInInspector] public static float shockHitstopMult = 2.5f;
+    /// <summary>
+    /// for when the player does damage to an enemy
+    /// </summary>
     [System.NonSerialized] public static bool enemyHitstopActive = false; //whether or not histop from hitting the enemy is currently active
+    /// <summary>
+    /// for when the player takes damage
+    /// </summary>
     [System.NonSerialized] public static bool boxHitstopActive = false; //whether or not hitstop from the box getting hit is currently active
     float hitstopRotationSlowDown = 30; //used for the still rotating effect during hitstop
 
@@ -191,6 +197,10 @@ public class Box : MonoBehaviour
 
     [System.NonSerialized] public static bool onFire;
     [System.NonSerialized] public static float fireDOT = 4.5f;
+
+    [System.NonSerialized] public static bool boxWasBurned = false;
+    public GameObject smoke;
+    GameObject newSmoke;
 
     bool forceInputsDisabled = false;
 
@@ -238,6 +248,7 @@ public class Box : MonoBehaviour
         canDodge = true;
         onFire = false;
         wallBounceActive = false;
+        boxWasBurned = false;
 
         initialColor = GetComponent<SpriteRenderer>().color;
         initialGravityScale = rigidBody.gravityScale;
@@ -861,7 +872,7 @@ public class Box : MonoBehaviour
                 {
                     boxHealth -= damageTaken;
                 }
-                if (damageTaken >= 3)
+                if (damageTaken > 2)
                 {
                     dashActive = false;
                     teleportActive = false;
@@ -869,6 +880,10 @@ public class Box : MonoBehaviour
                     if (shockActive)
                     {
                         boxHitstopDelay *= shockHitstopMult;
+                    }
+                    if (boxWasBurned || shockActive)
+                    {
+                        StartCoroutine(Burn());
                     }
                     StartCoroutine(HitstopImpact(damageTaken));
                     if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
@@ -880,6 +895,7 @@ public class Box : MonoBehaviour
             }
             damageTaken = 0;
             activateDamage = false;
+            boxWasBurned = false;
         }
         if (isInvulnerable == true && isCurrentlyFlashing == false && BoxPerks.starActive == false && boxHitstopActive == false)
         {
@@ -986,6 +1002,7 @@ public class Box : MonoBehaviour
         {
             activateDamage = true;
             damageTaken = collision.gameObject.GetComponent<Hazards>().damage;
+            boxWasBurned = collision.gameObject.GetComponent<Hazards>().burn;
             boxDamageDirection = collision.contacts[0].normal;
             if (Mathf.Abs(boxDamageDirection.y) < 0.1f)
             {
@@ -1031,7 +1048,7 @@ public class Box : MonoBehaviour
         bool touchingCeiling = false;
         float ceilingPositionY = 0;
         Vector2 ceilingVelocity = Vector2.zero;
-        if (collision.collider.GetComponent<MovingObjects>().interactableObstacle)
+        if (collision.transform.root.GetComponentInChildren<MovingObjects>().interactableObstacle)
         {
             foreach (ContactPoint2D col in collision.contacts)
             {
@@ -1246,6 +1263,7 @@ public class Box : MonoBehaviour
         bool touchingLeftWall = false;
         bool touchingRightWall = false;
         bool touchingCeiling = false;
+        Vector2 colVel = Vector2.zero;
         if (collision.collider.GetComponent<MovingObjects>().interactableObstacle)
         {
             foreach (ContactPoint2D col in collision.contacts)
@@ -1255,6 +1273,7 @@ public class Box : MonoBehaviour
                 if (col.normal.x < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingRightWall = true; }
                 if (col.normal.y < -0.8f && col.collider.GetComponent<PlatformDrop>() == null) { touchingCeiling = true; }
             }
+            colVel = collision.collider.GetComponent<Rigidbody2D>().velocity;
         }
 
         if ((touchingLeftWall || touchingRightWall) && touchingGround == false && touchingCeiling == false
@@ -1293,13 +1312,14 @@ public class Box : MonoBehaviour
         {
             rigidBody.angularVelocity = 0;
             rigidBody.rotation = 0;
+            float offset = colVel.y * Time.deltaTime;
             if (touchingGround)
             {
-                rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y + transform.localScale.y / 2);
+                rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y + transform.localScale.y / 2 + offset);
             }
             else
             {
-                rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y - transform.localScale.y / 2);
+                rigidBody.position = new Vector2(rigidBody.position.x, collision.GetContact(0).point.y - transform.localScale.y / 2 + offset);
             }
         }
     }
@@ -2084,7 +2104,7 @@ public class Box : MonoBehaviour
         float window = boxEnemyPulseMagnitude / 50;
         float timer = 0;
         rigidBody.angularVelocity = -Mathf.Sign(pulseVelocity.x) * boxEnemyPulseMagnitude * 65;
-        while (timer <= window && activateDamage == false && techSuccessful == false && boxWasPulsed == false)
+        while (timer <= window && damageActive == false && techSuccessful == false && boxWasPulsed == false)
         {
             if (enemyHitstopActive == false)
             {
@@ -2116,12 +2136,14 @@ public class Box : MonoBehaviour
         {
             techSuccessful = false;
             BoxVelocity.velocitiesX[0] /= 10;
-            rigidBody.velocity = new Vector2(rigidBody.velocity.x, 2);
             rigidBody.rotation = 0;
             rigidBody.angularVelocity = 0;
         }
         rigidBody.angularDrag *= 3;
-        airFriction = initialAirFriction;
+        if (damageActive == false)
+        {
+            airFriction = initialAirFriction;
+        }
         groundFriction *= 3;
         if (damageActive == false)
         {
@@ -2295,5 +2317,23 @@ public class Box : MonoBehaviour
             yield return null;
         }
         airFriction = initialAirFriction;
+    }
+    IEnumerator Burn()
+    {
+        yield return null;
+        float window = 0.2f;
+        float randWindow = window * 0.75f + Random.Range(0, window * 0.5f);
+        float timer = 0;
+        while (isInvulnerable && (boxHealth > 0 || (playtesting && blastZoneCRActive == false)))
+        {
+            timer += Time.deltaTime;
+            if (timer > randWindow)
+            {
+                timer -= randWindow;
+                randWindow = window * 0.75f + Random.Range(0, window * 0.5f);
+                newSmoke = Instantiate(smoke, rigidBody.position + Vector2.up * 0.5f, Quaternion.identity);
+            }
+            yield return null;
+        }
     }
 }

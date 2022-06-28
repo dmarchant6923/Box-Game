@@ -412,7 +412,8 @@ public class EnemyManager : MonoBehaviour
         enemyDeathActive = true;
         if (FindObjectOfType<EpisodeManager>() != null && respawn == false)
         {
-            FindObjectOfType<EpisodeManager>().enemiesKilled++;
+            FindObjectOfType<EpisodeManager>().EnemyKilled(enemyRB.position);
+            //FindObjectOfType<EpisodeManager>().enemiesKilled++;
         }
         shieldCurrentlyActive = false;
         aggroCurrentlyActive = false;

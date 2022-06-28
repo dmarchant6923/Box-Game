@@ -36,6 +36,9 @@ public class EpisodeManager : MonoBehaviour
     public int enemiesKilled = 0;
     bool allEnemiesKilled = false;
 
+    public GameObject perkSpawner;
+    GameObject newPerkSpawner;
+
     [HideInInspector] public bool episodeComplete = false;
     bool finishedCRActive = false;
     public float timeToBeat = 10;
@@ -153,6 +156,15 @@ public class EpisodeManager : MonoBehaviour
         }
     }
 
+    public void EnemyKilled(Vector2 position)
+    {
+        enemiesKilled++;
+        int rand = Random.Range(0, 3);
+        if (rand == 2)
+        {
+
+        }
+    }
     public void StickerFound(GameObject sticker)
     {
         for (int i = 0; i < inGameStickers.Length; i++)
@@ -164,7 +176,6 @@ public class EpisodeManager : MonoBehaviour
             }
         }
     }
-
     public void CheckpointActivated()
     {
         episodeStats.checkpoint = true;

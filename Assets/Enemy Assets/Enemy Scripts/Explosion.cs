@@ -10,6 +10,10 @@ public class Explosion : MonoBehaviour
     [HideInInspector] public bool damageEnemies = false;
     [HideInInspector] public bool aestheticExplosion = false;
     [HideInInspector] public bool circleExplosion = true;
+    [HideInInspector] public bool overrideDamageDirection = false;
+    [HideInInspector] public Vector2 newDamageDirection;
+
+    public static float closeExplosionDamageMult = 1.6f;
 
     Rigidbody2D boxRB;
     Vector2 vectorToBox;
@@ -70,6 +74,10 @@ public class Explosion : MonoBehaviour
                         Box.activateDamage = true;
                         Box.damageTaken = explosionDamage;
                         Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - transform.position.x), 1).normalized;
+                        if (overrideDamageDirection)
+                        {
+                            Box.boxDamageDirection = newDamageDirection;
+                        }
                         Box.boxWasBurned = true;
                     }
                 }
@@ -134,8 +142,12 @@ public class Explosion : MonoBehaviour
                 if (explosion_RayToItem.collider != null && 1 << explosion_RayToItem.collider.gameObject.layer == boxLM)
                 {
                     Box.activateDamage = true;
-                    Box.damageTaken = explosionDamage * 1.6f;
+                    Box.damageTaken = explosionDamage * closeExplosionDamageMult;
                     Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - transform.position.x), 1).normalized;
+                    if (overrideDamageDirection)
+                    {
+                        Box.boxDamageDirection = newDamageDirection;
+                    }
                 }
             }
             float distToBox = new Vector2(boxRB.position.x - transform.position.x, boxRB.position.y - transform.position.y).magnitude;

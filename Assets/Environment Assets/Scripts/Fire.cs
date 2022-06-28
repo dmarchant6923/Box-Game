@@ -10,6 +10,7 @@ public class Fire : MonoBehaviour
 
     public GameObject smoke;
     float smokeTime = 0.5f;
+    public bool spawnSmoke = true;
 
     public Rigidbody2D objectOnFire;
     bool onObject = false;
@@ -30,7 +31,10 @@ public class Fire : MonoBehaviour
         fireTop = transform.GetChild(0);
         initialYScale = fireTop.localScale.y;
         StartCoroutine(FireFlicker());
-        StartCoroutine(Smoke());
+        if (spawnSmoke)
+        {
+            StartCoroutine(Smoke());
+        }
 
         if (objectOnFire != null)
         {

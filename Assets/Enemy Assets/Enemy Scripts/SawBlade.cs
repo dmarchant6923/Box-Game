@@ -27,6 +27,8 @@ public class SawBlade : MonoBehaviour
 
     public bool death = false;
 
+    public bool hazardBlade = false;
+
     void Start()
     {
         bladeRB = GetComponent<Rigidbody2D>();
@@ -34,6 +36,14 @@ public class SawBlade : MonoBehaviour
         posLastFrame = bladeRB.position;
 
         bladeRB.angularVelocity = -700;
+
+        if (hazardBlade)
+        {
+            fadeIn = false;
+            bladeRB.velocity = Vector2.zero;
+            GetComponent<Collider2D>().isTrigger = true;
+        }
+
         if (fadeIn)
         {
             foreach (SpriteRenderer sprite in sprites)
@@ -47,6 +57,7 @@ public class SawBlade : MonoBehaviour
         {
             bladeRB.velocity = direction.normalized * speed;
         }
+
     }
 
     private void FixedUpdate()
@@ -73,20 +84,30 @@ public class SawBlade : MonoBehaviour
                     Box.activateDamage = true;
                     Box.damageTaken = damage;
                     Box.boxDamageDirection = new Vector2(Mathf.Sign(bladeRB.velocity.x), 1).normalized;
+                    if (hazardBlade)
+                    {
+                        Box.boxDamageDirection = new Vector2(Mathf.Sign(boxCast.transform.position.x - bladeRB.position.x), 1).normalized;
+                    }
                     StartCoroutine(BladeHitstop());
                     break;
                 }
             }
 
-            if (spawnHitboxCR == false)
+            if (spawnHitboxCR == false && hazardBlade == false)
             {
                 StartCoroutine(SpawnHitbox());
             }
 
-            bladeRB.velocity = bladeRB.velocity.normalized * speed;
+            if (hazardBlade == false)
+            {
+                bladeRB.velocity = bladeRB.velocity.normalized * speed;
+            }
         }
 
-        timer += Time.fixedDeltaTime;
+        if (hazardBlade == false)
+        {
+            timer += Time.fixedDeltaTime;
+        }
         if (timer > despawnTime - 2.5f && flickerCR == false)
         {
             StartCoroutine(Flicker());
@@ -153,10 +174,18 @@ public class SawBlade : MonoBehaviour
         float enemyHitstopRotationSlowDown = 10;
         bladeRB.velocity = new Vector2(0, 0);
         bladeRB.angularVelocity /= enemyHitstopRotationSlowDown;
+        if (hazardBlade && GetComponent<PathMovement>() != null)
+        {
+            GetComponent<PathMovement>().stopMovement = true;
+        }
         yield return null;
         while (Box.boxHitstopActive)
         {
             yield return null;
+        }
+        if (hazardBlade && GetComponent<PathMovement>() != null)
+        {
+            GetComponent<PathMovement>().stopMovement = false;
         }
         bladeRB.angularVelocity *= enemyHitstopRotationSlowDown;
         bladeRB.velocity = enemyHitstopVelocity;

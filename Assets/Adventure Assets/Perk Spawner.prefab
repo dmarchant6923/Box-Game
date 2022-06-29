@@ -144,7 +144,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.2, y: 1}
+  m_Size: {x: 0.5, y: 0.75}
   m_EdgeRadius: 0
 --- !u!50 &7409266800316721499
 Rigidbody2D:
@@ -161,7 +161,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 4
+  m_GravityScale: 3
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -179,14 +179,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896aacf2961125948893bfb5dec1af4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pivotLeft: {fileID: 6019118021193387823}
-  pivotRight: {fileID: 8533293883787314283}
-  glow: {fileID: 7866585705922735935}
-  mask: {fileID: 70658284881597802}
   heart: {fileID: 2002433412655468419, guid: 88faaf1f30c71724d9dc73c44c91f3d1, type: 3}
   heavy: {fileID: 3170623705220278990, guid: 3bb5d9a5ea96d924b990ad0309b21fcc, type: 3}
   shield: {fileID: 1693151804967767072, guid: 91cc1d4df96b1794c8f597590498e3f8, type: 3}
   speed: {fileID: 247569352566294278, guid: e694c8a3082ba314a8d5119a8136e071, type: 3}
+  doubleJump: {fileID: 3636424940818211183, guid: 991eb23b04d971d4d9eb09276fad9abd, type: 3}
+  spikes: {fileID: 4922364118404835582, guid: 6cd5b4ef7857db24e8f66c4f3e7f142b, type: 3}
+  star: {fileID: 1258098538347273395, guid: e74b8891b5f017a4694944cd1ba2e6e5, type: 3}
+  spawnHeart: 1
+  spawnHeavy: 1
+  spawnShield: 1
+  spawnSpeed: 1
+  spawnDoubleJump: 0
+  spawnSpikes: 0
+  spawnStar: 0
+  singleDoubleJump: 1
+  despawnPerk: 1
 --- !u!1 &2503770615301521538
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,17 +4,33 @@ using UnityEngine;
 
 public class PerkSpawner : MonoBehaviour
 {
-    public Transform pivotLeft;
+    Transform pivotLeft;
+    Transform pivotRight;
+    Transform glow;
+
     Vector3 pivotLeftPos;
-    public Transform pivotRight;
     Vector3 pivotRightPos;
-    public Transform glow;
-    public Transform mask;
 
     public GameObject heart;
     public GameObject heavy;
     public GameObject shield;
     public GameObject speed;
+    public GameObject doubleJump;
+    public GameObject spikes;
+    public GameObject star;
+
+    public bool spawnHeart = true;
+    public bool spawnHeavy = true;
+    public bool spawnShield = true;
+    public bool spawnSpeed = true;
+    public bool spawnDoubleJump = false;
+    public bool spawnSpikes = false;
+    public bool spawnStar = false;
+
+    List<GameObject> perks = new List<GameObject>();
+
+    public bool singleDoubleJump = true;
+    public bool despawnPerk = true;
 
     Rigidbody2D rb;
     bool objectFound = false;
@@ -28,11 +44,20 @@ public class PerkSpawner : MonoBehaviour
 
     private void Start()
     {
+        pivotLeft = transform.GetChild(0);
+        pivotRight = transform.GetChild(1);
+        glow = transform.GetChild(2);
+
         glow.gameObject.SetActive(false);
         rb = GetComponent<Rigidbody2D>();
 
-        pivotLeftPos = pivotLeft.position - transform.position;
-        pivotRightPos = pivotRight.position - transform.position;
+        if (spawnHeart) { perks.Add(heart); }
+        if (spawnHeavy) { perks.Add(heavy); }
+        if (spawnShield) { perks.Add(shield); }
+        if (spawnSpeed) { perks.Add(speed); }
+        if (spawnDoubleJump) { perks.Add(doubleJump); }
+        if (spawnSpikes) { perks.Add(spikes); }
+        if (spawnStar) { perks.Add(star); }
 
         obstacleLM = LayerMask.GetMask("Obstacles");
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
@@ -42,16 +67,15 @@ public class PerkSpawner : MonoBehaviour
     {
         if (objectFound)
         {
-            rb.velocity = Vector2.zero;
             transform.position = attachedObject.position + relativePosition;
             if (activateCR == false)
             {
                 StartCoroutine(SpawnPerk());
             }
-            else
+            else if (pivotLeft.parent == null)
             {
-                pivotLeft.position = transform.position + pivotLeftPos;
-                pivotRight.position = transform.position + pivotRightPos;
+                pivotLeft.transform.position = transform.position + pivotLeftPos;
+                pivotRight.transform.position = transform.position + pivotRightPos;
             }
         }
     }
@@ -60,15 +84,17 @@ public class PerkSpawner : MonoBehaviour
     {
         if (objectFound == false && (1 << collision.gameObject.layer == obstacleLM || 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms")))
         {
-            RaycastHit2D groundRC = Physics2D.Raycast(transform.position, Vector2.down, 3, groundLM);
-            RaycastHit2D wallLeftRC = Physics2D.Raycast(transform.position, Vector2.left, 1, obstacleLM);
-            RaycastHit2D wallRightRC = Physics2D.Raycast(transform.position, Vector2.right, 1, obstacleLM);
-            RaycastHit2D ceilingRC = Physics2D.Raycast(transform.position, Vector2.up, 1, obstacleLM);
+            float dist = 0.75f;
+            RaycastHit2D groundRC = Physics2D.Raycast(transform.position, Vector2.down, dist, groundLM);
+            RaycastHit2D wallLeftRC = Physics2D.Raycast(transform.position, Vector2.left, dist, obstacleLM);
+            RaycastHit2D wallRightRC = Physics2D.Raycast(transform.position, Vector2.right, dist, obstacleLM);
+            RaycastHit2D ceilingRC = Physics2D.Raycast(transform.position, Vector2.up, dist, obstacleLM);
             if (groundRC.collider != null)
             {
                 transform.position = groundRC.point + Vector2.up * transform.lossyScale.y / 4;
                 attachedObject = groundRC.transform;
                 relativePosition = transform.position - attachedObject.position;
+                rb.rotation = Tools.VectorToAngle(Vector2.up);
             }
 
             else if (wallRightRC.collider != null)
@@ -77,6 +103,7 @@ public class PerkSpawner : MonoBehaviour
                 transform.eulerAngles = Vector3.forward * (90);
                 attachedObject = wallRightRC.transform;
                 relativePosition = transform.position - attachedObject.position;
+                rb.rotation = Tools.VectorToAngle(Vector2.left);
             }
             else if (ceilingRC.collider != null)
             {
@@ -84,6 +111,7 @@ public class PerkSpawner : MonoBehaviour
                 transform.eulerAngles = Vector3.forward * (180);
                 attachedObject = ceilingRC.transform;
                 relativePosition = transform.position - attachedObject.position;
+                rb.rotation = Tools.VectorToAngle(Vector2.down);
             }
             else if (wallLeftRC.collider != null)
             {
@@ -91,6 +119,7 @@ public class PerkSpawner : MonoBehaviour
                 transform.eulerAngles = Vector3.forward * (-90);
                 attachedObject = wallLeftRC.transform;
                 relativePosition = transform.position - attachedObject.position;
+                rb.rotation = Tools.VectorToAngle(Vector2.right);
             }
 
             if (attachedObject == null)
@@ -112,7 +141,11 @@ public class PerkSpawner : MonoBehaviour
                     float angle = i * 22.5f;
                     float distance = 0.6f;
                     Vector2 vector = Tools.AngleToVector(angle);
-                    RaycastHit2D cast = Physics2D.Raycast(rb.position, vector, distance, LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
+                    RaycastHit2D cast = Physics2D.Raycast(rb.position, vector, distance, groundLM);
+                    if (vector.y > 0)
+                    {
+                        cast = Physics2D.Raycast(rb.position, vector, distance, obstacleLM);
+                    }
                     if (cast.collider != null)
                     {
                         rb.rotation = Tools.VectorToAngle(cast.normal);
@@ -126,36 +159,55 @@ public class PerkSpawner : MonoBehaviour
                     }
                 }
             }
+            if (objectFound)
+            {
+                rb.velocity = Vector2.zero;
+                rb.angularVelocity = 0;
+            }
         }
     }
 
     IEnumerator SpawnPerk()
     {
         activateCR = true;
+        yield return new WaitForSeconds(0.25f);
         pivotLeft.parent = null;
         pivotRight.parent = null;
-        yield return new WaitForSeconds(0.25f);
+        pivotLeftPos = pivotLeft.position - transform.position;
+        pivotRightPos = pivotRight.position - transform.position;
         float changeSpeed = 250;
-        while (pivotLeft.eulerAngles.z < 145)
+        float timer = 0;
+        float initialZ = pivotLeft.eulerAngles.z;
+        while (timer < 145 / changeSpeed)
         {
-            pivotLeft.eulerAngles = new Vector3(0, 0, Mathf.MoveTowards(pivotLeft.eulerAngles.z, 145, changeSpeed * Time.deltaTime));
-            pivotRight.eulerAngles = new Vector3(0, 0, Mathf.MoveTowards(pivotRight.eulerAngles.z, -145, changeSpeed * Time.deltaTime));
+            pivotLeft.eulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(pivotLeft.eulerAngles.z, initialZ + 145, changeSpeed * Time.deltaTime));
+            pivotRight.eulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(pivotRight.eulerAngles.z, initialZ - 145, changeSpeed * Time.deltaTime));
+            timer += Time.deltaTime;
             yield return null;
         }
-        pivotLeft.eulerAngles = new Vector3(0, 0, 145);
-        pivotRight.eulerAngles = new Vector3(0, 0, -145);
+        pivotLeft.eulerAngles = new Vector3(0, 0, initialZ + 145);
+        pivotRight.eulerAngles = new Vector3(0, 0, initialZ - 145);
         yield return new WaitForSeconds(0.25f);
         glow.gameObject.SetActive(true);
-        int rand = Random.Range(0, 4);
-        GameObject perk = heart;
-        if (rand == 1) { perk = heavy; }
-        if (rand == 2) { perk = shield; }
-        if (rand == 3) { perk = speed; }
+        int rand = Random.Range(0, perks.Count);
+        GameObject perk = perks[rand];
         GameObject newPerk = Instantiate(perk, rb.position + Tools.AngleToVector(transform.eulerAngles.z) * 1.5f, Quaternion.identity);
         newPerk.transform.parent = transform;
         newPerk.GetComponent<MovingObjects>().enabled = false;
+        if (perk == doubleJump && singleDoubleJump)
+        {
+            perk.GetComponent<perks>().unlimitedJumps = false;
+        }
+        if (despawnPerk == false)
+        {
+            newPerk.GetComponent<perks>().willDespawn = false;
+        }
+        timer = 0;
         while (newPerk != null)
         {
+            newPerk.transform.position = rb.position + Tools.AngleToVector(transform.eulerAngles.z) * (1.5f + (0.2f * Mathf.Sin(timer * 2)));
+
+
             if (newPerk.GetComponent<SpriteRenderer>().enabled && glow.GetComponent<SpriteRenderer>().enabled == false)
             {
                 glow.GetComponent<SpriteRenderer>().enabled = true;
@@ -164,17 +216,21 @@ public class PerkSpawner : MonoBehaviour
             {
                 glow.GetComponent<SpriteRenderer>().enabled = false;
             }
+
+            timer += Time.deltaTime;
             yield return null;
         }
         glow.gameObject.SetActive(false);
-        while (pivotLeft.eulerAngles.z > 0)
+        timer = 0;
+        while (timer < 145 / changeSpeed)
         {
-            pivotLeft.eulerAngles = new Vector3(0, 0, Mathf.MoveTowards(pivotLeft.eulerAngles.z, 0, changeSpeed * Time.deltaTime));
-            pivotRight.eulerAngles = new Vector3(0, 0, pivotRight.eulerAngles.z + changeSpeed * Time.deltaTime);
+            pivotLeft.eulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(pivotLeft.eulerAngles.z, initialZ, changeSpeed * Time.deltaTime));
+            pivotRight.eulerAngles = new Vector3(0, 0, Mathf.MoveTowardsAngle(pivotRight.eulerAngles.z, initialZ, changeSpeed * Time.deltaTime));
+            timer += Time.deltaTime;
             yield return null;
         }
-        pivotLeft.eulerAngles = Vector3.zero;
-        pivotRight.eulerAngles = Vector3.zero;
+        pivotLeft.eulerAngles = new Vector3(0, 0, initialZ);
+        pivotRight.eulerAngles = new Vector3(0, 0, initialZ);
         yield return new WaitForSeconds(3f);
         changeSpeed = 4;
         while (GetComponent<SpriteRenderer>().color.a > 0)

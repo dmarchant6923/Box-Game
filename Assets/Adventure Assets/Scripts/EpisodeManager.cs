@@ -159,10 +159,12 @@ public class EpisodeManager : MonoBehaviour
     public void EnemyKilled(Vector2 position)
     {
         enemiesKilled++;
-        int rand = Random.Range(0, 3);
-        if (rand == 2)
+        int rand = Random.Range(0, 5);
+        if (rand == 0)
         {
-
+            newPerkSpawner = Instantiate(perkSpawner, position, Quaternion.identity);
+            newPerkSpawner.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(-5f, 5f), 15);
+            newPerkSpawner.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(500f, 1000f);
         }
     }
     public void StickerFound(GameObject sticker)

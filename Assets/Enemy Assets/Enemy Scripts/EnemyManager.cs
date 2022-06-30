@@ -81,6 +81,7 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public List<Color> enemyColors;
 
     public float enemyHealth = 1; //all damage will take 1 health
+    [HideInInspector] public bool enemyWillFlash = true;
     [HideInInspector] public float invulnerabilityPeriod = 2f;
     float invulnerabilityTime = 0;
 
@@ -204,7 +205,7 @@ public class EnemyManager : MonoBehaviour
         if (enemyIsInvulnerable == true && hitstopImpactActive == false)
         {
             invulnerabilityTime += Time.deltaTime;
-            if (damageFlashCRActive == false)
+            if (damageFlashCRActive == false && enemyWillFlash)
             {
                 StartCoroutine(EnemyDamageFlash());
             }

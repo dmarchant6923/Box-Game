@@ -540,7 +540,6 @@ public class BattlegroundManager : MonoBehaviour
                 {
                     continue;
                 }
-                Debug.Log("you are here");
             }
 
 

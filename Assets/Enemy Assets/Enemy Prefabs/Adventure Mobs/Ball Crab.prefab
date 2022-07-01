@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -2
   m_Sprite: {fileID: 21300000, guid: 3fcfdf5bd5339f84d9a11bd707f6b8fb, type: 3}
-  m_Color: {r: 0.8018868, g: 0.8018868, b: 0.39716092, a: 1}
+  m_Color: {r: 0.6320754, g: 0.6320754, b: 0.31365255, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -236,6 +236,7 @@ GameObject:
   - component: {fileID: 6938493157284880011}
   - component: {fileID: 500741784656651105}
   - component: {fileID: 1229056235031935487}
+  - component: {fileID: 7960059123713539921}
   m_Layer: 11
   m_Name: Ball Crab
   m_TagString: Untagged
@@ -252,7 +253,7 @@ Transform:
   m_GameObject: {fileID: 1635701868012483296}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.4, y: 1.4, z: 1}
   m_Children:
   - {fileID: 8662082033302255800}
   - {fileID: 3347211769460140075}
@@ -340,15 +341,19 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0.46, y: -0.17}
-      - {x: 0.5, y: 0}
-      - {x: 0.43, y: 0.25}
-      - {x: 0.26, y: 0.42}
+    - - {x: 0.27, y: 0.41}
+      - {x: 0.13, y: 0.475}
       - {x: 0, y: 0.5}
-      - {x: -0.26, y: 0.42}
-      - {x: -0.43, y: 0.25}
+      - {x: -0.13, y: 0.475}
+      - {x: -0.27, y: 0.41}
+      - {x: -0.39, y: 0.3}
+      - {x: -0.47, y: 0.15}
       - {x: -0.5, y: 0}
       - {x: -0.46, y: -0.17}
+      - {x: 0.46, y: -0.17}
+      - {x: 0.5, y: 0}
+      - {x: 0.47, y: 0.15}
+      - {x: 0.39, y: 0.3}
 --- !u!50 &6938493157284880011
 Rigidbody2D:
   serializedVersion: 4
@@ -439,6 +444,22 @@ MonoBehaviour:
   invulnerabilityPeriod: 2
   startEnemyDeath: 0
   respawn: 0
+--- !u!58 &7960059123713539921
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635701868012483296}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 4
 --- !u!1 &5256092548485628319
 GameObject:
   m_ObjectHideFlags: 0
@@ -704,7 +725,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -2
   m_Sprite: {fileID: 21300000, guid: f57ff4e6404af4f4189f49b310ab77b0, type: 3}
-  m_Color: {r: 0.8000001, g: 0.8000001, b: 0.39607847, a: 1}
+  m_Color: {r: 0.6313726, g: 0.6313726, b: 0.3137255, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -803,7 +824,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -2
   m_Sprite: {fileID: 21300000, guid: 3fcfdf5bd5339f84d9a11bd707f6b8fb, type: 3}
-  m_Color: {r: 0.8018868, g: 0.8018868, b: 0.39716092, a: 1}
+  m_Color: {r: 0.6320754, g: 0.6320754, b: 0.31365255, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

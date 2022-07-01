@@ -51,7 +51,7 @@ public class Checkpoint : MonoBehaviour
 
     IEnumerator CheckpointSpin()
     {
-        Transform bars = transform.GetChild(1);
+        Transform bars = transform.GetChild(2);
         Rigidbody2D barsRB = bars.GetComponent<Rigidbody2D>();
 
         Vector2 directionToBox = (boxRB.position - barsRB.position).normalized;

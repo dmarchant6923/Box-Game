@@ -12,6 +12,7 @@ public class PathMovement : MonoBehaviour
     public bool loop = false;
     LineRenderer line;
 
+    public bool showPoints = true;
     public float speed = 10;
     public bool pauseAtEnds = false;
     public float pauseTime = 1f;
@@ -36,12 +37,25 @@ public class PathMovement : MonoBehaviour
             line.loop = true;
         }
 
+        pointParent.parent = null;
         for (int i = 0; i < points.Count; i++)
         {
-            points[i].parent = null;
             points[i].transform.localScale = Vector2.one * 0.5f;
+            if (showPoints == false)
+            {
+                points[i].GetComponent<SpriteRenderer>().enabled = false;
+            }
 
             line.SetPosition(i, points[i].position);
+        }
+
+        if (showPoints)
+        {
+            line.enabled = true;
+        }
+        else
+        {
+            line.enabled = false;
         }
 
         rb = GetComponent<Rigidbody2D>();

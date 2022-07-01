@@ -125,9 +125,10 @@ public class Switch : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if ((boxCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Box")) ||
+        if (((boxCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Box")) ||
             (enemiesCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Enemies")) ||
-            (platformsCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms")))
+            (platformsCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms"))) &&
+            collision.isTrigger == false)
         {
             if (active == false)
             {
@@ -143,9 +144,10 @@ public class Switch : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if ((boxCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Box")) ||
+        if (((boxCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Box")) ||
             (enemiesCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Enemies")) ||
-            (platformsCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms")))
+            (platformsCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms"))) &&
+            collision.isTrigger == false)
         {
             itemsInTrigger--;
             if (releaseOnExit && itemsInTrigger == 0)

@@ -49,9 +49,11 @@ public class MovingObjects : MonoBehaviour
 
     public bool interactableObstacle = true;
 
+    public bool showPath = false;
+    public GameObject end;
+    LineRenderer line;
     Transform end1;
     Transform end2;
-    LineRenderer line;
 
     void Awake()
     {
@@ -98,15 +100,13 @@ public class MovingObjects : MonoBehaviour
             active = false;
         }
 
-        if ((movementType1 || movementType2) && GetComponent<PlatformDrop>() != null)
+        if ((movementType1 || movementType2) && showPath)
         {
-            end1 = transform.GetChild(0);
-            end2 = transform.GetChild(1);
+            end1 = Instantiate(end).transform;
+            end2 = Instantiate(end).transform;
             line = GetComponent<LineRenderer>();
 
-            end1.gameObject.SetActive(true); end2.gameObject.SetActive(true); line.enabled = true;
-            end1.parent = null; end2.parent = null;
-            end1.transform.localScale = Vector2.one * 0.5f; end2.transform.localScale = Vector2.one * 0.5f;
+            line.enabled = true;
 
             if (horizontal)
             {

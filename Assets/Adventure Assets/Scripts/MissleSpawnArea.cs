@@ -118,7 +118,7 @@ public class MissleSpawnArea : MonoBehaviour
             timer = 0;
             foreach(GameObject missile in activeMissiles)
             {
-                if ((boxRB.transform.position - missile.transform.position).magnitude > 25)
+                if (missile != null && (boxRB.transform.position - missile.transform.position).magnitude > 25)
                 {
                     Destroy(missile);
                 }

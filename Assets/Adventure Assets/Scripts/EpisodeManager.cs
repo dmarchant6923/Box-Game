@@ -205,7 +205,7 @@ public class EpisodeManager : MonoBehaviour
         float waitTime1 = 1f;
         float waitTime2 = 2f;
         StartCoroutine(boxScript.DisableInputs(waitTime1 + waitTime2));
-        yield return null;
+        yield return new WaitForSeconds(0.1f);
         episodeStartBox.SetActive(true);
         UIManager.canPause = false;
         foreach (BattleSpawner spawner in FindObjectsOfType<BattleSpawner>())

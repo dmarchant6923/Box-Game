@@ -117,7 +117,7 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static bool dashActive = false; //whether or not the dash is currently active
     [System.NonSerialized] public float dashSpeed = 30; // horizontal dash speed
     float dashTimeLimit = 0.2f; //how long the dash will last
-    int dashDirection = 1; //same as lookingRight but stores dash direction
+    [System.NonSerialized] public static int dashDirection = 1; //same as lookingRight but stores dash direction
     RaycastHit2D leftWallCheck;
     RaycastHit2D rightWallCheck;
     bool dashWallBounceActivate = false; // will turn on for a frame when a dash wallbounce becomes active to activate the coroutine
@@ -1264,7 +1264,7 @@ public class Box : MonoBehaviour
         bool touchingRightWall = false;
         bool touchingCeiling = false;
         Vector2 colVel = Vector2.zero;
-        if (collision.collider.GetComponent<MovingObjects>().interactableObstacle)
+        if (collision.transform.root.GetComponentInChildren<MovingObjects>().interactableObstacle)
         {
             foreach (ContactPoint2D col in collision.contacts)
             {

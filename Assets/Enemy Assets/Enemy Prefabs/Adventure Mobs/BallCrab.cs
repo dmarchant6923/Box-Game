@@ -36,12 +36,16 @@ public class BallCrab : MonoBehaviour
     bool touchingThisEnemy = false;
     float launchSpeed = 20;
     bool justLaunched = false;
+    bool hitboxActive = false;
+    bool enemyHitstopActive = false;
+    bool extendHitstop = false;
 
     bool balled = false;
     bool balledCR = false;
 
     int obstacleLM;
     int groundLM;
+    int enemyLM;
 
     public bool debugEnabled = false;
 
@@ -67,12 +71,13 @@ public class BallCrab : MonoBehaviour
 
         obstacleLM = LayerMask.GetMask("Obstacles");
         groundLM = LayerMask.GetMask("Platforms", "Obstacles");
+        enemyLM = LayerMask.GetMask("Enemies");
     }
 
     void GroundCheck()
     {
-        RaycastHit2D groundCast = Physics2D.BoxCast(enemyRB.position + Vector2.down * 0.35f, new Vector2(0.25f, 0.05f), 0, Vector2.zero, 0, groundLM);
-        if (groundCast.collider != null && Tools.AngleToVector(transform.eulerAngles.z).y > 0.8f)
+        RaycastHit2D groundCast = Physics2D.BoxCast(enemyRB.position + Vector2.down * 0.35f * transform.localScale.x, new Vector2(0.25f, 0.05f), 0, Vector2.zero, 0, groundLM);
+        if (groundCast.collider != null && Tools.AngleToVector(transform.eulerAngles.z).y > 0.8f && balled == false)
         {
             isGrounded = true;
             notGroundedTimer = 0;
@@ -151,11 +156,8 @@ public class BallCrab : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (balled == false)
-        {
-            GroundCheck();
-        }
-        else
+        GroundCheck();
+        if (balled)
         {
             isGrounded = false;
             if (balledCR == false)
@@ -185,6 +187,32 @@ public class BallCrab : MonoBehaviour
                 }
             }
         }
+
+        if (balled && (enemyRB.velocity.magnitude > launchSpeed / 2 || enemyHitstopActive))
+        {
+            hitboxActive = true;
+            //RaycastHit2D[] enemyCast = Physics2D.CircleCastAll(enemyRB.position, transform.localScale.x * 0.4f, Vector2.zero, 0, enemyLM);
+            //foreach (RaycastHit2D enemy in enemyCast)
+            //{
+            //    EnemyManager em = enemy.collider.GetComponent<EnemyManager>();
+            //    if (em != null && em.enemyIsInvulnerable == false && em.gameObject != gameObject)
+            //    {
+            //        em.enemyWasDamaged = true;
+            //        if (enemyHitstopActive == false)
+            //        {
+            //            StartCoroutine(EnemyHitstop());
+            //        }
+            //        else
+            //        {
+            //            extendHitstop = true;
+            //        }
+            //    }
+            //}
+        }
+        else
+        {
+            hitboxActive = false;
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -194,6 +222,19 @@ public class BallCrab : MonoBehaviour
         {
             enemyRB.velocity = new Vector2(enemyRB.velocity.x * 0.8f, enemyRB.velocity.y);
         }
+
+        if (hitboxActive && collision.gameObject.GetComponent<EnemyManager>() != null && collision.gameObject.GetComponent<EnemyManager>().enemyIsInvulnerable == false)
+        {
+            collision.gameObject.GetComponent<EnemyManager>().enemyWasDamaged = true;
+            if (enemyHitstopActive == false)
+            {
+                StartCoroutine(EnemyHitstop());
+            }
+            else
+            {
+                extendHitstop = true;
+            }
+        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -202,9 +243,46 @@ public class BallCrab : MonoBehaviour
             walkCR && collision.GetContact(0).normal.y > 0.8f)
         {
             platformMoveSpeed = collision.transform.GetComponent<Rigidbody2D>().velocity.x;
-            Debug.Log(platformMoveSpeed);
         }
     }
+
+    //private void OnTriggerStay2D(Collider2D collision)
+    //{
+    //    if (hitboxActive && collision.GetComponent<EnemyManager>() != null)
+    //    {
+    //        foreach(Collider2D collider in GetComponentsInChildren<Collider2D>())
+    //        {
+    //            if (collider.isTrigger == false)
+    //            {
+    //                Physics2D.IgnoreCollision(collider, collision, true);
+    //            }
+    //        }
+    //    }
+    //    if (hitboxActive == false && collision.GetComponent<EnemyManager>() != null)
+    //    {
+    //        foreach (Collider2D collider in GetComponentsInChildren<Collider2D>())
+    //        {
+    //            if (collider.isTrigger == false)
+    //            {
+    //                Physics2D.IgnoreCollision(collider, collision, false);
+    //            }
+    //        }
+    //    }
+    //}
+
+    //private void OnTriggerExit2D(Collider2D collision)
+    //{
+    //    if (collision.GetComponent<EnemyManager>() != null)
+    //    {
+    //        foreach (Collider2D collider in GetComponentsInChildren<Collider2D>())
+    //        {
+    //            if (collider.isTrigger == false)
+    //            {
+    //                Physics2D.IgnoreCollision(collider, collision, false);
+    //            }
+    //        }
+    //    }
+    //}
 
     IEnumerator IdleCR()
     {
@@ -212,11 +290,16 @@ public class BallCrab : MonoBehaviour
         float walkTime = 4f;
         float waitTime = 2f;
         yield return new WaitForSeconds(waitTime);
+        bool firstWalk = true;
         while (notGroundedTimer == 0)
         {
             RaycastHit2D rightCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
             RaycastHit2D leftCast = Physics2D.BoxCast(enemyRB.position + new Vector2(-1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
             int rand = Random.Range(-1, 2);
+            if (firstWalk)
+            {
+                rand = (Random.Range(0, 2) * 2) - 1;
+            }
             if (rightCast.collider != null && leftCast.collider == null)
             {
                 rand = Random.Range(-1, 1);
@@ -261,7 +344,7 @@ public class BallCrab : MonoBehaviour
         Transform[] step2 = new Transform[2] { rightBack, leftFront };
         Vector2[] step1InitialPos = new Vector2[2] { step1[0].localPosition, step1[1].localPosition };
 
-        float stepWindow = stepDistance / moveSpeed; //0.3f;
+        float stepWindow = stepDistance * transform.localScale.x / moveSpeed; //0.3f;
 
         while (walking && notGroundedTimer == 0)
         {
@@ -343,9 +426,8 @@ public class BallCrab : MonoBehaviour
         enemyRB.velocity = new Vector2(boxVelocity.x / 20, Mathf.Max(boxVelocity.normalized.y, 0.8f)).normalized * launchSpeed;
         if (dash)
         {
-            enemyRB.velocity = new Vector2(Mathf.Sign(boxVelocity.x), 1).normalized * launchSpeed;
+            enemyRB.velocity = new Vector2(Box.dashDirection, 1).normalized * launchSpeed;
         }
-        enemyRB.angularVelocity = -Mathf.Sign(boxVelocity.x) * 1000;
         float mult = 1;
         if (dash)
         {
@@ -356,6 +438,8 @@ public class BallCrab : MonoBehaviour
             mult *= 1.3f;
         }
         enemyRB.velocity *= mult;
+        yield return new WaitForFixedUpdate();
+        enemyRB.angularVelocity = -Mathf.Sign(boxVelocity.x) * 1000;
         enemyRB.angularVelocity *= mult;
         yield return new WaitForSeconds(0.2f);
         justLaunched = false;
@@ -382,10 +466,10 @@ public class BallCrab : MonoBehaviour
         }
 
         float stillTimer = 0;
-        float stillWindow = 2f;
+        float stillWindow = 1f;
         while (true)
         {
-            if (Mathf.Abs(enemyRB.velocity.y) < 0.1f)
+            if (Mathf.Abs(enemyRB.velocity.y) < 0.1f && enemyHitstopActive == false)
             {
                 stillTimer += Time.deltaTime;
             }
@@ -425,5 +509,35 @@ public class BallCrab : MonoBehaviour
         balled = false;
         balledCR = false;
         notGroundedTimer = 0;
+    }
+    IEnumerator EnemyHitstop()
+    {
+        enemyHitstopActive = true;
+        Vector2 enemyHitstopVelocity = enemyRB.velocity;
+        float enemyHitstopRotationSlowDown = 10;
+        enemyRB.velocity = new Vector2(0, 0);
+        enemyRB.angularVelocity /= enemyHitstopRotationSlowDown;
+        enemyRB.isKinematic = true;
+        float window = Box.enemyHitstopDelay;
+        float timer = 0;
+        while (timer < window)
+        {
+            timer += Time.deltaTime;
+            if (extendHitstop)
+            {
+                timer = 0;
+                extendHitstop = false;
+            }
+            yield return null;
+        }
+        extendHitstop = false;
+        if (EM.shockActive)
+        {
+            EM.shockActive = false;
+        }
+        enemyRB.isKinematic = false;
+        enemyRB.angularVelocity *= enemyHitstopRotationSlowDown;
+        enemyRB.velocity = enemyHitstopVelocity;
+        enemyHitstopActive = false;
     }
 }

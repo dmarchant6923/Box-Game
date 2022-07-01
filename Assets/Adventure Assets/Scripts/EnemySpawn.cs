@@ -69,7 +69,7 @@ public class EnemySpawn : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (killzoneActive && collision.gameObject == spawn)
+        if (killzoneActive && collision.gameObject == spawn && collision.isTrigger == false)
         {
             killzoneTimer += Time.deltaTime;
         }

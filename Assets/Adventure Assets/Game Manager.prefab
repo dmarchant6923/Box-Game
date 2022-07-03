@@ -64,9 +64,8 @@ MonoBehaviour:
   teleportUnlocked: 0
   pulseUnlocked: 0
   UIBackground: {fileID: 0}
-  cameraScript: {fileID: 0}
   season: 1
-  episode: 2
+  episode: 1
   episodeStats:
     completed: 0
     checkpoint: 0
@@ -80,8 +79,9 @@ MonoBehaviour:
   inGameStickersFound: 000000000000
   sticker: {fileID: 476601793137128570, guid: de5260dfcb658484fa31b1b798e8189c, type: 3}
   duplicateSticker: {fileID: 3680085326950723664, guid: 83aeb2710d4e71d499186b70409c4388, type: 3}
-  ignoreCheckpoint: 1
+  ignoreCheckpoint: 0
   episodeStartBox: {fileID: 0}
+  startBoxTargetText: {fileID: 0}
   enemiesToKill: 0
   enemiesKilled: 0
   perkSpawner: {fileID: 2053844316060053782, guid: ed9f98f177e6f55488ccf102a58fbe3d, type: 3}

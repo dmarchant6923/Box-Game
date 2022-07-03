@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class AreaSwitch : MonoBehaviour
 {
+    Switch switchScript;
+
+    public bool triggerOnEnter = true;
+    public bool triggerOnExit = true;
+    public bool startActive = false;
+
     public bool cameraSwitch = false;
     public bool averageBoxAndTransform = false;
     public float forceCameraSize = 15;
@@ -15,10 +21,16 @@ public class AreaSwitch : MonoBehaviour
 
     void Start()
     {
+        switchScript = GetComponent<Switch>();
         boxTransform = GameObject.Find("Box").transform;
         if (debugEnabled == false)
         {
             GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+        }
+
+        if (startActive)
+        {
+            switchScript.Activate();
         }
     }
 
@@ -30,44 +42,64 @@ public class AreaSwitch : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.transform == boxTransform && FindObjectOfType<CameraFollowBox>() != null && cameraSwitch)
+        if (collision.transform == boxTransform)
         {
-            FindObjectOfType<CameraFollowBox>().disable = true;
-            FindObjectOfType<CameraFollowBox>().overrideCamSize = true;
-            FindObjectOfType<CameraFollowBox>().overrideSize = forceCameraSize;
+            if (FindObjectOfType<CameraFollowBox>() != null && cameraSwitch)
+            {
+                FindObjectOfType<CameraFollowBox>().disable = true;
+                FindObjectOfType<CameraFollowBox>().overrideCamSize = true;
+                FindObjectOfType<CameraFollowBox>().overrideSize = forceCameraSize;
+            }
+
+            if (triggerOnEnter)
+            {
+                Debug.Log("you are here");
+                switchScript.Activate();
+            }
         }
     }
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.transform == boxTransform && FindObjectOfType<CameraFollowBox>() != null && cameraSwitch)
+        if (collision.transform == boxTransform)
         {
-            Transform camera = GameObject.Find("Main Camera").transform;
-            float trueMoveSpeed = 1;
-            Vector3 truePosition;
-            if (averageBoxAndTransform)
+            if (FindObjectOfType<CameraFollowBox>() != null && cameraSwitch)
             {
-                truePosition = (boxTransform.position + transform.position) / 2;
-                trueMoveSpeed = camMoveSpeed / 2;
-            }
-            else
-            {
-                truePosition = transform.position;
-                trueMoveSpeed = 1 + (camMoveSpeed * (transform.position - camera.position + Vector3.back * 10).magnitude / 20);
-            }
+                Transform camera = GameObject.Find("Main Camera").transform;
+                float trueMoveSpeed = 1;
+                Vector3 truePosition;
+                if (averageBoxAndTransform)
+                {
+                    truePosition = (boxTransform.position + transform.position) / 2;
+                    trueMoveSpeed = camMoveSpeed / 2;
+                }
+                else
+                {
+                    truePosition = transform.position;
+                    trueMoveSpeed = 1 + (camMoveSpeed * (transform.position - camera.position + Vector3.back * 10).magnitude / 20);
+                }
 
-            camera.position = Vector2.MoveTowards(camera.position, truePosition, trueMoveSpeed * Time.deltaTime);
-            camera.position = camera.position + Vector3.back * 10;
+                camera.position = Vector2.MoveTowards(camera.position, truePosition, trueMoveSpeed * Time.deltaTime);
+                camera.position = camera.position + Vector3.back * 10;
+            }
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.transform == boxTransform && FindObjectOfType<CameraFollowBox>() != null && cameraSwitch)
+        if (collision.transform == boxTransform)
         {
-            FindObjectOfType<CameraFollowBox>().disable = false;
-            StartCoroutine(FindObjectOfType<CameraFollowBox>().ResetCamera());
-            FindObjectOfType<CameraFollowBox>().overrideCamSize = false;
+            if (FindObjectOfType<CameraFollowBox>() != null && cameraSwitch)
+            {
+                FindObjectOfType<CameraFollowBox>().disable = false;
+                StartCoroutine(FindObjectOfType<CameraFollowBox>().ResetCamera());
+                FindObjectOfType<CameraFollowBox>().overrideCamSize = false;
+            }
+
+            if (triggerOnExit)
+            {
+                switchScript.Activate();
+            }
         }
     }
 }

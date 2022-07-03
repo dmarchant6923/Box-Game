@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2138106074505667665}
   - component: {fileID: 9178517133885474584}
   - component: {fileID: 5209188758298650988}
+  - component: {fileID: 4977551329511848215}
   m_Layer: 0
   m_Name: Area Switch
   m_TagString: Untagged
@@ -144,5 +145,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fbc0dedabbf2e54fad582561d2ddfa5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraSwitch: 1
+  triggerOnEnter: 1
+  triggerOnExit: 0
+  startActive: 0
+  cameraSwitch: 0
+  averageBoxAndTransform: 0
   forceCameraSize: 15
+  debugEnabled: 0
+--- !u!114 &4977551329511848215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3907364354957771727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1aee0ff6c20e6644282ed905b3db27c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  item1: {fileID: 0}
+  item2: {fileID: 0}
+  item3: {fileID: 0}
+  item4: {fileID: 0}
+  releaseOnExit: 0
+  pressToRelease: 0
+  triggerOnRelease: 0
+  hitSwitch: 0
+  groundSwitch: 0
+  areaSwitch: 1
+  boxCanActivate: 0
+  enemiesCanActivate: 0
+  platformsCanActivate: 0
+  startActive: 0
+  value: 1
+  active: 0

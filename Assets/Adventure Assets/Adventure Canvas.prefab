@@ -205,9 +205,8 @@ GameObject:
   - component: {fileID: 5782339756123864404}
   - component: {fileID: 9013424584836645104}
   - component: {fileID: 4293566750251630861}
-  - component: {fileID: 6588966482538444757}
   m_Layer: 5
-  m_Name: Level Start Text
+  m_Name: Episode Start Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -275,21 +274,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6588966482538444757
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4048581500408967990}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 460a14d7219356643bd63f48169bd175, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  episodeText: {fileID: 4754493238278345896}
-  targetText: {fileID: 6282142678484252110}
-  stickers: {fileID: 8664887327412808312}
 --- !u!1 &5494327599866729480
 GameObject:
   m_ObjectHideFlags: 0
@@ -655,7 +639,7 @@ GameObject:
   - component: {fileID: 362954747906794271}
   - component: {fileID: 789491774263525081}
   m_Layer: 5
-  m_Name: Sticker Text
+  m_Name: Body Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2463,9 +2447,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 640ce24ef7e49c5419cfc8f5a6996078, type: 3}
+--- !u!1 &5663828000163174578 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1184742476042501959, guid: 640ce24ef7e49c5419cfc8f5a6996078, type: 3}
+  m_PrefabInstance: {fileID: 6838989329649854453}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &2517387701529399076 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8937242042785835217, guid: 640ce24ef7e49c5419cfc8f5a6996078, type: 3}
+  m_PrefabInstance: {fileID: 6838989329649854453}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &684033332944828033 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6311465293256626548, guid: 640ce24ef7e49c5419cfc8f5a6996078, type: 3}
   m_PrefabInstance: {fileID: 6838989329649854453}
   m_PrefabAsset: {fileID: 0}
 --- !u!224 &5663828000163174582 stripped
@@ -2473,6 +2467,21 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1184742476042501955, guid: 640ce24ef7e49c5419cfc8f5a6996078, type: 3}
   m_PrefabInstance: {fileID: 6838989329649854453}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6630876537105596426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5663828000163174578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84bd7cc7b130ad445a965431afbdbc3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  episodeStartBox: {fileID: 4048581500408967990}
+  pauseInfo: {fileID: 5494327599866729480}
+  UIBackground: {fileID: 684033332944828033}
 --- !u!1001 &8759052991086447435
 PrefabInstance:
   m_ObjectHideFlags: 0

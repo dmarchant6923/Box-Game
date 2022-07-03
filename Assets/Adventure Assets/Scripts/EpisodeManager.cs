@@ -15,7 +15,7 @@ public class EpisodeManager : MonoBehaviour
     public bool pulseUnlocked = false;
 
     public GameObject UIBackground;
-    public CameraFollowBox cameraScript;
+    AdventureUI adventureUI;
 
     public int season = 1;
     public int episode = 1;
@@ -28,8 +28,6 @@ public class EpisodeManager : MonoBehaviour
 
     GameObject checkpoint;
     public bool ignoreCheckpoint = false;
-
-    public GameObject episodeStartBox;
 
     EnemyManager[] enemies;
     [HideInInspector] public int enemiesToKill = 0;
@@ -52,7 +50,7 @@ public class EpisodeManager : MonoBehaviour
 
     void Start()    
     {
-        UIManager.canPause = false;
+        adventureUI = FindObjectOfType<AdventureUI>();
         restartActive = false;
 
         UIManager.initialHealth = initialHealth;
@@ -108,14 +106,6 @@ public class EpisodeManager : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < episodeStats.stickersFound.Length; i++)
-        {
-            if (episodeStats.stickersFound[i] == true)
-            {
-                pauseInfo.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(true);
-            }
-        }
-
         timeToBeat = (int)Mathf.Floor(timeToBeat);
 
         StartCoroutine(EpisodeStart());
@@ -126,10 +116,6 @@ public class EpisodeManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.P))
         {
             CheckpointDeactivated();
-        }
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            cameraScript.disable = !cameraScript.disable;
         }
 
         if (episodeComplete && finishedCRActive == false)
@@ -173,7 +159,9 @@ public class EpisodeManager : MonoBehaviour
         {
             if (sticker == inGameStickers[i])
             {
-                inGameStickersFound[i] = true;
+                episodeStats.stickersFound[i] = true;
+                SaveManager.SaveEpisode(season, episode, episodeStats);
+                adventureUI.StickerFound(i);
                 break;
             }
         }
@@ -202,36 +190,10 @@ public class EpisodeManager : MonoBehaviour
     IEnumerator EpisodeStart()
     {
         UIManager.stopClock = true;
-        float waitTime1 = 1f;
-        float waitTime2 = 2f;
-        StartCoroutine(boxScript.DisableInputs(waitTime1 + waitTime2));
-        yield return new WaitForSeconds(0.1f);
-        episodeStartBox.SetActive(true);
-        UIManager.canPause = false;
-        foreach (BattleSpawner spawner in FindObjectsOfType<BattleSpawner>())
-        {
-            enemiesToKill += spawner.numEnemies;
-        }
-        string beatText = "Time To Beat: " + Mathf.Floor(timeToBeat / 60) + ":" + (timeToBeat % 60).ToString("00");
-        if (startAtCheckpoint)
-        {
-            beatText = "Time To Beat: ---";
-        }
-        pauseInfo.transform.GetChild(0).GetComponent<Text>().text = "Season " + season + " Episode " + episode +
-            "\n" + beatText + "\nEnemies To Kill: " + enemiesToKill;
-        yield return new WaitForSeconds(waitTime1);
-        float timer = 0;
-        while (timer < waitTime2)
-        {
-            Color color = UIBackground.GetComponent<Image>().color;
-            color.a -= 1 / waitTime2 * Time.deltaTime;
-            UIBackground.GetComponent<Image>().color = color;
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        episodeStartBox.SetActive(false);
+        float waitTime = 3f;
+        StartCoroutine(boxScript.DisableInputs(waitTime));
+        yield return new WaitForSeconds(waitTime);
         UIManager.stopClock = false;
-        UIManager.canPause = true;
     }
 
     IEnumerator EpisodeFinished()

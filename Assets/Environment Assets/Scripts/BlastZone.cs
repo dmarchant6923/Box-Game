@@ -29,7 +29,7 @@ public class BlastZone : MonoBehaviour
                 StartCoroutine(boxScript.BlastZoneRestart());
             }
         }
-        if (collision.GetComponent<EnemyManager>() != null && collision.GetComponent<EnemyManager>().blastzoneDeath)
+        if (collision.GetComponent<EnemyManager>() != null && collision.GetComponent<EnemyManager>().blastzoneDeath && collision.isTrigger == false)
         {
             collision.GetComponent<EnemyManager>().startEnemyDeath = true;
         }

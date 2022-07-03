@@ -16,8 +16,10 @@ public class Switch : MonoBehaviour
     public bool pressToRelease = false;
     public bool triggerOnRelease = true;
 
+    bool normalSwitch = false;
     public bool hitSwitch = false;
     public bool groundSwitch = false;
+    public bool areaSwitch = false;
 
     public bool boxCanActivate = true;
     public bool enemiesCanActivate = false;
@@ -36,7 +38,12 @@ public class Switch : MonoBehaviour
 
     void Start()
     {
-        if (hitSwitch == false && groundSwitch == false)
+        if (hitSwitch == false && groundSwitch == false && areaSwitch == false)
+        {
+            normalSwitch = true;
+        }
+
+        if (normalSwitch)
         {
             button = transform.GetChild(0);
             initialColor = button.GetComponent<SpriteRenderer>().color;
@@ -55,7 +62,7 @@ public class Switch : MonoBehaviour
     }
     public void Activate()
     {
-        if (hitSwitch == false && groundSwitch == false)
+        if (normalSwitch)
         {
             button.localScale = new Vector2(button.localScale.x, initialYScale * 0.4f);
             button.localPosition = new Vector2(button.localPosition.x, initialYPosition - 0.1f);
@@ -67,7 +74,7 @@ public class Switch : MonoBehaviour
 
     public void Deactivate()
     {
-        if (hitSwitch == false && groundSwitch == false)
+        if (normalSwitch)
         {
             button.localScale = new Vector2(button.localScale.x, initialYScale);
             button.localPosition = new Vector2(button.localPosition.x, initialYPosition);
@@ -79,7 +86,7 @@ public class Switch : MonoBehaviour
 
     void softRelease()
     {
-        if (hitSwitch == false && groundSwitch == false)
+        if (normalSwitch)
         {
             button.localScale = new Vector2(button.localScale.x, initialYScale);
             button.localPosition = new Vector2(button.localPosition.x, initialYPosition);
@@ -120,6 +127,10 @@ public class Switch : MonoBehaviour
             {
                 item.GetComponent<OneWayObstacle>().Trigger();
             }
+            else if (item != null && item.GetComponent<EnemySpawn>() != null)
+            {
+                item.GetComponent<EnemySpawn>().Trigger();
+            }
         }
     }
 
@@ -128,7 +139,7 @@ public class Switch : MonoBehaviour
         if (((boxCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Box")) ||
             (enemiesCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Enemies")) ||
             (platformsCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms"))) &&
-            collision.isTrigger == false)
+            collision.isTrigger == false && normalSwitch)
         {
             if (active == false)
             {
@@ -147,7 +158,7 @@ public class Switch : MonoBehaviour
         if (((boxCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Box")) ||
             (enemiesCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Enemies")) ||
             (platformsCanActivate && 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms"))) &&
-            collision.isTrigger == false)
+            collision.isTrigger == false && normalSwitch)
         {
             itemsInTrigger--;
             if (releaseOnExit && itemsInTrigger == 0)

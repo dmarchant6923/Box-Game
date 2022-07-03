@@ -141,7 +141,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                     distToObstacle = Mathf.Min(col.distance, distToObstacle);
                 }
             }
-            if (distToBox < distToObstacle && seenBox == true)
+            if (distToBox < distToObstacle && seenBox == true && EM.initialDelay == false)
             {
                 EM.canSeeItem = true;
                 StartCoroutine(FlipGlass());
@@ -216,12 +216,14 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             aggro = true;
             radius *= EM.aggroIncreaseMult;
             area.localScale *= EM.aggroIncreaseMult;
+            areaAnalyze.radius = radius;
         }
         if (EM.aggroCurrentlyActive == false && aggro)
         {
             aggro = false;
             radius /= EM.aggroIncreaseMult;
             area.localScale /= EM.aggroIncreaseMult;
+            areaAnalyze.radius = radius;
         }
     }
 
@@ -265,7 +267,6 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         }
         StartCoroutine(EnergyRelease());
     }
-
     IEnumerator EnergyRelease()
     {
         while (true)

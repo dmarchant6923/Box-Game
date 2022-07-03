@@ -171,8 +171,9 @@ public class BallCrab : MonoBehaviour
             if (walkingRight && enemyRB.velocity.x < moveSpeed + platformMoveSpeed)
             {
                 enemyRB.AddForce(Vector2.right * 40);
-                RaycastHit2D rightCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
-                if (rightCast.collider != null)
+                RaycastHit2D rightWallCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
+                RaycastHit2D rightFloorCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1.5f, -0.5f), Vector2.one * 0.25f, 0, Vector2.zero, 0, obstacleLM);
+                if (rightWallCast.collider != null || rightFloorCast.collider == null)
                 {
                     walking = false;
                 }
@@ -180,8 +181,9 @@ public class BallCrab : MonoBehaviour
             if (walkingRight == false && enemyRB.velocity.x > -moveSpeed + platformMoveSpeed)
             {
                 enemyRB.AddForce(Vector2.left * 40);
-                RaycastHit2D leftCast = Physics2D.BoxCast(enemyRB.position + new Vector2(-1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
-                if (leftCast.collider != null)
+                RaycastHit2D leftWallCast = Physics2D.BoxCast(enemyRB.position + new Vector2(-1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
+                RaycastHit2D leftFloorCast = Physics2D.BoxCast(enemyRB.position + new Vector2(-1.5f, -0.5f), Vector2.one * 0.25f, 0, Vector2.zero, 0, obstacleLM);
+                if (leftWallCast.collider != null || leftFloorCast.collider == null)
                 {
                     walking = false;
                 }
@@ -293,22 +295,24 @@ public class BallCrab : MonoBehaviour
         bool firstWalk = true;
         while (notGroundedTimer == 0)
         {
-            RaycastHit2D rightCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
-            RaycastHit2D leftCast = Physics2D.BoxCast(enemyRB.position + new Vector2(-1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
+            RaycastHit2D rightWallCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
+            RaycastHit2D rightFloorCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1.5f, -0.5f), Vector2.one * 0.25f, 0, Vector2.zero, 0, obstacleLM);
+            RaycastHit2D leftWallCast = Physics2D.BoxCast(enemyRB.position + new Vector2(-1, 0.5f), Vector2.one * 0.5f, 0, Vector2.zero, 0, obstacleLM);
+            RaycastHit2D leftFloorCast = Physics2D.BoxCast(enemyRB.position + new Vector2(1.5f, -0.5f), Vector2.one * 0.25f, 0, Vector2.zero, 0, obstacleLM);
             int rand = Random.Range(-1, 2);
             if (firstWalk)
             {
                 rand = (Random.Range(0, 2) * 2) - 1;
             }
-            if (rightCast.collider != null && leftCast.collider == null)
+            if ((rightWallCast.collider != null || rightFloorCast.collider == null) && (leftWallCast.collider == null && leftFloorCast.collider != null))
             {
                 rand = Random.Range(-1, 1);
             }
-            else if (rightCast.collider == null && leftCast.collider != null)
+            else if ((rightWallCast.collider == null && rightFloorCast.collider != null) && (leftWallCast.collider != null || leftFloorCast.collider == null))
             {
                 rand = Random.Range(0, 2);
             }
-            else if (rightCast.collider != null && leftCast.collider != null)
+            else if ((rightWallCast.collider != null || rightFloorCast.collider == null) && (leftWallCast.collider != null || leftFloorCast.collider == null))
             {
                 rand = 0;
             }

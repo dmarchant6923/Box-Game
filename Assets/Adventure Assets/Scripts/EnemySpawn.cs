@@ -54,6 +54,12 @@ public class EnemySpawn : MonoBehaviour
         }
     }
 
+    public void Trigger()
+    {
+        killzoneActive = !killzoneActive;
+        Debug.Log(killzoneActive);
+    }
+
     IEnumerator Respawn()
     {
         spawnCRActive = true;

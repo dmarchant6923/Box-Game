@@ -55,6 +55,10 @@ public class MovingObjects : MonoBehaviour
     Transform end1;
     Transform end2;
 
+    Color pathColor;
+    Color lineColor;
+    Color offColor;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -105,6 +109,18 @@ public class MovingObjects : MonoBehaviour
             end1 = Instantiate(end).transform;
             end2 = Instantiate(end).transform;
             line = GetComponent<LineRenderer>();
+
+            pathColor = end1.GetComponent<SpriteRenderer>().color;
+            lineColor = line.startColor;
+            offColor = new Color(pathColor.r / 2, pathColor.g / 2, pathColor.b / 2);
+            if (active == false)
+            {
+                end1.GetComponent<SpriteRenderer>().color = offColor;
+                end2.GetComponent<SpriteRenderer>().color = offColor;
+                line.startColor = offColor;
+                line.endColor = offColor;
+
+            }
 
             line.enabled = true;
 
@@ -204,6 +220,24 @@ public class MovingObjects : MonoBehaviour
                 else
                 {
                     active = true;
+                }
+            }
+
+            if (showPath)
+            {
+                if (active)
+                {
+                    end1.GetComponent<SpriteRenderer>().color = pathColor;
+                    end2.GetComponent<SpriteRenderer>().color = pathColor;
+                    line.startColor = lineColor;
+                    line.endColor = lineColor;
+                }
+                else
+                {
+                    end1.GetComponent<SpriteRenderer>().color = offColor;
+                    end2.GetComponent<SpriteRenderer>().color = offColor;
+                    line.startColor = offColor;
+                    line.endColor = offColor;
                 }
             }
         }

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class SawBlade : MonoBehaviour
 {
+    public float angularVelocity = 500;
     public float speed = 15f;
     public Vector2 direction;
 
@@ -35,7 +36,7 @@ public class SawBlade : MonoBehaviour
         sprites = GetComponentsInChildren<SpriteRenderer>();
         posLastFrame = bladeRB.position;
 
-        bladeRB.angularVelocity = -700;
+        bladeRB.angularVelocity = -angularVelocity;
 
         if (hazardBlade)
         {

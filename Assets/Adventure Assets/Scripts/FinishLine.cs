@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class FinishLine : MonoBehaviour
 {
+    public bool door;
+    public bool cannon;
+
     EpisodeManager episodeManager;
     public Rigidbody2D doorTop;
     public Rigidbody2D doorBottom;
@@ -11,8 +14,14 @@ public class FinishLine : MonoBehaviour
     void Start()
     {
         episodeManager = FindObjectOfType<EpisodeManager>();
-        doorTop.freezeRotation = true;
-        doorBottom.freezeRotation = true;
+
+        if (door)
+        {
+            doorTop.isKinematic = true;
+            doorBottom.isKinematic = true;
+            //doorTop.freezeRotation = true;
+            //doorBottom.freezeRotation = true;
+        }
     }
 
     // Update is called once per frame
@@ -25,10 +34,22 @@ public class FinishLine : MonoBehaviour
         if (1 << collision.gameObject.layer == LayerMask.GetMask("Box"))
         {
             episodeManager.episodeComplete = true;
-            doorTop.freezeRotation = false;
-            doorBottom.freezeRotation = false;
+            if (door)
+            {
+                doorTop.isKinematic = false;
+                doorBottom.isKinematic = false;
+                //doorTop.freezeRotation = false;
+                //doorBottom.freezeRotation = false;
+            }
             FindObjectOfType<CameraFollowBox>().overridePosition = true;
-            FindObjectOfType<CameraFollowBox>().forcedPosition = transform.position;
+            if (door)
+            {
+                FindObjectOfType<CameraFollowBox>().forcedPosition = transform.position;
+            }
+            else if (cannon)
+            {
+                FindObjectOfType<CameraFollowBox>().forcedPosition = transform.position + Tools.AngleToVector3(transform.GetChild(0).eulerAngles.z) * 7;
+            }
             FindObjectOfType<CameraFollowBox>().ResetCamera();
         }
     }

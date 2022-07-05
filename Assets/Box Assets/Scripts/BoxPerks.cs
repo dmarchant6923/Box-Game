@@ -76,7 +76,7 @@ public class BoxPerks : MonoBehaviour
 
         initialDashSpeed = boxScript.dashSpeed;
         initialGravityMult = boxScript.gravityMult;
-        initialHMaxSpeed = boxScript.horizMaxSpeed;
+        initialHMaxSpeed = Box.horizMaxSpeed;
         initialJumpSpeed = boxScript.jumpSpeed;
         initialDJumpSpeed = boxScript.djumpSpeed;
         initialAirAccel = boxScript.initialAirAccel;
@@ -166,7 +166,7 @@ public class BoxPerks : MonoBehaviour
         StartCoroutine(SpawnBuff(speedActiveTime, Color.green));
         boxScript.dashSpeed *= speedMult;
         boxScript.gravityMult *= speedMult;
-        boxScript.horizMaxSpeed *= speedMult;
+        Box.horizMaxSpeed *= speedMult;
         boxScript.jumpSpeed *= speedMult;
         boxScript.djumpSpeed *= speedMult;
         boxScript.initialAirAccel *= speedMult;
@@ -177,7 +177,7 @@ public class BoxPerks : MonoBehaviour
         }
         boxScript.dashSpeed = initialDashSpeed;
         boxScript.gravityMult = initialGravityMult;
-        boxScript.horizMaxSpeed = initialHMaxSpeed;
+        Box.horizMaxSpeed = initialHMaxSpeed;
         boxScript.jumpSpeed = initialJumpSpeed;
         boxScript.djumpSpeed = initialDJumpSpeed;
         boxScript.initialAirAccel = initialAirAccel;
@@ -202,7 +202,7 @@ public class BoxPerks : MonoBehaviour
         StartCoroutine(SpawnBuff(heavyActiveTime, new Color(1, 0.75f, 0)));
         boxScript.dashSpeed *= heavyMult;
         boxScript.gravityMult *= speedMult;
-        boxScript.horizMaxSpeed *= heavyMult;
+        Box.horizMaxSpeed *= heavyMult;
         boxScript.initialAirAccel *= heavyMult;
         boxScript.airAccel *= heavyMult;
         while (buffActive == true)
@@ -211,7 +211,7 @@ public class BoxPerks : MonoBehaviour
         }
         boxScript.dashSpeed = initialDashSpeed;
         boxScript.gravityMult = initialGravityMult;
-        boxScript.horizMaxSpeed = initialHMaxSpeed;
+        Box.horizMaxSpeed = initialHMaxSpeed;
         boxScript.initialAirAccel = initialAirAccel;
         boxScript.airAccel = initialAirAccel;
         heavyActive = false;
@@ -290,7 +290,7 @@ public class BoxPerks : MonoBehaviour
         StartCoroutine(SpawnBuff(starActiveTime, Color.black));
         boxScript.dashSpeed *= starMult;
         boxScript.gravityMult *= starMult;
-        boxScript.horizMaxSpeed *= starMult;
+        Box.horizMaxSpeed *= starMult;
         boxScript.jumpSpeed *= starMult;
         boxScript.djumpSpeed *= starMult;
         boxScript.initialAirAccel *= starMult;
@@ -305,7 +305,7 @@ public class BoxPerks : MonoBehaviour
         }
         boxScript.dashSpeed = initialDashSpeed;
         boxScript.gravityMult = initialGravityMult;
-        boxScript.horizMaxSpeed = initialHMaxSpeed;
+        Box.horizMaxSpeed = initialHMaxSpeed;
         boxScript.jumpSpeed = initialJumpSpeed;
         boxScript.djumpSpeed = initialDJumpSpeed;
         boxScript.initialAirAccel = initialAirAccel;

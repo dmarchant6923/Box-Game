@@ -23,6 +23,13 @@ public class Tools : MonoBehaviour
         return vector;
     }
 
+    public static Vector3 AngleToVector3(float angle)
+    {
+        Vector3 vector = new Vector3(Mathf.Cos(angle * Mathf.Deg2Rad + Mathf.PI / 2),
+                Mathf.Sin(angle * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+        return vector;
+    }
+
     public static float VectorToAngle(Vector2 vector)
     {
         vector = vector.normalized;

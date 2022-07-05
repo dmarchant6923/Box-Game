@@ -9,10 +9,10 @@ public class InputBroker : MonoBehaviour
     [HideInInspector] public bool inputsEnabled;
 
     public static bool Keyboard { get; private set; } = true;
-    public static bool Controller { get; private set; } = false;
-
     public static bool GameCube { get; private set; } = false;
     public static bool Xbox { get; private set; } = false;
+
+    public static bool Controller { get; private set; } = false;
 
     public Vector2 leftStick { get; private set; } //calibration for sticks is done in this script, not with input manager
     public Vector2 rightStick { get; private set; }
@@ -133,6 +133,21 @@ public class InputBroker : MonoBehaviour
     private void Awake()
     {
         inputsEnabled = true;
+
+        if (Keyboard)
+        {
+            Controller = false;
+            GameCube = false;
+            Xbox = false;
+        }
+        if (GameCube)
+        {
+            Xbox = false;
+        }
+        if (GameCube || Xbox)
+        {
+            Controller = true;
+        }
     }
     void Update()
     {

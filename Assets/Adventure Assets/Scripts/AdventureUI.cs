@@ -36,6 +36,7 @@ public class AdventureUI : MonoBehaviour
             if (episodeStats.stickersFound[i] == true)
             {
                 pauseInfo.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(true);
+                episodeStartBox.transform.GetChild(4).GetChild(i).GetChild(0).gameObject.SetActive(true);
             }
         }
 
@@ -60,14 +61,17 @@ public class AdventureUI : MonoBehaviour
 
         string targetTime = Mathf.Floor(timeToBeat / 60) + ":" + (timeToBeat % 60).ToString("00");
         string beatText = "Time To Beat: " + targetTime;
+        string enemiesText = enemiesToKill.ToString();
         if (startAtCheckpoint)
         {
             beatText = "Time To Beat: ---";
+            enemiesText = "---";
+            targetTime = "---";
         }
         pauseInfo.transform.GetChild(0).GetComponent<Text>().text = "Season " + season + " Episode " + episode +
-            "\n" + beatText + "\nEnemies To Kill: " + enemiesToKill;
+            "\n" + beatText + "\nEnemies To Kill: " + enemiesText;
         episodeStartBox.transform.GetChild(0).GetComponent<Text>().text = "Season " + season + " Episode " + episode;
-        episodeStartBox.transform.GetChild(3).GetComponent<Text>().text = targetTime + "\n\n" + enemiesToKill;
+        episodeStartBox.transform.GetChild(3).GetComponent<Text>().text = targetTime + "\n\n" + enemiesText;
 
 
         float waitTime1 = 1f;

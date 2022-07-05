@@ -19,10 +19,10 @@ public class EpisodeManager : MonoBehaviour
 
     public int season = 1;
     public int episode = 1;
-    public EpisodeStats episodeStats = new EpisodeStats();
+    [HideInInspector] public EpisodeStats episodeStats = new EpisodeStats();
 
     public GameObject[] inGameStickers = new GameObject[4]; //2 extra stickers, one for completion time and another for enemies killed
-    public bool[] inGameStickersFound = new bool[6];
+    [HideInInspector] public bool[] inGameStickersFound = new bool[6];
     public GameObject sticker;
     public GameObject duplicateSticker;
 
@@ -31,7 +31,7 @@ public class EpisodeManager : MonoBehaviour
 
     EnemyManager[] enemies;
     [HideInInspector] public int enemiesToKill = 0;
-    public int enemiesKilled = 0;
+    [HideInInspector] public int enemiesKilled = 0;
     bool allEnemiesKilled = false;
 
     public GameObject perkSpawner;
@@ -124,15 +124,17 @@ public class EpisodeManager : MonoBehaviour
             StartCoroutine(EpisodeFinished());
         }
 
-        if (allEnemiesKilled == false && episodeStats.stickersFound[4] == false)
+        if (enemiesKilled >= enemiesToKill && allEnemiesKilled == false && startAtCheckpoint == false)
         {
-            if (enemiesKilled == enemiesToKill)
+            allEnemiesKilled = true;
+            GameObject thisSticker = sticker;
+            if (episodeStats.stickersFound[5])
             {
-                allEnemiesKilled = true;
-                inGameStickersFound[4] = true;
-                GameObject newSticker = Instantiate(sticker);
-                newSticker.GetComponent<Sticker>().found = true;
+                thisSticker = duplicateSticker;
             }
+            inGameStickersFound[4] = true;
+            GameObject newSticker = Instantiate(thisSticker);
+            newSticker.GetComponent<Sticker>().found = true;
         }
 
         if (Box.boxHealth <= 0 && restartActive == false)
@@ -208,12 +210,18 @@ public class EpisodeManager : MonoBehaviour
         {
             episodeStats.fastestTime = UIManager.rawTime;
         }
-        if (UIManager.rawTime <= timeToBeat && episodeStats.stickersFound[5] == false && startAtCheckpoint == false)
+        if (UIManager.rawTime <= timeToBeat && startAtCheckpoint == false)
         {
+            GameObject thisSticker = sticker;
+            if (episodeStats.stickersFound[5])
+            {
+                thisSticker = duplicateSticker;
+            }
             episodeStats.stickersFound[5] = true;
-            GameObject newSticker = Instantiate(sticker);
+            GameObject newSticker = Instantiate(thisSticker);
             newSticker.GetComponent<Sticker>().found = true;
             newSticker.GetComponent<Sticker>().timeFound = true;
+            
         }
 
         if (allEnemiesKilled)

@@ -30,8 +30,8 @@ public class Box : MonoBehaviour
     int blastZoneLookingRight; //lookingRight value that gets frozen upon entering blast zone
 
     [System.NonSerialized] public static int lookingRight = 1; //1 if true, -1 if false
-    [System.NonSerialized] public float horizMaxSpeed = 15; //max horizontal speed
-    public float initialHorizMaxSpeed = 15;
+    [System.NonSerialized] public static float horizMaxSpeed = 15; //max horizontal speed
+    [System.NonSerialized] public float initialHorizMaxSpeed = 15;
     float crouchMaxSpeed = 4f; //max horizontal speed while crouching on the ground
     [System.NonSerialized] public float groundFriction = 50; //time based, friction value while grounded
     float initialGroundFriction;
@@ -276,7 +276,7 @@ public class Box : MonoBehaviour
         }
 
         if (ground != null && Mathf.Abs(rigidBody.velocity.y - groundVerticalVelocity) < 0.05f && boxHitstopActive == false && 
-            ground.GetComponent<MovingObjects>().interactableObstacle)
+            ground.transform.root.GetComponentInChildren<MovingObjects>().interactableObstacle)
         {
             if (1 << ground.gameObject.layer == platformLayerMask && PlatformDrop.platformsEnabled == true)
             {

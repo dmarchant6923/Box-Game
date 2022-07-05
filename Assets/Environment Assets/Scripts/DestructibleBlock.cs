@@ -10,11 +10,20 @@ public class DestructibleBlock : MonoBehaviour
     Vector2 blockGrid;
     public Vector2 blockSize = new Vector2(0.5f, 0.5f);
 
+    Rigidbody2D boxRB;
+
+    public GameObject spawnObject;
+    GameObject newSpawn;
+
+    public bool spinAttackCanDestroy = false;
+
     public bool triggerDestroy = false;
     bool destroyCRActive = false;
 
     void Start()
     {
+        boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
+
         blockSize = new Vector2(Mathf.Max(0.1f, blockSize.x), Mathf.Max(0.1f, blockSize.y));
 
         int gridX = Mathf.Max(1, (int)Mathf.Floor(transform.localScale.x / blockSize.x));
@@ -25,6 +34,11 @@ public class DestructibleBlock : MonoBehaviour
 
         blockGrid = new Vector2(gridX, gridY);
         blockSize = new Vector2(sizeX, sizeY);
+
+        if (spawnObject != null && spawnObject.GetComponent<EnemyManager>() != null && FindObjectOfType<EpisodeManager>() != null)
+        {
+            FindObjectOfType<EpisodeManager>().enemiesToKill++;
+        }
     }
     void FixedUpdate()
     {
@@ -36,9 +50,17 @@ public class DestructibleBlock : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.GetComponent<Box>() != null && Box.dashActive)
+        if (collision.gameObject.GetComponent<Box>() != null)
         {
-            StartCoroutine(DashDestroyBlock());
+            if (Box.dashActive)
+            {
+                StartCoroutine(DashDestroyBlock());
+            }
+            else if (Box.spinAttackActive && spinAttackCanDestroy)
+            {
+                StartCoroutine(PushBack(collision.GetContact(0).normal));
+                StartCoroutine(DestroyBlock());
+            }
         }
     }
 
@@ -54,6 +76,18 @@ public class DestructibleBlock : MonoBehaviour
         if (Box.wallBounceActive)
         {
             StartCoroutine(DestroyBlock());
+        }
+    }
+    IEnumerator PushBack(Vector2 collision)
+    {
+        yield return new WaitForFixedUpdate();
+        if (Mathf.Abs(collision.x) > 0.8f)
+        {
+            BoxVelocity.velocitiesX[0] = -Mathf.Sign(collision.x) * Box.horizMaxSpeed;
+        }
+        if (collision.y < -0.8f)
+        {
+            boxRB.velocity = new Vector2(boxRB.velocity.x, 15);
         }
     }
 
@@ -87,6 +121,21 @@ public class DestructibleBlock : MonoBehaviour
             block.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(300f, 1000f) * (Random.Range(0, 2) * 2 - 1);
             block.GetComponent<Rigidbody2D>().gravityScale = 7;
             block.GetComponent<SpriteRenderer>().sortingLayerName = "Above All";
+        }
+
+        if (spawnObject != null)
+        {
+            newSpawn = Instantiate(spawnObject, GetComponent<Rigidbody2D>().position, Quaternion.identity);
+            if (newSpawn.GetComponent<EnemyManager>() != null)
+            {
+                newSpawn.GetComponent<EnemyManager>().enemyIsInvulnerable = true;
+                //newSpawn.GetComponent<EnemyManager>().enemyHealth++;
+                //newSpawn.GetComponent<EnemyManager>().enemyWasDamaged = true;
+                if (newSpawn.GetComponent<Rigidbody2D>().gravityScale > 2)
+                {
+                    newSpawn.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(-4f, 4f), 3 * newSpawn.GetComponent<Rigidbody2D>().gravityScale);
+                }
+            }
         }
 
         yield return new WaitForSeconds(2);

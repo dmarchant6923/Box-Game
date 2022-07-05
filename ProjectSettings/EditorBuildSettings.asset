@@ -9,20 +9,23 @@ EditorBuildSettings:
     path: Assets/Scenes/Main Menu/Main Menu.unity
     guid: 2d299eb1b03fe43469c9e2b62f028162
   - enabled: 1
-    path: Assets/Scenes/Battleground/Stage 1.unity
-    guid: 3eebe6846d627064387fec950f42c337
-  - enabled: 1
     path: Assets/Scenes/Playground.unity
     guid: fa054f1cab500484ca60c45a0c66577d
-  - enabled: 1
-    path: Assets/Scenes/Target Test/Target Test Medium.unity
-    guid: 4d0aa92592bb5f443be81e64fbecb155
   - enabled: 1
     path: Assets/Scenes/Target Test/Target Test Easy.unity
     guid: 6f718a4c02e72a64bbe7e4df16bda892
   - enabled: 1
+    path: Assets/Scenes/Target Test/Target Test Medium.unity
+    guid: 4d0aa92592bb5f443be81e64fbecb155
+  - enabled: 1
     path: Assets/Scenes/Adventure Mode/Season 1/S1E1.unity
     guid: c4f3e99d35e61df4ab021b28f04f401b
+  - enabled: 1
+    path: Assets/Scenes/Adventure Mode/Season 1/S1E2.unity
+    guid: c2f4182cbe3f02e44aaefcee58900934
+  - enabled: 1
+    path: Assets/Scenes/Battleground/Stage 1.unity
+    guid: 3eebe6846d627064387fec950f42c337
   - enabled: 1
     path: Assets/Scenes/Battleground/Stage 2.unity
     guid: 4876c669df2efd44e88d6d751b02f16f

@@ -56,14 +56,10 @@ public class Sticker : MonoBehaviour
     {
         if (1 << collision.gameObject.layer == LayerMask.GetMask("Box"))
         {
+            StartCoroutine(FoundAnimation());
             if (isDuplicate == false)
             {
                 episodeManager.StickerFound(gameObject);
-                StartCoroutine(FoundAnimation());
-            }
-            else
-            {
-                Destroy(gameObject);
             }
         }
     }
@@ -86,11 +82,11 @@ public class Sticker : MonoBehaviour
         {
             if (timeFound)
             {
-                transform.position = initialPosition + Vector2.up * (1f + timer / 1.5f);
+                transform.position = initialPosition + Vector2.up * (1.5f + timer / 1.5f);
             }
             else
             {
-                transform.position = boxRB.position + Vector2.up * (1f + timer / 1.5f);
+                transform.position = boxRB.position + Vector2.up * (1.5f + timer / 1.5f);
             }
             transform.localScale -= Vector3.one * 0.25f * Time.deltaTime;
             foreach (SpriteRenderer item in GetComponentsInChildren<SpriteRenderer>())

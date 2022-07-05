@@ -36,7 +36,7 @@ public class UITools : MonoBehaviour
             }
         }
 
-        if (InputBroker.Controller)
+        else if (InputBroker.GameCube)
         {
             if (UIInput.startButtonDown || Input.GetButtonDown("Xbox A") || Input.GetButtonDown("GC A"))
             {
@@ -46,7 +46,10 @@ public class UITools : MonoBehaviour
             {
                 actionButton = false;
             }
+        }
 
+        else if (InputBroker.Xbox) 
+        { 
             if (Input.GetButtonDown("Xbox B") || Input.GetButtonDown("GC B"))
             {
                 backButton = true;

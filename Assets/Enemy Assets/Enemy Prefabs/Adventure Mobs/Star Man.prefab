@@ -310,6 +310,7 @@ MonoBehaviour:
   bulletRecoil: 5
   bulletDamage: 25
   restTime: 2.5
+  starManProjectile: {fileID: 8953193720970993623, guid: a5f511e5420df554892053fa7b8a6eea, type: 3}
   debugEnabled: 0
 --- !u!114 &3690556458742111707
 MonoBehaviour:

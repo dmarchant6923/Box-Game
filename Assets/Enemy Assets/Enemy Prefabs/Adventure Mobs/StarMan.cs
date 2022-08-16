@@ -54,13 +54,18 @@ public class StarMan : MonoBehaviour
     bool isWaitingToShoot = false;
     bool isOnCoolDown = false;
 
-    float timeToReproduce = 15;
+    float timeToReproduce = 8;
     Vector2 minSize;
     Vector2 maxSize;
-    float sizeMult = 1.8f;
+    float sizeMult = 2f;
     float growthTimer = 0;
 
     bool birthCRActive = false;
+    Color initialColor;
+    bool givingBirth = false;
+    public GameObject starManProjectile;
+    GameObject newStarManProjectile;
+    bool gaveBirth = false;
 
     public bool debugEnabled = false;
 
@@ -76,22 +81,42 @@ public class StarMan : MonoBehaviour
         enemyRB = GetComponent<Rigidbody2D>();
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
 
+
+        EM.pulseMultiplier = 0.55f;
         mouth = transform.GetChild(0);
+        bulletDespawnTime = sightRadius * 3 / bulletSpeed;
+
         realVector = lastVectorToBox;
         initialMouthScale = mouth.localScale;
 
-        initialPosition = enemyRB.position;
+        RaycastHit2D circleCast = Physics2D.CircleCast(enemyRB.position, 1.5f, Vector2.zero, 0, obstacleLM);
+        if (circleCast.collider == null)
+        {
+            initialPosition = enemyRB.position;
+        }
+        else
+        {
+            for (float angle = 0; angle < 360; angle += 30)
+            {
+                Vector2 vector = Tools.AngleToVector(angle);
+                circleCast = Physics2D.CircleCast(enemyRB.position + vector * 1.5f, 1.5f, Vector2.zero, 0, obstacleLM);
+                if (circleCast.collider == null)
+                {
+                    initialPosition = enemyRB.position + vector;
+                    break;
+                }
+
+            }
+        }
+
         truePositionX = initialPosition.x;
         enemyRB.velocity = Vector2.up * 3;
         truePositionXDirection = Random.Range(0, 2);
         if (truePositionXDirection == 0) { truePositionXDirection = -1; }
 
-        EM.pulseMultiplier = 0.55f;
-
-        bulletDespawnTime = sightRadius * 3 / bulletSpeed;
-
         minSize = transform.localScale;
         maxSize = minSize * sizeMult;
+        initialColor = GetComponent<SpriteRenderer>().color;
 
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
         boxLM = LayerMask.GetMask("Box");
@@ -132,7 +157,7 @@ public class StarMan : MonoBehaviour
         }
 
         //moving truePositionX
-        truePositionX += truePositionXVelocity * truePositionXDirection * Time.deltaTime;
+        truePositionX += truePositionXVelocity * truePositionXDirection * Time.fixedDeltaTime;
         if (truePositionX >= initialPosition.x + truePositionXDisplacement && truePositionXDirection == 1)
         {
             truePositionXDirection = -1;
@@ -143,7 +168,7 @@ public class StarMan : MonoBehaviour
         }
 
         //changing truePositionXDirection if an obstacle is detected, turning around if so
-        RaycastHit2D obstacleCheckRC = Physics2D.BoxCast(new Vector2(truePositionX + transform.lossyScale.x * 4f * truePositionXDirection,
+        RaycastHit2D obstacleCheckRC = Physics2D.BoxCast(new Vector2(truePositionX + transform.lossyScale.x * 2f * truePositionXDirection,
             initialPosition.y), new Vector2(transform.lossyScale.x / 4, transform.lossyScale.y), 0, Vector2.down, 0f, obstacleLM);
         if (obstacleCheckRC.collider != null)
         {
@@ -153,27 +178,30 @@ public class StarMan : MonoBehaviour
         //magical spinning
         trueAngularVelocity = -Mathf.Sqrt(Mathf.Abs(enemyRB.velocity.x)) * Mathf.Sign(enemyRB.velocity.x) * spinMultiplier;
         float spinAccel = 2000;
-        enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, trueAngularVelocity, spinAccel * Time.deltaTime);
+        enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, trueAngularVelocity, spinAccel * Time.fixedDeltaTime);
 
         //mouth movement
         if (canSeeBox)
         {
             lastVectorToBox = vectorToBox;
-            realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(lastVectorToBox), mouthRotateSpeed * Time.deltaTime);
+            if (givingBirth == false)
+            {
+                realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(lastVectorToBox), mouthRotateSpeed * Time.fixedDeltaTime);
+            }
         }
-        else if (idleMouthCRActive == false && shootCRActive == false)
+        else if (idleMouthCRActive == false && shootCRActive == false && givingBirth == false)
         {
             StartCoroutine(IdleMouth());
         }
         realVector = Tools.AngleToVector(realAngle);
         mouth.eulerAngles = new Vector3(0, 0, realAngle);
 
-        if (shootCRActive == false && canSeeBox == false)
+        if (shootCRActive == false && canSeeBox == false && EM.initialDelay == false && gaveBirth == false)
         {
             growthTimer += Time.fixedDeltaTime;
             float currentScale = Mathf.Min(1 + (growthTimer / timeToReproduce) * (sizeMult - 1), sizeMult);
             transform.localScale = minSize * currentScale;
-            if (growthTimer > timeToReproduce * 0.87f && birthCRActive == false)
+            if (growthTimer > timeToReproduce && birthCRActive == false)
             {
                 StartCoroutine(Birth());
             }
@@ -222,7 +250,7 @@ public class StarMan : MonoBehaviour
         {
             canSeeBox = true;
             EM.canSeeItem = true;
-            if (shootCRActive == false && EM.initialDelay == false)
+            if (shootCRActive == false && EM.initialDelay == false && givingBirth == false)
             {
                 StartCoroutine(ShootBullets());
             }
@@ -384,7 +412,7 @@ public class StarMan : MonoBehaviour
     {
         float interval = 0.2f;
 
-        while (true)
+        while (gaveBirth == false)
         {
             float randInterval = interval * 0.5f + interval * Random.Range(0f, 1f);
             yield return new WaitForSeconds(randInterval);
@@ -422,6 +450,145 @@ public class StarMan : MonoBehaviour
     IEnumerator Birth()
     {
         birthCRActive = true;
-        yield return null;
+        float delay = 7;
+        float timer = 0;
+        float initialG = initialColor.g;
+        float targetG = 0.2f;
+        float period = 0.5f;
+        SpriteRenderer sprite = GetComponent<SpriteRenderer>();
+        while (timer < delay)
+        {
+            if (timer > delay * 0.6f)
+            {
+                period = 0.2f;
+            }
+            Color color = sprite.color;
+
+            while (timer < delay && color.g < initialG)
+            {
+                if (EM.flashOn == false)
+                {
+                    color.g = Mathf.MoveTowards(color.g, initialG, (initialColor.g - targetG) / period * 2 * Time.fixedDeltaTime);
+                    sprite.color = color;
+                }
+                if (canSeeBox == false && shootCRActive == false)
+                {
+                    timer += Time.fixedDeltaTime;
+                }
+                yield return new WaitForFixedUpdate();
+            }
+            color.g = initialG;
+            sprite.color = color;
+
+            while (timer < delay && color.g > targetG)
+            {
+                if (EM.flashOn == false)
+                {
+                    color.g = Mathf.MoveTowards(color.g, targetG, (initialColor.g - targetG) / period * 2 * Time.fixedDeltaTime);
+                    sprite.color = color;
+                }
+                if (canSeeBox == false && shootCRActive == false)
+                {
+                    timer += Time.fixedDeltaTime;
+                }
+                yield return new WaitForFixedUpdate();
+            }
+            color.g = targetG;
+            sprite.color = color;
+        }
+
+        while (canSeeBox || shootCRActive)
+        {
+            yield return null;
+        }
+
+        givingBirth = true;
+        StartCoroutine(BirthShake());
+
+        forceMagnitudeY /= 20;
+        truePositionXVelocity /= 20;
+        forceMagnitudeX /= 20;
+        enemyRB.velocity /= 20;
+        floatVelocity /= 20;
+        enemyRB.drag = 5;
+
+        delay = 1.5f;
+        timer = 0;
+        float distance = 15;
+        float maxDistance = 0;
+        Vector2 chosenVector = Vector2.up;
+        for (int angle = 0; angle < 360; angle += 10)
+        {
+            Vector2 vector = Tools.AngleToVector(angle);
+            RaycastHit2D ray = Physics2D.Raycast(enemyRB.position, vector, distance, obstacleLM);
+            if (ray.collider != null && ray.distance > maxDistance)
+            {
+                maxDistance = ray.distance;
+                chosenVector = vector;
+            }
+        }
+        while (canSeeBox == false && timer < delay)
+        {
+            realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(chosenVector), mouthRotateSpeed * Time.deltaTime);
+            if (EM.hitstopImpactActive == false)
+            {
+                timer += Time.fixedDeltaTime;
+            }
+            yield return new WaitForFixedUpdate();
+        }
+        while (canSeeBox && timer < delay)
+        {
+            realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(lastVectorToBox), mouthRotateSpeed * Time.deltaTime);
+            if (EM.hitstopImpactActive == false)
+            {
+                timer += Time.fixedDeltaTime;
+            }
+            yield return new WaitForFixedUpdate();
+        }
+        while (timer < delay)
+        {
+            if (EM.hitstopImpactActive == false)
+            {
+                timer += Time.fixedDeltaTime;
+            }
+            yield return new WaitForFixedUpdate();
+        }
+
+        newStarManProjectile = Instantiate(starManProjectile, enemyRB.position + realVector * transform.localScale.x * 0.7f, Quaternion.identity);
+        newStarManProjectile.GetComponent<Rigidbody2D>().velocity = realVector.normalized * 20;
+        enemyRB.AddForce(5 * -realVector, ForceMode2D.Impulse);
+
+        gaveBirth = true;
+        birthCRActive = false;
+
+        float currentScale = sizeMult;
+        while (currentScale > 1)
+        {
+            currentScale -= Time.fixedDeltaTime;
+            transform.localScale = minSize * currentScale;
+
+            if (EM.flashOn == false)
+            {
+                Color color = sprite.color;
+                color.g = Mathf.MoveTowards(color.g, initialG, Time.fixedDeltaTime);
+                sprite.color = color;
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+
+        forceMagnitudeY *= 20;
+        truePositionXVelocity *= 20;
+        forceMagnitudeX *= 20;
+        enemyRB.velocity *= 20;
+        floatVelocity *= 20;
+        enemyRB.drag = 0;
+    }
+    IEnumerator BirthShake()
+    {
+        while (givingBirth)
+        {
+            yield return new WaitForFixedUpdate();
+        }
     }
 }

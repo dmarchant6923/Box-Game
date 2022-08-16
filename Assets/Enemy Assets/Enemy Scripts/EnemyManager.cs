@@ -31,6 +31,7 @@ public class EnemyManager : MonoBehaviour
 
     [HideInInspector] public bool pulseActive = false;
     [HideInInspector] public bool enemyWasPulsed = false;
+    [HideInInspector] public float pulseMultiplier = 1;
     [HideInInspector] public bool enemyIsInvulnerable = false;
     public bool enemyWasDamaged = false;
     [HideInInspector] public bool enemyWasKilled = false;
@@ -262,7 +263,7 @@ public class EnemyManager : MonoBehaviour
         {
             if (inBoxLOS && enemyIsInvulnerable == false && normalPulse && enemyWasKilled == false)
             {
-                enemyRB.velocity = -directionToBox * 16 + Vector2.up * -directionToBox.y * 2;
+                enemyRB.velocity = -(directionToBox * 16 + Vector2.up * -directionToBox.y * 2) * pulseMultiplier;
             }
             if (inBoxLOS && shockActive)
             {

@@ -15,6 +15,7 @@ public class BulletScript : MonoBehaviour
     float bulletRotation;
     public float bulletDamage = 1;
     public bool bulletWasReflected;
+    public bool bulletCanBeReflected = true;
 
     public bool heatSeeking = false;
     float angularVelocity = 60;
@@ -38,6 +39,8 @@ public class BulletScript : MonoBehaviour
 
     bool touchedWall = false;
     bool touchedReflect = false;
+
+    public bool bulletCosmetic = false;
 
     private void Start()
     {
@@ -91,17 +94,20 @@ public class BulletScript : MonoBehaviour
         touchedReflect = false;
         explodeAtPosition = false;
 
-        if (bulletRB.velocity.magnitude >= 35)
+        if (bulletRB.velocity.magnitude >= 35 && bulletCosmetic == false)
         {
             transform.localScale = new Vector2(transform.localScale.x, 0.4f);
         }
 
-        bulletRotation = -Mathf.Atan2(bulletRB.velocity.x, bulletRB.velocity.y) * Mathf.Rad2Deg;
-        transform.eulerAngles = Vector3.forward * (bulletRotation);
+        if (bulletCosmetic == false)
+        {
+            bulletRotation = -Mathf.Atan2(bulletRB.velocity.x, bulletRB.velocity.y) * Mathf.Rad2Deg;
+            transform.eulerAngles = Vector3.forward * (bulletRotation);
+        }
         distanceToBox = (boxRB.position - bulletRB.position).magnitude;
         directionToBox = (boxRB.position - bulletRB.position).normalized;
 
-        if (Box.pulseActive == true && distanceToBox <= Box.pulseRadius)
+        if (Box.pulseActive == true && distanceToBox <= Box.pulseRadius && bulletCanBeReflected)
         {
             bulletWasReflected = true;
             bulletRB.velocity = -directionToBox * bulletRB.velocity.magnitude * Box.projectilePulseMagnitude;
@@ -211,7 +217,19 @@ public class BulletScript : MonoBehaviour
                 Explosion(explosionDamage, false);
             }
         }
-        Destroy(gameObject);
+        if (bulletCosmetic == false)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            GetComponent<Collider2D>().enabled = false;
+            GetComponent<SpriteRenderer>().enabled = false;
+            bulletRB.position += bulletRB.velocity * Time.fixedDeltaTime;
+            bulletRB.velocity = Vector2.zero;
+            bulletTimer = 0;
+            StartCoroutine(DelayDestroy());
+        }
     }
 
     private void Explosion(float explosionDamage, bool aesthetic)
@@ -322,6 +340,11 @@ public class BulletScript : MonoBehaviour
                 yield return new WaitForSeconds(0.06f);
             }
         }
+    }
+    IEnumerator DelayDestroy()
+    {
+        yield return new WaitForSeconds(0.25f);
+        Destroy(gameObject);
     }
 
 }

@@ -14,6 +14,9 @@ public class Grenade : MonoBehaviour
     float explosionRadius = 3;
     float explosionDamage = 30;
 
+    float maxTime = 3f;
+    float grenadeTime = 0f;
+
     float collisionDamage = 10;
     bool grenadeHitstopActive = false;
     float explosionBounceMaxSpeed = 6 ;
@@ -103,8 +106,15 @@ public class Grenade : MonoBehaviour
                     StartCoroutine(GrenadeHitstop());
                 }
                 StartCoroutine(ExplosionTimer());
-                StartCoroutine(GrenadeFlash());
-                grenadeRB.gravityScale *= 0.2f;
+            }
+        }
+
+        if (explosionTimer == false)
+        {
+            grenadeTime += Time.deltaTime;
+            if (grenadeTime >= maxTime - explosionTime)
+            {
+                StartCoroutine(ExplosionTimer());
             }
         }
     }
@@ -121,8 +131,6 @@ public class Grenade : MonoBehaviour
             1 << collision.gameObject.layer == LayerMask.GetMask("Box")))
         {
             StartCoroutine(ExplosionTimer());
-            StartCoroutine(GrenadeFlash());
-            grenadeRB.gravityScale *= 0.2f;
         }
         //if (1 << collision.gameObject.layer == LayerMask.GetMask("Box") && velocityList[2].magnitude >= 20)
         //{
@@ -153,6 +161,8 @@ public class Grenade : MonoBehaviour
     IEnumerator ExplosionTimer()
     {
         explosionTimer = true;
+        StartCoroutine(GrenadeFlash());
+        grenadeRB.gravityScale *= 0.2f;
         float timer = 0;
         while (timer <= explosionTime)
         {

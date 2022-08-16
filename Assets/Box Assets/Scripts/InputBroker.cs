@@ -259,6 +259,11 @@ public class InputBroker : MonoBehaviour
                     if (Input.GetButton("Xbox A")) { jumpButton = true; }
                     else { jumpButton = false; }
 
+
+                    dashButtonDown = XboxSmashL;
+                    if (XboxL > smashInputLimit) { dashButton = true; }
+                    else { dashButton = false; }
+
                     attackButtonDown = Input.GetButtonDown("Xbox B");
                     attackButtonUp = Input.GetButtonUp("Xbox B");
                     attackButton = Input.GetButton("Xbox B");
@@ -269,10 +274,6 @@ public class InputBroker : MonoBehaviour
                     teleportButtonDown = XboxSmashR;
                     if (XboxR > smashInputLimit) { teleportButton = true; }
                     else { teleportButton = false; }
-
-                    dashButtonDown = XboxSmashL;
-                    if (XboxL > smashInputLimit) { dashButton = true; }
-                    else { dashButton = false; }
 
                     pulseButtonDown = Input.GetButtonDown("Xbox X");
                     pulseButtonUp = Input.GetButtonUp("Xbox X");

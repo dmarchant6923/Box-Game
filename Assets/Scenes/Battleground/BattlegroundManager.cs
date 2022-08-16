@@ -13,6 +13,9 @@ public class BattlegroundManager : MonoBehaviour
     public bool infiniteHealth = false;
     public bool invulnerable = false;
     public float startingHealth = 100;
+
+    public bool debugEnabled = false;
+
     bool currentWaveActive = false;
     int wavePoints;
     float timeBetweenWaves = 3;
@@ -307,6 +310,11 @@ public class BattlegroundManager : MonoBehaviour
             addToHiScores = true;
         }
 
+        if (debugEnabled)
+        {
+            GetComponent<SpriteRenderer>().enabled = true;
+        }
+
         StartCoroutine(RoundStart());
     }
 
@@ -370,6 +378,10 @@ public class BattlegroundManager : MonoBehaviour
         }
         int maxPoints = (int)Mathf.Floor(wave * wavePointMult);
         wavePoints = maxPoints;
+        if (debugEnabled)
+        {
+            Debug.Log("wave points: " + wavePoints);
+        }
         int wizards = 0;
         int dupeWizards = 0;
         int groundedVehicles = 0;
@@ -377,6 +389,8 @@ public class BattlegroundManager : MonoBehaviour
 
         while (wavePoints > 0)
         {
+            int coordinateIterations = 1;
+
             int enemyTypeSelected;
             int enemyDifficulty;
             Enemy enemySelected = null;
@@ -695,126 +709,172 @@ public class BattlegroundManager : MonoBehaviour
             }
 
 
+            //raycast and circlecast variables
+            float spawnBoxRadius = 5f;
+            float insideEnemyRadius = 0.5f;
+            int returnNullNum = 30;
 
-            //determine enemies spawn
+            //determine initial spawn coordinates
             Vector2 spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                 spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
+            //check if there is ground within a small radius (ground being obstacles or platforms), to prevent spawning inside the ground
             RaycastHit2D spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.5f, Vector2.zero, 0f, groundLM);
-            RaycastHit2D spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+            //check if the player is within a certain radius
+            RaycastHit2D spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, spawnBoxRadius, Vector2.zero, 0f, boxLM);
+            //check if there is ground in a straight line down (ground being obstacles or platforms)
             RaycastHit2D spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, groundLM);
+            //check if there is an enemy within a small radius, to prevent enemies from spawning inside each other
+            RaycastHit2D insideEnemyCheck = Physics2D.CircleCast(spawnCoordinates, insideEnemyRadius, Vector2.zero, 0f, enemyLM);
+
 
             //grounded enemies
-            int numberOfNewCoordinates = 0;
             if (enemies[enemyTypeSelected] == groundedEnemy)
             {
-                while (spawnObstacleCheck.collider != null || spawnGroundCheck.collider == null || spawnBoxCheck.collider != null)
+                //coordinate successful when not inside the ground, the box is not nearby, there is ground below, and not inside an enemy
+                while (spawnObstacleCheck.collider != null || spawnGroundCheck.collider == null || 
+                       spawnBoxCheck.collider != null || insideEnemyCheck.collider != null)
                 {
-                    numberOfNewCoordinates++;
+                    DrawSpawnCoordinates(spawnCoordinates);
+
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                                spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
                     spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.5f, Vector2.zero, 0f, groundLM);
-                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
                     spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, groundLM);
-                    int rand = Random.Range(0, 5);
-                    if (rand == 4)
+                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, spawnBoxRadius, Vector2.zero, 0f, boxLM);
+                    insideEnemyCheck = Physics2D.CircleCast(spawnCoordinates, insideEnemyRadius, Vector2.zero, 0f, enemyLM);
+
+                    if (coordinateIterations % returnNullNum == 0 && coordinateIterations > 0)
                     {
                         yield return null;
                     }
+
+                    coordinateIterations++;
                 }
             }
 
             //grounded vehicles
             if (enemies[enemyTypeSelected] == groundedVehicle)
             {
+                //change downwards ground check to only see obstacles and ignore platforms
                 spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, obstacleLM);
+
+                //coordinate successful when not inside the ground, the box is not nearby, there is an obstacle below,
+                //y coordinate is in the lower half of available range, and not inside an enemy
                 while (spawnObstacleCheck.collider != null || spawnGroundCheck.collider == null || spawnBoxCheck.collider != null ||
-                    spawnCoordinates.y > spawnLimits[0].y)// + (spawnLimits[1].y * 2/3))
+                    insideEnemyCheck.collider != null || spawnCoordinates.y > spawnLimits[0].y)// + (spawnLimits[1].y * 2/3))
                 {
-                    numberOfNewCoordinates++;
+                    DrawSpawnCoordinates(spawnCoordinates);
+
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                                spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
                     spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.5f, Vector2.zero, 0f, groundLM);
-                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, spawnBoxRadius, Vector2.zero, 0f, boxLM);
                     spawnGroundCheck = Physics2D.Raycast(spawnCoordinates + Vector2.down, Vector2.down, 3, obstacleLM);
-                    int rand = Random.Range(0, 5);
-                    if (rand == 4)
+                    insideEnemyCheck = Physics2D.CircleCast(spawnCoordinates, insideEnemyRadius, Vector2.zero, 0f, enemyLM);
+
+                    if (coordinateIterations % returnNullNum == 0 && coordinateIterations > 0)
                     {
                         yield return null;
                     }
+
+                    coordinateIterations++;
                 }
             }
 
             //flying enemies, blitz, and sentry
+            //check if there is ground within a radius (ground being obstacles or platforms) to make sure enemy spawns a distance away from ground
             RaycastHit2D spawnCircleGroundCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
             if (enemies[enemyTypeSelected] == flyingShooter || enemies[enemyTypeSelected] == flyingKamikaze ||
                 enemies[enemyTypeSelected] == flyingSniper || enemies[enemyTypeSelected] == flyingShotgun ||
                 enemies[enemyTypeSelected] == blitz || enemies[enemyTypeSelected] == sentry)
             {
-                while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null)
+                //coordinate successful when ground is not nearby, the box is not nearby, and not inside an enemy
+                while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null || insideEnemyCheck.collider != null)
                 {
+                    DrawSpawnCoordinates(spawnCoordinates);
+
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                         spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
-                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, spawnBoxRadius, Vector2.zero, 0f, boxLM);
                     spawnCircleGroundCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
-                    int rand = Random.Range(0, 5);
-                    if (rand == 4)
+                    insideEnemyCheck = Physics2D.CircleCast(spawnCoordinates, insideEnemyRadius, Vector2.zero, 0f, enemyLM);
+
+                    if (coordinateIterations % returnNullNum == 0 && coordinateIterations > 0)
                     {
                         yield return null;
                     }
+
+                    coordinateIterations++;
                 }
             }
 
-            //wizard, thunder, dupe wizard, or sentry
+            //wizard, thunder and dupe wizard
+            //check if there is an enemy within a radius
             RaycastHit2D enemyCircleCheck = Physics2D.CircleCast(spawnCoordinates, 8f, Vector2.zero, 0f, enemyLM);
-            RaycastHit2D insideEnemyCirclecheck = Physics2D.CircleCast(spawnCoordinates, 1f, Vector2.zero, 0f, enemyLM);
             if (enemies[enemyTypeSelected] == wizard || enemies[enemyTypeSelected] == thunder || enemies[enemyTypeSelected] == duplicate)
             {
+                //coordinate successful when ground is not nearby, the box is not nearby, and when there is an enemy nearby but not too close
                 while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null || 
-                    enemyCircleCheck.collider == null || insideEnemyCirclecheck.collider != null)
+                    enemyCircleCheck.collider == null || insideEnemyCheck.collider != null)
                 {
+                    DrawSpawnCoordinates(spawnCoordinates);
+
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                         spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
-                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, spawnBoxRadius, Vector2.zero, 0f, boxLM);
                     spawnCircleGroundCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
                     enemyCircleCheck = Physics2D.CircleCast(spawnCoordinates, 8f, Vector2.zero, 0f, enemyLM);
-                    insideEnemyCirclecheck = Physics2D.CircleCast(spawnCoordinates, 1f, Vector2.zero, 0f, enemyLM);
-                    int rand = Random.Range(0, 5);
-                    if (rand == 4)
+                    insideEnemyCheck = Physics2D.CircleCast(spawnCoordinates, insideEnemyRadius, Vector2.zero, 0f, enemyLM);
+
+                    if (coordinateIterations % returnNullNum == 0 && coordinateIterations > 0)
                     {
                         yield return null;
                     }
+
+                    coordinateIterations++;
                 }
             }
 
+            //mounted turret
             if (enemies[enemyTypeSelected] == mountedTurret)
             {
+                //check if there is a wall to the left or right
                 RaycastHit2D spawnTurretWallCheck = Physics2D.Raycast(spawnCoordinates + Vector2.left * enemySelected.enemyObject.transform.lossyScale.x * 2,
                     Vector2.right, enemySelected.enemyObject.transform.lossyScale.x * 4, obstacleLM);
+                //check if there is a ceiling above
                 RaycastHit2D spawnTurretCeilingCheck = Physics2D.Raycast(spawnCoordinates,
                     Vector2.up, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
                 bool recheck = false;
-                while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null ||
+                
+                //coordinate successful when not inside the ground, the box is not nearby, there is a wall or ceiling nearby,
+                //the wall/ceiling is not a hazard, and not inside an enemy
+                while (spawnObstacleCheck.collider != null || spawnBoxCheck.collider != null || insideEnemyCheck.collider != null ||
                     (spawnTurretWallCheck.collider == null && spawnTurretCeilingCheck.collider == null) || recheck)
                 {
+                    DrawSpawnCoordinates(spawnCoordinates);
+
                     recheck = false;
                     spawnCoordinates = new Vector2(spawnLimits[0].x + (Random.Range(-1f, 1f) * spawnLimits[1].x),
                         spawnLimits[0].y + (Random.Range(-1f, 1f) * spawnLimits[1].y));
                     spawnObstacleCheck = Physics2D.CircleCast(spawnCoordinates, 0.2f, Vector2.zero, 0f, groundLM);
-                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, 5f, Vector2.zero, 0f, boxLM);
+                    spawnBoxCheck = Physics2D.CircleCast(spawnCoordinates, spawnBoxRadius, Vector2.zero, 0f, boxLM);
                     spawnTurretWallCheck = Physics2D.Raycast(spawnCoordinates + Vector2.left * enemySelected.enemyObject.transform.lossyScale.x * 2,
                         Vector2.right, enemySelected.enemyObject.transform.lossyScale.x * 4, obstacleLM);
                     spawnTurretCeilingCheck = Physics2D.Raycast(spawnCoordinates, 
                         Vector2.up, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
+                    insideEnemyCheck = Physics2D.CircleCast(spawnCoordinates, insideEnemyRadius, Vector2.zero, 0f, enemyLM);
                     if ((spawnTurretWallCheck.collider != null && spawnTurretWallCheck.collider.GetComponent<Hazards>() != null) ||
                         (spawnTurretCeilingCheck.collider != null && spawnTurretCeilingCheck.collider.GetComponent<Hazards>() != null))
                     {
                         recheck = true;
                     }
-                    int rand = Random.Range(0, 5);
-                    if (rand == 4)
+
+                    if (coordinateIterations % returnNullNum == 0 && coordinateIterations > 0)
                     {
                         yield return null;
                     }
+
+                    coordinateIterations++;
                 }
             }
 
@@ -838,11 +898,23 @@ public class BattlegroundManager : MonoBehaviour
             }
             spawnedEnemies.Add(newEnemy);
             wavePoints -= enemySelected.enemyPoints;
-            yield return null;
+            if (debugEnabled)
+            {
+                Debug.Log("iterations: " + coordinateIterations + ". enemy spawned: " + enemySelected.enemyObject + ". points left: " + wavePoints);
+                Debug.DrawRay(spawnCoordinates + Vector2.left * 2, Vector2.right * 4, Color.green);
+                Debug.DrawRay(spawnCoordinates + Vector2.down * 2, Vector2.up * 4, Color.green);
+                Debug.DrawRay(spawnCoordinates + Vector2.one.normalized * 2, -Vector2.one.normalized * 4, Color.green);
+                Debug.DrawRay(spawnCoordinates + new Vector2(1, -1).normalized * 2, new Vector2(-1, 1).normalized * 4, Color.green);
+            }
+            yield return new WaitForFixedUpdate();
         }
         SpawnPerks();
         firstWave = false;
         currentWaveActive = true;
+        if (debugEnabled)
+        {
+            Debug.Log("finished spawning");
+        }
     }
     void SpawnPerks()
     {
@@ -888,6 +960,17 @@ public class BattlegroundManager : MonoBehaviour
             //Vector2 spawnCoordinates = perkSpawns.transform.GetChild(rand).transform.position;
 
             Instantiate(perk, spawnCoordinates, Quaternion.identity);
+        }
+    }
+
+    void DrawSpawnCoordinates(Vector2 coordinates)
+    {
+        if (debugEnabled)
+        {
+            Debug.DrawRay(coordinates + Vector2.left * 0.5f, Vector2.right, Color.red);
+            Debug.DrawRay(coordinates + Vector2.down * 0.5f, Vector2.up, Color.red);
+            Debug.DrawRay(coordinates + Vector2.one * 0.5f, -Vector2.one, Color.red);
+            Debug.DrawRay(coordinates + new Vector2(1,-1) * 0.5f, new Vector2(-1,1), Color.red);
         }
     }
     IEnumerator Death()

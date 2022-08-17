@@ -13,14 +13,17 @@ public class StarBullet : MonoBehaviour
     void Start()
     {
         bulletRB = GetComponent<Rigidbody2D>();
+        bulletScript = GetComponent<BulletScript>();
         Color newColor = new Color(Random.Range(0.5f, 1), Random.Range(0.5f, 1), Random.Range(0.5f, 1));
+        if (bulletScript.aggro)
+        {
+            newColor = new Color(newColor.r + 0.3f, newColor.g - 0.3f, newColor.b - 0.3f);
+        }
         GetComponent<SpriteRenderer>().color = newColor;
 
         trail = GetComponent<TrailRenderer>();
         trail.startColor = newColor;
         trail.endColor = new Color(newColor.r, newColor.g, newColor.b, 0);
-
-        bulletScript = GetComponent<BulletScript>();
 
         if (aestheticBullet)
         {

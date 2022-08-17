@@ -57,7 +57,7 @@ Transform:
   m_GameObject: {fileID: 2031782012143780268}
   m_LocalRotation: {x: -0, y: -0, z: 1, w: 0}
   m_LocalPosition: {x: 0, y: 0.3, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.7, z: 1}
+  m_LocalScale: {x: 0.4, y: 0.7, z: 1}
   m_Children:
   - {fileID: 6151400060998524974}
   - {fileID: 8172628596588668257}
@@ -105,7 +105,7 @@ SpriteRenderer:
   m_SortingLayer: -1
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 1d90d91f62617b94d9eab4aafdce493c, type: 3}
-  m_Color: {r: 1, g: 0.3, b: 0, a: 1}
+  m_Color: {r: 0.87691873, g: 0.0905661, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -187,7 +187,7 @@ SpriteRenderer:
   m_SortingLayer: -1
   m_SortingOrder: 3
   m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
-  m_Color: {r: 0.6792453, g: 0.20510545, b: 0, a: 1}
+  m_Color: {r: 0.55741626, g: 0.17702034, b: 0.6132076, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -215,6 +215,7 @@ GameObject:
   - component: {fileID: 9036170325786947972}
   - component: {fileID: 1179390072924959379}
   - component: {fileID: 1073464469353412264}
+  - component: {fileID: 8077139222065603568}
   m_Layer: 11
   m_Name: Star Man
   m_TagString: Untagged
@@ -231,7 +232,7 @@ Transform:
   m_GameObject: {fileID: 7157519171688395356}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2, y: 1.2, z: 1}
+  m_LocalScale: {x: 0.9, y: 0.9, z: 1}
   m_Children:
   - {fileID: 1581518511441116255}
   m_Father: {fileID: 0}
@@ -300,16 +301,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9653380fa8f19f240ac566ade7b6c000, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sightRadius: 12
+  sightRadius: 16
   starBullet: {fileID: 1031107831012274544, guid: 3df5d2ebe81d105479d088ca0b2c3478, type: 3}
   bulletSpeed: 15
   bulletSpreadMax: 35
   bulletsPerAttack: 12
-  delayBeforeShooting: 1.2
+  delayBeforeShooting: 0.7
   shootTimeInterval: 0.04
   bulletRecoil: 5
   bulletDamage: 25
   restTime: 2.5
+  timeToReproduce: 7
   starManProjectile: {fileID: 8953193720970993623, guid: a5f511e5420df554892053fa7b8a6eea, type: 3}
   debugEnabled: 0
 --- !u!114 &3690556458742111707
@@ -403,9 +405,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.25}
+  m_Offset: {x: 0, y: 0.3}
   serializedVersion: 2
-  m_Radius: 0.2
+  m_Radius: 0.15
 --- !u!58 &5047720721852677896
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -419,9 +421,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.25, y: 0.05}
+  m_Offset: {x: 0.3, y: 0.075}
   serializedVersion: 2
-  m_Radius: 0.2
+  m_Radius: 0.15
 --- !u!58 &9036170325786947972
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -435,9 +437,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.25, y: 0.05}
+  m_Offset: {x: -0.3, y: 0.075}
   serializedVersion: 2
-  m_Radius: 0.2
+  m_Radius: 0.15
 --- !u!58 &1179390072924959379
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -451,9 +453,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.15, y: -0.25}
+  m_Offset: {x: 0.2, y: -0.32}
   serializedVersion: 2
-  m_Radius: 0.2
+  m_Radius: 0.15
 --- !u!58 &1073464469353412264
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -467,9 +469,25 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.15, y: -0.25}
+  m_Offset: {x: -0.2, y: -0.32}
   serializedVersion: 2
-  m_Radius: 0.2
+  m_Radius: 0.15
+--- !u!58 &8077139222065603568
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7157519171688395356}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.3
 --- !u!1 &7287613332707030146
 GameObject:
   m_ObjectHideFlags: 0
@@ -542,7 +560,7 @@ SpriteRenderer:
   m_SortingLayer: -1
   m_SortingOrder: 1
   m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
-  m_Color: {r: 1, g: 0.3019608, b: 0, a: 1}
+  m_Color: {r: 0.87843144, g: 0.09019608, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

@@ -16,6 +16,15 @@ public class DestructibleBlock : MonoBehaviour
     GameObject newSpawn;
 
     public bool spinAttackCanDestroy = false;
+    public bool dashAttackCanDestroy = true;
+    public bool timedDestroyOnGrounded = false;
+    public float timedDestroyWindow = 3f;
+    float timedDestroyTimer = 0;
+
+    public bool respawn = false;
+    public float respawnTimer = 5f;
+    Color initialColor;
+    Color depletedColor;
 
     public bool triggerDestroy = false;
     bool destroyCRActive = false;
@@ -35,6 +44,9 @@ public class DestructibleBlock : MonoBehaviour
         blockGrid = new Vector2(gridX, gridY);
         blockSize = new Vector2(sizeX, sizeY);
 
+        initialColor = GetComponent<SpriteRenderer>().color;
+        depletedColor = new Color(0.6f, 0.6f, 0.6f);
+
         if (spawnObject != null && spawnObject.GetComponent<EnemyManager>() != null && FindObjectOfType<EpisodeManager>() != null)
         {
             FindObjectOfType<EpisodeManager>().enemiesToKill++;
@@ -46,13 +58,18 @@ public class DestructibleBlock : MonoBehaviour
         {
             StartCoroutine(DestroyBlock());
         }
+
+        if (timedDestroyTimer > timedDestroyWindow && destroyCRActive == false)
+        {
+            StartCoroutine(DestroyBlock());
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.GetComponent<Box>() != null)
         {
-            if (Box.dashActive)
+            if (Box.dashActive && dashAttackCanDestroy)
             {
                 StartCoroutine(DashDestroyBlock());
             }
@@ -61,6 +78,34 @@ public class DestructibleBlock : MonoBehaviour
                 StartCoroutine(PushBack(collision.GetContact(0).normal));
                 StartCoroutine(DestroyBlock());
             }
+        }
+
+        if (collision.collider.GetComponent<Box>() != null && boxRB.position.y > transform.position.y + transform.localScale.y / 2)
+        {
+            if (timedDestroyTimer > 0 && timedDestroyTimer < timedDestroyWindow - 0.5f)
+            {
+                timedDestroyTimer = Mathf.Min(timedDestroyTimer + 1.5f, timedDestroyWindow - 0.4f);
+            }
+            else if (timedDestroyTimer > timedDestroyWindow - 0.5f)
+            {
+                timedDestroyTimer = timedDestroyWindow;
+                GetComponent<SpriteRenderer>().color = depletedColor;
+            }
+        }
+    }
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.collider.GetComponent<Box>() != null && Box.isGrounded)
+        {
+            timedDestroyTimer += Time.deltaTime;
+            Color color = GetComponent<SpriteRenderer>().color;
+            Vector3 initialColorVector = new Vector3(initialColor.r, initialColor.g, initialColor.b);
+            Vector3 targetVector = new Vector3(depletedColor.r, depletedColor.g, depletedColor.b);
+            Vector3 directionVector = new Vector3(targetVector.x - initialColorVector.x, targetVector.y - initialColorVector.y, targetVector.z - initialColorVector.z);
+            Vector3 colorVector = initialColorVector + (directionVector * (timedDestroyTimer / timedDestroyWindow));
+            Debug.Log(timedDestroyTimer / timedDestroyWindow);
+            color = new Color(colorVector.x, colorVector.y, colorVector.z);
+            GetComponent<SpriteRenderer>().color = color;
         }
     }
 
@@ -115,7 +160,7 @@ public class DestructibleBlock : MonoBehaviour
 
         foreach (GameObject block in blocks)
         {
-            block.transform.parent = null;
+            //block.transform.parent = null;
             block.GetComponent<Rigidbody2D>().isKinematic = false;
             block.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(-5f, 5f), Random.Range(5f, 25f));
             block.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(300f, 1000f) * (Random.Range(0, 2) * 2 - 1);
@@ -138,11 +183,25 @@ public class DestructibleBlock : MonoBehaviour
             }
         }
 
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(1.2f);
         foreach (GameObject block in blocks)
         {
             Destroy(block);
         }
-        Destroy(gameObject);
+        blocks = new List<GameObject>();
+
+        if (respawn == false)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            yield return new WaitForSeconds(respawnTimer);
+            destroyCRActive = false;
+            transform.GetComponent<SpriteRenderer>().enabled = true;
+            transform.GetComponent<BoxCollider2D>().enabled = true;
+            GetComponent<SpriteRenderer>().color = initialColor;
+            timedDestroyTimer = 0;
+        }
     }
 }

@@ -91,6 +91,7 @@ public class BattlegroundManager : MonoBehaviour
     public GameObject blitz3;
 
     public GameObject spikeSentry;
+    public GameObject starMan;
 
     int groundedEnemy1Points = 1;
     int groundedEnemy2Points = 1;
@@ -131,6 +132,7 @@ public class BattlegroundManager : MonoBehaviour
     int blitz3Points = 9;
 
     int spikeSentryPoints = 9;
+    int starManPoints = 9;
 
     Enemy groundedEnemyLvl1;
     Enemy groundedEnemyLvl2;
@@ -170,7 +172,8 @@ public class BattlegroundManager : MonoBehaviour
     Enemy blitzLvl2;
     Enemy blitzLvl3;
 
-    Enemy spikeSentryLvl1;
+    Enemy AdventureMob1;
+    Enemy AdventureMob2;
 
     EnemyType groundedEnemy;
     EnemyType flyingShooter;
@@ -183,10 +186,10 @@ public class BattlegroundManager : MonoBehaviour
     EnemyType thunder;
     EnemyType duplicate;
     EnemyType blitz;
-    EnemyType sentry;
+    EnemyType adventureMob;
 
     List<EnemyType> enemies = new List<EnemyType>();
-    List<GameObject> spawnedEnemies = new List<GameObject>();
+    [HideInInspector] public List<GameObject> spawnedEnemies = new List<GameObject>();
 
     public GameObject heart;
     public GameObject speed;
@@ -268,7 +271,8 @@ public class BattlegroundManager : MonoBehaviour
         blitzLvl2 = new Enemy(blitz2, blitz2Points);
         blitzLvl3 = new Enemy(blitz3, blitz3Points);
 
-        spikeSentryLvl1 = new Enemy(spikeSentry, spikeSentryPoints);
+        AdventureMob1 = new Enemy(spikeSentry, spikeSentryPoints);
+        AdventureMob2 = new Enemy(starMan, starManPoints);
 
         groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemylvl3);
         flyingShooter = new EnemyType(flyingShooterLvl1, flyingShooterLvl2, flyingShooterLvl3);
@@ -281,7 +285,7 @@ public class BattlegroundManager : MonoBehaviour
         thunder = new EnemyType(thunderGuyLvl1, thunderGuyLvl1, thunderGuyLvl1);
         duplicate = new EnemyType(dupeWizardLvl1, dupeWizardLvl1, dupeWizardLvl1);
         blitz = new EnemyType(blitzLvl1, blitzLvl2, blitzLvl3);
-        sentry = new EnemyType(spikeSentryLvl1, spikeSentryLvl1, spikeSentryLvl1);
+        adventureMob = new EnemyType(AdventureMob1, AdventureMob2, AdventureMob2);
 
         enemies.Add(groundedEnemy); //0
         enemies.Add(flyingShooter); //1
@@ -294,7 +298,7 @@ public class BattlegroundManager : MonoBehaviour
         enemies.Add(thunder); //8
         enemies.Add(duplicate); //9
         enemies.Add(blitz); //10
-        enemies.Add(sentry); //11
+        enemies.Add(adventureMob); //11
 
         wave = startingWave;
         enemiesKilled = 0;
@@ -334,7 +338,7 @@ public class BattlegroundManager : MonoBehaviour
                     }
                 }
             }
-            if (spawnedEnemies.Count == 0)
+            if (spawnedEnemies.Count == 0 && FindObjectOfType<StarManProjectile>() == null)
             {
                 StartCoroutine(RoundStart());
             }
@@ -547,12 +551,24 @@ public class BattlegroundManager : MonoBehaviour
                     dupeWizards++;
                 }
             }
-            //no sentries before wave 20
-            if (enemies[enemyTypeSelected] == sentry)
+            //no adventure mobs before wave 20
+            if (enemies[enemyTypeSelected] == adventureMob)
             {
                 if (wave < 20)
                 {
                     continue;
+                }
+                else
+                {
+                    enemyDifficulty = Random.Range(0, 2);
+                    if (enemyDifficulty == 0)
+                    {
+                        enemySelected = enemies[enemyTypeSelected].enemylvl1;
+                    }
+                    else
+                    {
+                        enemySelected = enemies[enemyTypeSelected].enemylvl2;
+                    }
                 }
             }
 
@@ -781,12 +797,12 @@ public class BattlegroundManager : MonoBehaviour
                 }
             }
 
-            //flying enemies, blitz, and sentry
+            //flying enemies, blitz, sentry and star man
             //check if there is ground within a radius (ground being obstacles or platforms) to make sure enemy spawns a distance away from ground
             RaycastHit2D spawnCircleGroundCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
             if (enemies[enemyTypeSelected] == flyingShooter || enemies[enemyTypeSelected] == flyingKamikaze ||
                 enemies[enemyTypeSelected] == flyingSniper || enemies[enemyTypeSelected] == flyingShotgun ||
-                enemies[enemyTypeSelected] == blitz || enemies[enemyTypeSelected] == sentry)
+                enemies[enemyTypeSelected] == blitz || enemies[enemyTypeSelected] == adventureMob)
             {
                 //coordinate successful when ground is not nearby, the box is not nearby, and not inside an enemy
                 while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null || insideEnemyCheck.collider != null)
@@ -962,7 +978,6 @@ public class BattlegroundManager : MonoBehaviour
             Instantiate(perk, spawnCoordinates, Quaternion.identity);
         }
     }
-
     void DrawSpawnCoordinates(Vector2 coordinates)
     {
         if (debugEnabled)

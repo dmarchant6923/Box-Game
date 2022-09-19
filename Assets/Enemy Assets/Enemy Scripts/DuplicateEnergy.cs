@@ -16,11 +16,13 @@ public class DuplicateEnergy : MonoBehaviour
 
     public Rigidbody2D parent;
     public Duplicate parentScript;
+    public EnemyManager wizardEM;
     public Vector2 startPosition;
     public float maxDist = 2;
     Transform energy;
     Vector2 destination;
-    Vector2 randomVector;
+
+    float activeDeltaTime = 0;
 
     public bool slow = false;
 
@@ -55,11 +57,29 @@ public class DuplicateEnergy : MonoBehaviour
             parentIndex = parentScript.currentIndex;
             initialIndex = trailIndex - parentIndex;
         }
+        
+        if (parent != null && parent.GetComponent<EnemyManager>())
+        {
+            wizardEM = parent.GetComponent<EnemyManager>();
+        }
+        else if (parent != null && parent.GetComponent<Duplicate>() != null)
+        {
+            wizardEM = parent.GetComponent<Duplicate>().sourceEM;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (parent != null && wizardEM.enemyIsFrozen)
+        {
+            activeDeltaTime = 0;
+        }
+        else
+        {
+            activeDeltaTime = Time.deltaTime;
+        }
+
         if (trail == false)
         {
             if (parent != null)
@@ -69,18 +89,18 @@ public class DuplicateEnergy : MonoBehaviour
 
             if (inwards)
             {
-                energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, Vector2.zero, velocity * Time.deltaTime);
+                energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, Vector2.zero, velocity * activeDeltaTime);
             }
             else
             {
 
-                energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, destination, velocity * Time.deltaTime);
+                energy.transform.localPosition = Vector2.MoveTowards(energy.transform.localPosition, destination, velocity * activeDeltaTime);
             }
 
-            color.a -= Time.deltaTime * 0.25f;
+            color.a -= activeDeltaTime * 0.25f;
             if (slow == false)
             {
-                color.a -= Time.deltaTime * 0.45f;
+                color.a -= activeDeltaTime * 0.45f;
             }
             sprite.color = color;
 
@@ -103,7 +123,7 @@ public class DuplicateEnergy : MonoBehaviour
             color.a = 0.5f * (1 - percentDifference);
             sprite.color = color;
 
-            if (difference <= 0 || parent == null)
+            if (difference <= 0 || parent == null || wizardEM.enemyIsFrozen)
             {
                 Destroy(gameObject);
             }

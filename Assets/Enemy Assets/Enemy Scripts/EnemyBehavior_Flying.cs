@@ -170,6 +170,15 @@ public class EnemyBehavior_Flying : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (EM.enemyIsFrozen)
+        {
+            if (isDiving)
+            {
+                kamikazeExplode = true;
+            }
+            return;
+        }
+
         //vertical and horizontal movement about the true position if not diving
         if (kamikazeCR_Active == false)
         {
@@ -497,7 +506,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         enemyRC_Grounded = Physics2D.BoxCast(new Vector2(enemyRB.position.x, enemyRB.position.y - transform.lossyScale.y / 2),
             new Vector2(transform.lossyScale.x / 3, 0.1f), 0, Vector2.down, 0f, groundLM);
 
-        if (enemyRC_Grounded.collider != null && offGroundCR == false)
+        if (enemyRC_Grounded.collider != null && offGroundCR == false && EM.enemyIsFrozen == false)
         {
             StartCoroutine(GetOffGround());
         }
@@ -529,7 +538,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         }
 
 
-        if (Box.pulseActive == true)
+        if (Box.pulseActive == true && EM.enemyIsFrozen == false)
         {
             enemyRC_ToBox_Pulse = Physics2D.Raycast(enemyRB.position, vectorToBox, Box.pulseRadius, obstacleAndBoxLM);
 
@@ -644,7 +653,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         {
             laserScope.gameObject.SetActive(true);
         }
-        while (delayBeforeShootingTimer <= delayBeforeShooting && EM.enemyWasKilled == false)
+        while (delayBeforeShootingTimer <= delayBeforeShooting && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
         {
             if (laserScopeEnabled)
             {
@@ -676,7 +685,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
         float shootTimeIntervalTimer = 0;
         while (volleysFired < numberOfVolleys && EM.enemyWasKilled == false)
         {
-            while (bulletsShot < bulletsPerAttack && EM.enemyWasKilled == false)
+            while (bulletsShot < bulletsPerAttack && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
             {
                 if (shootTimeInterval == 0 && bulletsPerAttack > 1) //only for shotguns
                 {
@@ -769,7 +778,7 @@ public class EnemyBehavior_Flying : MonoBehaviour
     IEnumerator AttackFlap()
     {
         attackFlapCR_Active = true;
-        while (enemyRB.position.y < truePosition.y && isAttacking == true && scriptEnabled == true)
+        while (enemyRB.position.y < truePosition.y && isAttacking == true && scriptEnabled == true && EM.enemyIsFrozen == false)
         {
             enemyRB.velocity = new Vector2(enemyRB.velocity.x,
                 (enemyRB.velocity.y + 5 + 2* (truePosition.y - enemyRB.position.y + 1)) * (0.5f + enemyRB.gravityScale) / 2);

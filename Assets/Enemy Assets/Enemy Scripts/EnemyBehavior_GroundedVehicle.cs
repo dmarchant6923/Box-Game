@@ -133,6 +133,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
         barrel = transform.GetChild(1).transform.GetChild(0).gameObject;
         EM = GetComponent<EnemyManager>();
+        EM.multipleParts = true;
 
         InitialBarrelColor = barrel.GetComponent<SpriteRenderer>().color;
 
@@ -167,7 +168,10 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             enemyRB.velocity = new Vector2(enemyRB.velocity.x, maxFallSpeed);
         }
 
-
+        if (EM.enemyIsFrozen)
+        {
+            return;
+        }
 
 
 
@@ -328,9 +332,90 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
             gameObject.GetComponent<EnemyBehavior_GroundedVehicle>().enabled = false;
         }
 
+        //determine if touchingthisenemy == true
+        bool thisEnemyFound = false;
+        foreach (RaycastHit2D enemy in Box.attackRayCast)
+        {
+            if (enemy.collider != null && enemy.transform.root.gameObject == transform.gameObject)
+            {
+                thisEnemyFound = true;
+            }
+        }
+        if (thisEnemyFound)
+        {
+            touchingThisEnemy = true;
+            EM.touchingThisEnemy = true;
+        }
+        else
+        {
+            touchingThisEnemy = false;
+            EM.touchingThisEnemy = false;
+        }
+        //if the box collides with the enemy...
+        if (touchingThisEnemy == true && explosionDeathActive == false)
+        {
+            //...and if the enemy is not currently dashing...
+            if (dashHitboxActive == false)
+            {
+                //...and if the box is currently attacking, damage the enemy.
+                if (Box.boxHitboxActive)
+                {
+                    EM.enemyWasDamaged = true;
+                    if (EM.enemyIsInvulnerable == false)
+                    {
+                        Box.activateHitstop = true;
+                    }
+                }
+                //...and if the box is not attacking, push the box back.
+                else
+                {
+                    Box.activatePushBack = true;
+                    Box.pushBackMagnitude = 6;
+                }
+            }
+            //...and if the enemy IS currently dashing, damage the box.
+            else
+            {
+                if (Box.isInvulnerable == false)
+                {
+                    Box.activateDamage = true;
+                    Box.damageTaken = dashAttackDamage;
+                    Box.boxDamageDirection = new Vector2(dashDirection, 1).normalized;
+                    if (EM.shockActive)
+                    {
+                        Box.activateShock = true;
+                    }
+                    StartCoroutine(EnemyHitstop());
+                    if (BoxPerks.spikesActive)
+                    {
+                        EM.enemyWasDamaged = true;
+                        if (EM.enemyIsInvulnerable == false)
+                        {
+                            Box.activateHitstop = true;
+                        }
+                    }
+                }
+                //...and if the enemy IS currently dashing, but the box is invulnerable and is attacking, damage the enemy.
+                else if (Box.isInvulnerable && Box.boxHitstopActive == false && Box.boxHitboxActive)
+                {
+                    EM.enemyWasDamaged = true;
+                    if (EM.enemyIsInvulnerable == false)
+                    {
+                        Box.activateHitstop = true;
+                    }
+                }
+            }
+        }
+
         //set transform and center position for turret
         turretTransform.position = enemyRB.position + bodyRotationVector * enemyBodyTransform.lossyScale.y * 1f;
         turretCenterPosition = turretTransform.position;
+
+        if (EM.enemyIsFrozen)
+        {
+            isDashing = false;
+            return;
+        }
 
         //various angles / vectors used for calculations
         directionToBoxX = (int) new Vector2(boxRB.position.x - turretCenterPosition.x, 0).normalized.x;
@@ -583,81 +668,6 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         }
 
 
-        //determine if touchingthisenemy == true
-        bool thisEnemyFound = false;
-        foreach (RaycastHit2D enemy in Box.attackRayCast)
-        {
-            if (enemy.collider != null && enemy.transform.root.gameObject == transform.gameObject)
-            {
-                thisEnemyFound = true;
-            }
-        }
-        if (thisEnemyFound)
-        {
-            touchingThisEnemy = true;
-            EM.touchingThisEnemy = true;
-        }
-        else
-        {
-            touchingThisEnemy = false;
-            EM.touchingThisEnemy = false;
-        }
-        //if the box collides with the enemy...
-        if (touchingThisEnemy == true && explosionDeathActive == false)
-        {
-            //...and if the enemy is not currently dashing...
-            if (dashHitboxActive == false)
-            {
-                //...and if the box is currently attacking, damage the enemy.
-                if (Box.boxHitboxActive)
-                {
-                    EM.enemyWasDamaged = true;
-                    if (EM.enemyIsInvulnerable == false)
-                    {
-                        Box.activateHitstop = true;
-                    }
-                }
-                //...and if the box is not attacking, push the box back.
-                else
-                {
-                    Box.activatePushBack = true;
-                    Box.pushBackMagnitude = 6;
-                }
-            }
-            //...and if the enemy IS currently dashing, damage the box.
-            else
-            {
-                if (Box.isInvulnerable == false)
-                {
-                    Box.activateDamage = true;
-                    Box.damageTaken = dashAttackDamage;
-                    Box.boxDamageDirection = new Vector2(dashDirection, 1).normalized;
-                    if (EM.shockActive)
-                    {
-                        Box.activateShock = true;
-                    }
-                    StartCoroutine(EnemyHitstop());
-                    if (BoxPerks.spikesActive)
-                    {
-                        EM.enemyWasDamaged = true;
-                        if (EM.enemyIsInvulnerable == false)
-                        {
-                            Box.activateHitstop = true;
-                        }
-                    }
-                }
-                //...and if the enemy IS currently dashing, but the box is invulnerable and is attacking, damage the enemy.
-                else if (Box.isInvulnerable && Box.boxHitstopActive == false && Box.boxHitboxActive)
-                {
-                    EM.enemyWasDamaged = true;
-                    if (EM.enemyIsInvulnerable == false)
-                    {
-                        Box.activateHitstop = true;
-                    }
-                }
-            }
-        }
-
         distanceToBox = (boxRB.position - enemyRB.position).magnitude;
         if (Box.pulseActive == true && distanceToBox <= Box.pulseRadius * 1.05 && isDashing == true && explosionDeathActive == false)
         {
@@ -861,7 +871,8 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         int bulletsShot = 0;
         float bulletSpread;
         bulletDespawnTime = attackBoxRadius * 2.5f / bulletSpeed;
-        while (bulletsShot < bulletsPerVolley && scriptEnabled == true && explosionDeathActive == false && EM.enemyWasKilled == false && EM.hitstopImpactActive == false)
+        while (bulletsShot < bulletsPerVolley && scriptEnabled == true && explosionDeathActive == false && 
+            EM.enemyWasKilled == false && EM.hitstopImpactActive == false && EM.enemyIsFrozen == false)
         {
             bulletSpread = (-bulletSpreadMax / 2) + Random.value * bulletSpreadMax;
             Quaternion bulletRotation = Quaternion.Euler(0, 0, realTurretAngle + bulletSpread);
@@ -970,6 +981,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
     {
         explosionDeathActive = true;
         EM.reflectedBulletsWillDamage = false;
+        EM.enemyCanBeFrozen = false;
         yield return null;
         foreach (Transform transform in enemyComponents)
         {
@@ -997,7 +1009,7 @@ public class EnemyBehavior_GroundedVehicle : MonoBehaviour
         setMineActive = true;
         yield return new WaitForSeconds(2f);
         RaycastHit2D mineCheck = Physics2D.CircleCast(enemyRB.position, 5, Vector2.zero, 0, LayerMask.GetMask("Enemy Device"));
-        if (enemyIsGrounded && mineCheck.collider == null && EM.enemyWasKilled == false)
+        if (enemyIsGrounded && mineCheck.collider == null && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
         {
             newProximityMine = Instantiate(proximityMine, enemyRB.position, Quaternion.identity);
             minesPlaced.Add(newProximityMine);

@@ -144,23 +144,6 @@ public class EnemyBehavior_Thunder : MonoBehaviour
 
     private void Update()
     {
-        RaycastHit2D[] boxCheck = Physics2D.CircleCastAll(boxRB.position, thunderRadius, Vector2.zero, 0, enemyLM);
-        bool thunderGuyInRadius = false;
-        foreach (RaycastHit2D enemy in boxCheck)
-        {
-            if (enemy.transform.GetComponent<EnemyBehavior_Thunder>() != null && enemy.transform.GetComponent<EnemyBehavior_Thunder>().shockPrepared)
-            {
-                thunderGuyInRadius = true;
-            }
-        }
-        if (thunderGuyInRadius && EM.enemyWasKilled == false) { Box.inShockRadius = true; }
-        else { Box.inShockRadius = false; }
-
-        if (shockPrepared && shockCRActive == false)
-        {
-            StartCoroutine(Shock());
-        }
-
         bool thisEnemyFound = false;
         foreach (RaycastHit2D enemy in Box.attackRayCast)
         {
@@ -199,18 +182,6 @@ public class EnemyBehavior_Thunder : MonoBehaviour
             }
         }
 
-        if (Box.pulseActive && EM.distanceToBox <= Box.pulseRadius + 0.5f && EM.inBoxLOS && shockPrepared)
-        {
-            shockPrepared = false;
-            stage = 1;
-            currentAngVel = regAngVel;
-        }
-
-        if (enemyHitstopActive == false && EM.enemyWasKilled == false)
-        {
-            enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, Mathf.Sign(enemyRB.angularVelocity) * currentAngVel, 1500 * Time.deltaTime);
-        }
-
         Vector3 colorValues = new Vector3(GetComponent<SpriteRenderer>().color.r, GetComponent<SpriteRenderer>().color.g, GetComponent<SpriteRenderer>().color.b);
         if (releaseFlashCR == false)
         {
@@ -226,6 +197,43 @@ public class EnemyBehavior_Thunder : MonoBehaviour
             }
         }
 
+        if (EM.enemyIsFrozen)
+        {
+            shockPrepared = false;
+            stage = 1;
+            currentAngVel = regAngVel;
+            return;
+        }
+
+        RaycastHit2D[] boxCheck = Physics2D.CircleCastAll(boxRB.position, thunderRadius, Vector2.zero, 0, enemyLM);
+        bool thunderGuyInRadius = false;
+        foreach (RaycastHit2D enemy in boxCheck)
+        {
+            if (enemy.transform.GetComponent<EnemyBehavior_Thunder>() != null && enemy.transform.GetComponent<EnemyBehavior_Thunder>().shockPrepared)
+            {
+                thunderGuyInRadius = true;
+            }
+        }
+        if (thunderGuyInRadius && EM.enemyWasKilled == false) { Box.inShockRadius = true; }
+        else { Box.inShockRadius = false; }
+
+        if (shockPrepared && shockCRActive == false)
+        {
+            StartCoroutine(Shock());
+        }
+
+        if (Box.pulseActive && EM.distanceToBox <= Box.pulseRadius + 0.5f && EM.inBoxLOS && shockPrepared)
+        {
+            shockPrepared = false;
+            stage = 1;
+            currentAngVel = regAngVel;
+        }
+
+        if (enemyHitstopActive == false && EM.enemyWasKilled == false)
+        {
+            enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, Mathf.Sign(enemyRB.angularVelocity) * currentAngVel, 1500 * Time.deltaTime);
+        }
+
 
 
         if (debugLines)
@@ -237,6 +245,11 @@ public class EnemyBehavior_Thunder : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (EM.enemyIsFrozen)
+        {
+            return;
+        }
+
         float force = (enemyRB.position - currentPoint).magnitude * maxMoveForce / distAtoB;
         force = Mathf.Min(force, maxMoveForce);
         force = Mathf.Max(force, 5);
@@ -296,7 +309,7 @@ public class EnemyBehavior_Thunder : MonoBehaviour
         float timer = 0;
         while (timer < window)
         {
-            if (EM.hitstopImpactActive == false && enemyHitstopActive == false)
+            if (EM.hitstopImpactActive == false && enemyHitstopActive == false && EM.enemyIsFrozen == false)
             {
                 timer += Time.fixedDeltaTime;
             }

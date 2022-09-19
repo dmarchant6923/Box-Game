@@ -164,6 +164,9 @@ MonoBehaviour:
   active: 1
   pauseOnDeactivate: 0
   bufferDeactivate: 0
+  interactableObstacle: 1
+  showPath: 0
+  end: {fileID: 0}
 --- !u!114 &2975633530629838341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -176,3 +179,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bc03af1a3d8bd34ca6fa6fa0c403dc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sizeX: 1
+  sizeY: 1
+  activateShock: 0
+  shockActive: 0
+  endShock: 0
+  lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}

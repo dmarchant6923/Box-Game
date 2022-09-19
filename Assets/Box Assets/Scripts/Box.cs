@@ -94,8 +94,8 @@ public class Box : MonoBehaviour
     [System.NonSerialized] public static bool spinAttackActive = false;
     float attackTimer = 0;
     float timeToActivateAttack = 0.05f;
-    float attackSpinSpeed = -3000; //angular velocity given upon spin attacking
-    float attackSpinDamageSpeed = -1000; //angular velocity value above which will count as an attack
+    float attackSpinSpeed = -3000; //-3000 angular velocity given upon spin attacking
+    float attackSpinDamageSpeed = -1000; //-1000 angular velocity value above which will count as an attack
     float attackJumpSpeed = 3; //vertical jump upon activating spin attack while grounded
 
     [System.NonSerialized] public static bool teleportUnlocked = true;
@@ -110,6 +110,7 @@ public class Box : MonoBehaviour
     float teleportSpeedx = 0; //stored horizontal speed after activating teleport, then divided by an amount before being applied
     float teleportspeedy = 0; //stored vertical speed after activating teleport, then divided by an amount before being applied
     bool successfulTeleport; //whether or not the teleport was successful
+    [System.NonSerialized] public static bool cancelTeleport = false;
 
     [System.NonSerialized] public static bool dashUnlocked = true;
     [System.NonSerialized] public static bool canDash = true; //whether or not a dash is available
@@ -202,6 +203,10 @@ public class Box : MonoBehaviour
     public GameObject smoke;
     GameObject newSmoke;
 
+    [System.NonSerialized] public static bool boxWasFrozen = false;
+    [System.NonSerialized] public static bool canBeFrozen = true;
+    [System.NonSerialized] public static bool frozen = false;
+
     bool forceInputsDisabled = false;
 
     public bool normalControls = true;
@@ -239,6 +244,7 @@ public class Box : MonoBehaviour
         rigidBody.isKinematic = false;
         inputs.inputsEnabled = true;
         activateDamage = false;
+        damageActive = false;
         enemyHitstopActive = false;
         boxHitstopActive = false;
         canTeleport = true;
@@ -249,6 +255,8 @@ public class Box : MonoBehaviour
         onFire = false;
         wallBounceActive = false;
         boxWasBurned = false;
+        boxWasFrozen = false;
+        canBeFrozen = true;
 
         initialColor = GetComponent<SpriteRenderer>().color;
         initialGravityScale = rigidBody.gravityScale;
@@ -257,8 +265,6 @@ public class Box : MonoBehaviour
         stickyFriction = initialGroundFriction * 4;
         airAccel = initialAirAccel;
         airFriction = initialAirFriction;
-
-        damageActive = false;
     }
     private void checkIsGrounded()
     {
@@ -866,7 +872,7 @@ public class Box : MonoBehaviour
                 }
                 if (BoxPerks.heavyActive)
                 {
-                    damageTaken *= 0.3f;
+                    damageTaken *= BoxPerks.heavyDamageMult;
                 }
                 if (BoxPerks.shieldActive == false)
                 {
@@ -896,6 +902,7 @@ public class Box : MonoBehaviour
             damageTaken = 0;
             activateDamage = false;
             boxWasBurned = false;
+            frozen = false;
         }
         if (isInvulnerable == true && isCurrentlyFlashing == false && BoxPerks.starActive == false && boxHitstopActive == false)
         {
@@ -952,6 +959,14 @@ public class Box : MonoBehaviour
             activateDamage = true;
             damageTaken += fireDOT * Time.deltaTime;
         }
+
+        //freeze
+        if (boxWasFrozen && canBeFrozen)
+        {
+            boxWasFrozen = false;
+            StartCoroutine(Freeze());
+        }
+
 
         if (debugEnabled)
         {
@@ -1013,7 +1028,32 @@ public class Box : MonoBehaviour
                 boxDamageDirection = new Vector2(0, 1 * Mathf.Sign(boxDamageDirection.y));
             }
         }
+        bool touchedShock = false;
         if (1 << collision.gameObject.layer == platformLayerMask && collision.gameObject.GetComponent<PlatformDrop>().shockActive && isGrounded)
+        {
+            touchedShock = true;
+            if (isInvulnerable == false)
+            {
+                collision.gameObject.GetComponent<PlatformDrop>().endShock = true;
+            }
+            else
+            {
+                collision.gameObject.GetComponent<PlatformDrop>().shockActive = false;
+            }
+        }
+        else if (collision.collider.GetComponent<Fence>() != null && collision.collider.GetComponent<Fence>().shockActive)
+        {
+            touchedShock = true;
+            if (isInvulnerable == false)
+            {
+                collision.gameObject.GetComponent<Fence>().endShock = true;
+            }
+            else
+            {
+                collision.gameObject.GetComponent<Fence>().shockActive = false;
+            }
+        }
+        if (touchedShock)
         {
             if (isInvulnerable == false)
             {
@@ -1029,11 +1069,6 @@ public class Box : MonoBehaviour
                 {
                     boxDamageDirection = new Vector2(0, 1 * Mathf.Sign(boxDamageDirection.y));
                 }
-                collision.gameObject.GetComponent<PlatformDrop>().endShock = true;
-            }
-            else
-            {
-                collision.gameObject.GetComponent<PlatformDrop>().shockActive = false;
             }
         }
 
@@ -1483,6 +1518,7 @@ public class Box : MonoBehaviour
         teleportSpeedx = rigidBody.velocity.x;
         teleportspeedy = rigidBody.velocity.y;
         inputs.inputsEnabled = false;
+        cancelTeleport = false;
         newTeleportCheck = Instantiate(teleportCheck);
         newTeleportCheck.transform.position = new Vector2(transform.position.x + teleportDistancex, transform.position.y);
         float window = teleportDelay;
@@ -1491,14 +1527,19 @@ public class Box : MonoBehaviour
         {
             timer += Time.deltaTime;
             rigidBody.velocity = new Vector2(teleportSpeedx / 4, teleportspeedy / 4);
+            if (cancelTeleport)
+            {
+                break;
+            }
             yield return null;
         }
         successfulTeleport = newTeleportCheck.GetComponent<TeleportCheck>().successfulTeleport;
         Destroy(newTeleportCheck);
-        if (blastZoneCRActive == true || damageActive == true || boxEnemyPulseActive == true)
+        if (blastZoneCRActive == true || damageActive == true || boxEnemyPulseActive == true || cancelTeleport)
         {
             successfulTeleport = false;
         }
+        cancelTeleport = false;
 
         if (successfulTeleport == true)
         {
@@ -1673,8 +1714,8 @@ public class Box : MonoBehaviour
         SpriteRenderer sprite = GetComponent<SpriteRenderer>();
         sprite.color = new Color(sprite.color.r, sprite.color.g, sprite.color.b, 0.4f);
         Vector2 initialPosition = rigidBody.position;
-        float startVelocity = 25;
-        float slowMult = 5f;
+        float startVelocity = 35;
+        float slowMult = 6f;
         if (BoxPerks.speedActive || BoxPerks.starActive)
         {
             startVelocity *= 1.2f;
@@ -1683,7 +1724,7 @@ public class Box : MonoBehaviour
         float velocityY = startVelocity * target.y;
         BoxVelocity.velocitiesX[0] = velocityX;
         rigidBody.velocity = new Vector2(rigidBody.velocity.x, velocityY);
-        rigidBody.angularVelocity = 0;
+        rigidBody.angularVelocity /= 10;
         gravityScale = 0;
         float window = dodgeInvulDuration;
         float timer = 0;
@@ -1926,17 +1967,10 @@ public class Box : MonoBehaviour
         rigidBody.angularDrag /= 3;
         float DIMult = 0.25f;
         Vector2 DI = inputs.leftStickDisabled;
-        if (DI.magnitude < 0.1f)
-        {
-            DI = Vector2.zero;
-        }
-        if (DI.magnitude > 1)
-        {
-            DI = DI.normalized;
-        }
-        DI *= DIMult;
-        Vector2 perpVector = Vector2.Perpendicular(damageDirection).normalized * Vector2.Dot(DI, Vector2.Perpendicular(damageDirection).normalized);
-        Vector2 trueDamageVelocity = (damageDirection.normalized + perpVector).normalized * launchSpeed;
+
+        Vector2 trueDamageDirection = Tools.DI(damageDirection, DI, DIMult);
+        Vector2 trueDamageVelocity = trueDamageDirection * launchSpeed;
+
         if (Vector2.Dot(trueDamageVelocity.normalized, damageDirection.normalized) > 0.999f)
         {
             trueDamageVelocity = damageDirection.normalized * launchSpeed;
@@ -1969,8 +2003,6 @@ public class Box : MonoBehaviour
             if (debugEnabled)
             {
                 Debug.DrawRay(launchPosition, boxDamageDirection.normalized * 3);
-                Debug.DrawRay(launchPosition + boxDamageDirection.normalized * 3, DI * 3, Color.green);
-                Debug.DrawRay(launchPosition + boxDamageDirection.normalized * 3, perpVector * 3, Color.yellow);
                 Debug.DrawRay(launchPosition, trueDamageVelocity.normalized * 3, Color.blue);
             }
             launchTime += Time.deltaTime;
@@ -2334,6 +2366,33 @@ public class Box : MonoBehaviour
                 newSmoke = Instantiate(smoke, rigidBody.position + Vector2.up * 0.5f, Quaternion.identity);
             }
             yield return null;
+        }
+    }
+    IEnumerator Freeze()
+    {
+        frozen = true;
+        canBeFrozen = false;
+
+        dashActive = false;
+        cancelTeleport = true;
+
+        while (frozen)
+        {
+            if (damageActive || onFire)
+            {
+                break;
+            }
+            inputs.inputsEnabled = false;
+            forceInputsDisabled = true;
+            yield return null;
+        }
+        forceInputsDisabled = false;
+        canBeFrozen = true;
+        rigidBody.velocity += Vector2.up * 12;
+        rigidBody.rotation = 0;
+        if (damageActive == false)
+        {
+            StartCoroutine(Invulnerability(1f));
         }
     }
 }

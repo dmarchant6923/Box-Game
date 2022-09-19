@@ -100,6 +100,8 @@ MonoBehaviour:
   infiniteHealth: 0
   invulnerable: 0
   startingHealth: 100
+  limitlessPulse: 0
+  fastPulse: 0
   debugEnabled: 0
   groundedEnemy1: {fileID: 1388795964695304196, guid: 7f4c45fe6333c41489c202e09a6379c8, type: 3}
   groundedEnemy2: {fileID: 2193496508546508246, guid: 8ed1a759e78866d4aba7fc4db7e5117b, type: 3}
@@ -130,6 +132,8 @@ MonoBehaviour:
   blitz3: {fileID: 570470783803703278, guid: 1f21c2bfbc82ffe4cbb0ad4e8a9aa322, type: 3}
   spikeSentry: {fileID: 3370969176895724216, guid: 02330c58c7403ee4fac943bb18db3c74, type: 3}
   starMan: {fileID: 7157519171688395356, guid: e8ab73a7bf95f3b448eec71b67dc4d87, type: 3}
+  iglooCannon: {fileID: 7428479211725815886, guid: de0fa4fd729bee24f83c14cea3dde5d5, type: 3}
+  spawnedEnemies: []
   heart: {fileID: 2002433412655468419, guid: 88faaf1f30c71724d9dc73c44c91f3d1, type: 3}
   speed: {fileID: 247569352566294278, guid: e694c8a3082ba314a8d5119a8136e071, type: 3}
   shield: {fileID: 1693151804967767072, guid: 91cc1d4df96b1794c8f597590498e3f8, type: 3}

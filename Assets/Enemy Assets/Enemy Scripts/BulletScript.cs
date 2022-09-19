@@ -344,7 +344,6 @@ public class BulletScript : MonoBehaviour
     IEnumerator DelayDestroy()
     {
         yield return new WaitForSeconds(0.4f);
-        Debug.Log("you are here");
         Destroy(gameObject);
     }
 

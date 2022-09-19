@@ -17,10 +17,10 @@ public class PlatformDrop : MonoBehaviour
     float downWindow = 0.2f; // window of time to press second down input to fall through platform while grounded.
     float secondsDisabled = 0.25f;
     float boxVelocityy;
-    float boxSpinSpeed;
-    float spinDropWindow = 0.15f;
-    float spinDropVelocity = -1f;
-    float spinDropTimer;
+    //float boxSpinSpeed;
+    //float spinDropWindow = 0.15f;
+    //float spinDropVelocity = -1f;
+    //float spinDropTimer;
 
     float downThreshold = -0.5f;
 
@@ -78,26 +78,26 @@ public class PlatformDrop : MonoBehaviour
     void Update()
     {
         boxVelocityy = GameObject.Find("Box").GetComponent<Rigidbody2D>().velocity.y;
-        boxSpinSpeed = Mathf.Abs(GameObject.Find("Box").GetComponent<Rigidbody2D>().angularVelocity);
+        //boxSpinSpeed = Mathf.Abs(GameObject.Find("Box").GetComponent<Rigidbody2D>().angularVelocity);
 
         //timed barrier to dropping while spinning in the air. Resets spinDropTimer if spinning fast enough AND falling slower than a limit.
         //currently not working as well as I would like. Ideal goal would be to not be able to drop down through a platform wile spinning
         //and under a certain downward velocity for a small amount of time. Not sure if I should just let you drop down freely though, and
         //the player just has to deal with not being able to immediately stop spinning on platforms. Maybe the better solution.
-        if (boxSpinSpeed > 500 && boxVelocityy > spinDropVelocity)
-        {
-            spinDropTimer = 0;
-            platformsEnabled = true;
-        }
+        //if (boxSpinSpeed > 500 && boxVelocityy > spinDropVelocity)
+        //{
+        //    spinDropTimer = 0;
+        //    platformsEnabled = true;
+        //}
         //spinDropTimer is always incrementing, but can get reset to 0 above
-        spinDropTimer += Time.deltaTime;
+        //spinDropTimer += Time.deltaTime;
         //drop through the platform in the air
         if (Box.isGrounded == false && airTimerCR == false)
         {
             StartCoroutine(AirTimer());
         }
 
-        if (Box.isGrounded == false && fallTimerCR_running == false && canAirDrop && spinDropTimer > spinDropWindow)
+        if (Box.isGrounded == false && fallTimerCR_running == false && canAirDrop)// && spinDropTimer > spinDropWindow)
         {
             if (inputs.leftStick.y < downThreshold)
             {

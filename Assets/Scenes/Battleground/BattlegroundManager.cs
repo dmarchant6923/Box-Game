@@ -13,6 +13,8 @@ public class BattlegroundManager : MonoBehaviour
     public bool infiniteHealth = false;
     public bool invulnerable = false;
     public float startingHealth = 100;
+    public bool limitlessPulse = false;
+    public bool fastPulse = false;
 
     public bool debugEnabled = false;
 
@@ -92,6 +94,7 @@ public class BattlegroundManager : MonoBehaviour
 
     public GameObject spikeSentry;
     public GameObject starMan;
+    public GameObject iglooCannon;
 
     int groundedEnemy1Points = 1;
     int groundedEnemy2Points = 1;
@@ -133,6 +136,7 @@ public class BattlegroundManager : MonoBehaviour
 
     int spikeSentryPoints = 9;
     int starManPoints = 9;
+    int iglooCannonPoints = 9;
 
     Enemy groundedEnemyLvl1;
     Enemy groundedEnemyLvl2;
@@ -172,8 +176,9 @@ public class BattlegroundManager : MonoBehaviour
     Enemy blitzLvl2;
     Enemy blitzLvl3;
 
-    Enemy AdventureMob1;
-    Enemy AdventureMob2;
+    Enemy adventureMob1;
+    Enemy adventureMob2;
+    Enemy adventureMob3;
 
     EnemyType groundedEnemy;
     EnemyType flyingShooter;
@@ -214,7 +219,7 @@ public class BattlegroundManager : MonoBehaviour
     void Start()
     {
         UIManager.stopClock = false;
-        UIManager.killToPulse = true;
+        UIManager.killToPulse = !limitlessPulse;
         gameOver = false;
         deathActive = false;
         firstWave = true;
@@ -228,6 +233,10 @@ public class BattlegroundManager : MonoBehaviour
         Box.dashUnlocked = true;
         Box.teleportUnlocked = true;
         Box.pulseUnlocked = true;
+        if (fastPulse)
+        {
+            GameObject.Find("Box").GetComponent<Box>().pulseCooldown *= 0.25f;
+        }
 
         spawnLimits[0] = transform.position; spawnLimits[1] = transform.lossyScale / 2;
 
@@ -271,8 +280,9 @@ public class BattlegroundManager : MonoBehaviour
         blitzLvl2 = new Enemy(blitz2, blitz2Points);
         blitzLvl3 = new Enemy(blitz3, blitz3Points);
 
-        AdventureMob1 = new Enemy(spikeSentry, spikeSentryPoints);
-        AdventureMob2 = new Enemy(starMan, starManPoints);
+        adventureMob1 = new Enemy(spikeSentry, spikeSentryPoints);
+        adventureMob2 = new Enemy(starMan, starManPoints);
+        adventureMob3 = new Enemy(iglooCannon, iglooCannonPoints);
 
         groundedEnemy = new EnemyType(groundedEnemyLvl1, groundedEnemyLvl2, groundedEnemylvl3);
         flyingShooter = new EnemyType(flyingShooterLvl1, flyingShooterLvl2, flyingShooterLvl3);
@@ -285,7 +295,7 @@ public class BattlegroundManager : MonoBehaviour
         thunder = new EnemyType(thunderGuyLvl1, thunderGuyLvl1, thunderGuyLvl1);
         duplicate = new EnemyType(dupeWizardLvl1, dupeWizardLvl1, dupeWizardLvl1);
         blitz = new EnemyType(blitzLvl1, blitzLvl2, blitzLvl3);
-        adventureMob = new EnemyType(AdventureMob1, AdventureMob2, AdventureMob2);
+        adventureMob = new EnemyType(adventureMob1, adventureMob2, adventureMob3);
 
         enemies.Add(groundedEnemy); //0
         enemies.Add(flyingShooter); //1
@@ -478,10 +488,7 @@ public class BattlegroundManager : MonoBehaviour
                 {
                     continue;
                 }
-                else
-                {
-                    wizards++;
-                }
+                wizards++;
                 enemyDifficulty = Random.Range(1, 4);
                 if (enemyDifficulty == 1)
                 {
@@ -558,17 +565,18 @@ public class BattlegroundManager : MonoBehaviour
                 {
                     continue;
                 }
-                else
+                enemyDifficulty = Random.Range(1, 4);
+                if (enemyDifficulty == 1)
                 {
-                    enemyDifficulty = Random.Range(0, 2);
-                    if (enemyDifficulty == 0)
-                    {
-                        enemySelected = enemies[enemyTypeSelected].enemylvl1;
-                    }
-                    else
-                    {
-                        enemySelected = enemies[enemyTypeSelected].enemylvl2;
-                    }
+                    enemySelected = enemies[enemyTypeSelected].enemylvl1;
+                }
+                if (enemyDifficulty == 2)
+                {
+                    enemySelected = enemies[enemyTypeSelected].enemylvl2;
+                }
+                else if (enemyDifficulty == 3)
+                {
+                    enemySelected = enemies[enemyTypeSelected].enemylvl3;
                 }
             }
 
@@ -722,6 +730,14 @@ public class BattlegroundManager : MonoBehaviour
                 {
                     enemyTypeSelected = 5; enemySelected = enemies[enemyTypeSelected].enemylvl3; wavePoints = 0;
                 }
+                if (wave == 35)
+                {
+                    enemyTypeSelected = 11; enemySelected = enemies[enemyTypeSelected].enemylvl2; wavePoints = 100;
+                    if (spawnedEnemies.Count >= 3)
+                    {
+                        wavePoints = 0;
+                    }
+                }
             }
 
 
@@ -802,7 +818,7 @@ public class BattlegroundManager : MonoBehaviour
             RaycastHit2D spawnCircleGroundCheck = Physics2D.CircleCast(spawnCoordinates, 2f, Vector2.zero, 0f, groundLM);
             if (enemies[enemyTypeSelected] == flyingShooter || enemies[enemyTypeSelected] == flyingKamikaze ||
                 enemies[enemyTypeSelected] == flyingSniper || enemies[enemyTypeSelected] == flyingShotgun ||
-                enemies[enemyTypeSelected] == blitz || enemies[enemyTypeSelected] == adventureMob)
+                enemies[enemyTypeSelected] == blitz || (enemies[enemyTypeSelected] == adventureMob && (enemyDifficulty == 1 || enemyDifficulty == 2)))
             {
                 //coordinate successful when ground is not nearby, the box is not nearby, and not inside an enemy
                 while (spawnCircleGroundCheck.collider != null || spawnBoxCheck.collider != null || insideEnemyCheck.collider != null)
@@ -851,8 +867,8 @@ public class BattlegroundManager : MonoBehaviour
                 }
             }
 
-            //mounted turret
-            if (enemies[enemyTypeSelected] == mountedTurret)
+            //mounted turret and igloo cannon
+            if (enemies[enemyTypeSelected] == mountedTurret || (enemies[enemyTypeSelected] == adventureMob && enemyDifficulty == 3))
             {
                 //check if there is a wall to the left or right
                 RaycastHit2D spawnTurretWallCheck = Physics2D.Raycast(spawnCoordinates + Vector2.left * enemySelected.enemyObject.transform.lossyScale.x * 2,
@@ -892,6 +908,24 @@ public class BattlegroundManager : MonoBehaviour
 
                     coordinateIterations++;
                 }
+
+                RaycastHit2D rayUp = Physics2D.Raycast(spawnCoordinates, Vector2.up, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
+                RaycastHit2D rayLeft = Physics2D.Raycast(spawnCoordinates, Vector2.left, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
+                RaycastHit2D rayRight = Physics2D.Raycast(spawnCoordinates, Vector2.right, enemySelected.enemyObject.transform.lossyScale.x * 2, obstacleLM);
+
+                float offsetFromWallMult = 0.15f;
+                if (rayLeft.collider != null)
+                {
+                    spawnCoordinates = rayLeft.point + Vector2.right * enemySelected.enemyObject.transform.lossyScale.x * offsetFromWallMult;
+                }
+                else if (rayRight.collider != null)
+                {
+                    spawnCoordinates = rayRight.point + Vector2.left * enemySelected.enemyObject.transform.lossyScale.x * offsetFromWallMult;
+                }
+                else if (rayUp.collider != null)
+                {
+                    spawnCoordinates = rayUp.point + Vector2.down * enemySelected.enemyObject.transform.lossyScale.x * offsetFromWallMult;
+                }
             }
 
             //custom spawn coordinates
@@ -900,17 +934,11 @@ public class BattlegroundManager : MonoBehaviour
                 spawnCoordinates = new Vector2(0, transform.position.y - transform.lossyScale.y * 0.4f);
             }
 
-
-
             GameObject newEnemy;
             newEnemy = Instantiate(enemySelected.enemyObject, spawnCoordinates, Quaternion.identity);
             if (newEnemy.GetComponent<EnemyBehavior_Turret>() != null)
             {
-                SpriteRenderer[] sprites = newEnemy.GetComponentsInChildren<SpriteRenderer>();
-                foreach (SpriteRenderer item in sprites)
-                {
-                    item.enabled = false;
-                }
+                newEnemy.GetComponent<EnemyBehavior_Turret>().canAttachToGround = false;
             }
             spawnedEnemies.Add(newEnemy);
             wavePoints -= enemySelected.enemyPoints;

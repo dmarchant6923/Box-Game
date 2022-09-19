@@ -101,8 +101,16 @@ public class BlginkrakEye : MonoBehaviour
             int blinks = Random.Range(0, 2) + 1;
             while (blinks > 0 && damageBlink == false && forceBlink == false)
             {
+                while (bossEM.enemyIsFrozen)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
                 spriteMask.localScale = new Vector2(spriteMask.localScale.x, 0);
                 yield return new WaitForSeconds(0.15f);
+                while (bossEM.enemyIsFrozen)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
                 if (damageBlink == false && forceBlink == false)
                 {
                     spriteMask.localScale = new Vector2(spriteMask.localScale.x, initialYScale);
@@ -164,12 +172,12 @@ public class BlginkrakEye : MonoBehaviour
         float window = 1.2f;
         yield return new WaitForSeconds(window / 2);
 
-        Vector2 facingVector = new Vector2(Mathf.Cos(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2),
-            Mathf.Sin(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+        Vector2 facingVector = Tools.AngleToVector(transform.localEulerAngles.z);
         while (true)
         {
             Vector2 position = new Vector2(transform.position.x - Mathf.Sign(facingVector.x) * 0.5f, transform.position.y + transform.lossyScale.y / 2);
             newSweat = Instantiate(sweat, position, Quaternion.identity);
+            newSweat.transform.parent = bossEM.transform;
             SpriteRenderer sprite = sweat.GetComponent<SpriteRenderer>();
             Color color = sprite.color;
             color.a = 0.7f;
@@ -183,7 +191,10 @@ public class BlginkrakEye : MonoBehaviour
                     Mathf.Sin(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
                 maskPosition = 0.17f + facingVector.y * 0.08f;
 
-                timer += Time.deltaTime;
+                if (bossEM.enemyIsFrozen == false)
+                {
+                    timer += Time.deltaTime;
+                }
                 yield return null;
             }
         }
@@ -194,21 +205,26 @@ public class BlginkrakEye : MonoBehaviour
         float timer = 0;
         while (timer < window && sentryScript.GetComponent<EnemyManager>().enemyWasKilled == false)
         {
-            sweat.transform.position += Vector3.down * Time.deltaTime * 0.5f;
+            float deltaTime = Time.fixedDeltaTime;
+            if (bossEM.enemyIsFrozen)
+            {
+                deltaTime = 0;
+            }
+
+            sweat.transform.position += Vector3.down * deltaTime * 0.5f;
             if (timer > window * 0.75f)
             {
                 SpriteRenderer sprite = sweat.GetComponent<SpriteRenderer>();
                 Color color = sprite.color;
-                color.a -= (4 * 0.7f / window) * Time.deltaTime;
+                color.a -= (4 * 0.7f / window) * deltaTime;
                 sprite.color = color;
             }
-            Vector2 facingVector = new Vector2(Mathf.Cos(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2),
-                Mathf.Sin(transform.localEulerAngles.z * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
+            Vector2 facingVector = Tools.AngleToVector(transform.localEulerAngles.z);
             Vector2 position = new Vector2(transform.position.x - Mathf.Sign(facingVector.x) * 0.5f, sweat.transform.position.y);
             sweat.transform.position = position;
 
-            timer += Time.deltaTime;
-            yield return null;
+            timer += deltaTime;
+            yield return new WaitForFixedUpdate();
         }
         Destroy(sweat);
     }

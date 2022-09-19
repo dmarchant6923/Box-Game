@@ -89,32 +89,39 @@ public class Grenade : MonoBehaviour
             }
         }
 
-        RaycastHit2D cast = Physics2D.CircleCast(grenadeRB.position, transform.localScale.x / 2, Vector2.zero, 0, LayerMask.GetMask("Box"));
-        if (cast.collider != null)
-        {
-            if (explosionTimer == false)
-            {
-                Debug.DrawRay(grenadeRB.position, -grenadeRB.velocity.normalized, Color.green);
-                Debug.DrawRay(grenadeRB.position, -vectorToBox.normalized, Color.red);
-                grenadeRB.velocity = (-grenadeRB.velocity.normalized - vectorToBox.normalized).normalized * grenadeRB.velocity.magnitude;
-
-                if (velocityList[2].magnitude >= 20)
-                {
-                    Box.activateDamage = true;
-                    Box.damageTaken = collisionDamage;
-                    Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - grenadeRB.position.x), 1).normalized;
-                    StartCoroutine(GrenadeHitstop());
-                }
-                StartCoroutine(ExplosionTimer());
-            }
-        }
-
         if (explosionTimer == false)
         {
             grenadeTime += Time.deltaTime;
             if (grenadeTime >= maxTime - explosionTime)
             {
                 StartCoroutine(ExplosionTimer());
+            }
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (Box.dodgeInvulActive == false)
+        {
+            RaycastHit2D cast = Physics2D.CircleCast(grenadeRB.position, transform.localScale.x * 0.6f, Vector2.zero, 0, LayerMask.GetMask("Box"));
+            if (cast.collider != null)
+            {
+                Vector2 vectorToBoxDelay = (boxRB.position - (grenadeRB.position - grenadeRB.velocity * Time.fixedDeltaTime)).normalized;
+                if (explosionTimer == false)
+                {
+                    Debug.DrawRay(grenadeRB.position, -grenadeRB.velocity.normalized, Color.green);
+                    Debug.DrawRay(grenadeRB.position, -vectorToBoxDelay.normalized, Color.red);
+
+                    if (velocityList[2].magnitude >= 10)
+                    {
+                        Box.activateDamage = true;
+                        Box.damageTaken = collisionDamage;
+                        Box.boxDamageDirection = new Vector2(Mathf.Sign(boxRB.position.x - grenadeRB.position.x), 1).normalized;
+                        StartCoroutine(GrenadeHitstop());
+                    }
+                    StartCoroutine(ExplosionTimer());
+                }
+                grenadeRB.velocity = (-grenadeRB.velocity.normalized - vectorToBoxDelay.normalized).normalized * grenadeRB.velocity.magnitude;
             }
         }
     }

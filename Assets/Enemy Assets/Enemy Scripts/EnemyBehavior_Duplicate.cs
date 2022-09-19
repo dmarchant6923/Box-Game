@@ -28,6 +28,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     float flipTransitionTime = 1f;
     bool upright = true;
     bool flipTransition = false;
+    float sandDeltaTime = 0;
+    float heldRotation = 0;
 
     float maskStartPos = -0.65f;
     float maskEndPos = 0.14f;
@@ -58,6 +60,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     int boxLM;
 
     bool aggro = false;
+    bool frozen = false;
 
     bool debugEnabled = false;
 
@@ -91,6 +94,16 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (EM.enemyIsFrozen)
+        {
+            frozen = true;
+            return;
+        }
+        if (EM.enemyIsFrozen == false && frozen)
+        {
+            frozen = false;
+        }
+
         //floating logic Y
         forceDirectionY = (int)-Mathf.Sign(enemyRB.position.y - initialPosition.y);
         if ((forceDirectionY == -1 && enemyRB.velocity.y >= -floatVelocity) || (forceDirectionY == 1 && enemyRB.velocity.y <= floatVelocity))
@@ -121,43 +134,6 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     }
     void Update()
     {
-        if (duplicateSpawned == false)
-        {
-            Vector2 vectorToBox = (boxRB.position - enemyRB.position).normalized;
-            RaycastHit2D[] enemyRC_RayToBox = Physics2D.RaycastAll(enemyRB.position, vectorToBox, radius, obstacleAndBoxLM);
-
-            float distToBox = 1000;
-            float distToObstacle = 1000;
-            bool seenBox = false;
-            foreach (RaycastHit2D col in enemyRC_RayToBox)
-            {
-                if (col.collider != null && 1 << col.collider.gameObject.layer == boxLM)
-                {
-                    distToBox = col.distance;
-                    seenBox = true;
-                }
-                if (col.collider != null && 1 << col.collider.gameObject.layer == obstacleLM && col.collider.gameObject.tag != "Fence")
-                {
-                    distToObstacle = Mathf.Min(col.distance, distToObstacle);
-                }
-            }
-            if (distToBox < distToObstacle && seenBox == true && EM.initialDelay == false)
-            {
-                EM.canSeeItem = true;
-                StartCoroutine(FlipGlass());
-                StartCoroutine(SpawnDuplicate());
-                StartCoroutine(MaskMovement1());
-                StartCoroutine(MaskMovementMid());
-                StartCoroutine(MaskMovement2());
-                StartCoroutine(SandMovement());
-                StartCoroutine(DisableArea());
-            }
-            else
-            {
-                EM.canSeeItem = false;
-            }
-        }
-
         //logic for player to physically kill enemy
         bool thisEnemyFound = false;
         bool touchingThisEnemy = false;
@@ -186,10 +162,60 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 Box.activateHitstop = true;
             }
         }
-
         if (EM.enemyWasDamaged && duplicateSpawned && newDuplicate != null)
         {
             StartCoroutine(newDuplicate.GetComponent<Duplicate>().DamageFlicker());
+        }
+
+        if (EM.enemyIsFrozen)
+        {
+            sandDeltaTime = 0;
+            if (duplicateSpawned == false)
+            {
+                area.GetComponent<SpriteRenderer>().enabled = false;
+                lr.enabled = false;
+            }
+            else if (frozen == false)
+            {
+                heldRotation = enemyRB.rotation;
+            }
+
+            frozen = true;
+            return;
+        }
+        else
+        {
+            sandDeltaTime = Time.deltaTime;
+        }
+        if (EM.enemyIsFrozen == false && frozen)
+        {
+            frozen = false;
+            if (duplicateSpawned == false)
+            {
+                area.GetComponent<SpriteRenderer>().enabled = true;
+                lr.enabled = true;
+                enemyRB.rotation = 0;
+            }
+            else
+            {
+                enemyRB.rotation = heldRotation;
+                StartCoroutine(SpawnDuplicate());
+            }
+        }
+
+        if (duplicateSpawned == false)
+        {
+            Vector2 vectorToBox = (boxRB.position - enemyRB.position);
+            RaycastHit2D circleCast = Physics2D.CircleCast(enemyRB.position, radius, Vector2.zero, 0, boxLM);
+            if (Tools.LineOfSight(enemyRB.position, vectorToBox) && circleCast.collider != null)
+            {
+                EM.canSeeItem = true;
+                initiateDuplicate();
+            }
+            else
+            {
+                EM.canSeeItem = false;
+            }
         }
 
         if (EM.enemyWasKilled && EM.hitstopImpactActive == false)
@@ -226,7 +252,16 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             areaAnalyze.radius = radius;
         }
     }
-
+    void initiateDuplicate()
+    {
+        StartCoroutine(FlipGlass());
+        StartCoroutine(SpawnDuplicate());
+        StartCoroutine(MaskMovement1());
+        StartCoroutine(MaskMovementMid());
+        StartCoroutine(MaskMovement2());
+        StartCoroutine(SandMovement());
+        StartCoroutine(DisableArea());
+    }
     void CreateEnergy()
     {
         newEnergy = Instantiate(energy);
@@ -269,7 +304,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     }
     IEnumerator EnergyRelease()
     {
-        while (true)
+        while (EM.initialDelay == false)
         {
             float window = 0.2f;
             if (aggro)
@@ -298,7 +333,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 {
                     if (EM.hitstopImpactActive == false)
                     {
-                        timer += Time.deltaTime;
+                        timer += sandDeltaTime;
                     }
                     yield return null;
                 }
@@ -311,8 +346,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                     if (EM.hitstopImpactActive == false)
                     {
                         mask1.transform.localPosition = Vector2.MoveTowards(mask1.transform.localPosition, new Vector2(mask1.transform.localPosition.x, maskStartPos),
-                        Mathf.Abs(maskIdlePos - maskStartPos) / window * Time.deltaTime);
-                        timer += Time.deltaTime;
+                        Mathf.Abs(maskIdlePos - maskStartPos) / window * sandDeltaTime);
+                        timer += sandDeltaTime;
                     }
                     yield return null;
                 }
@@ -329,8 +364,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 if (EM.hitstopImpactActive == false)
                 {
                     mask1.transform.localPosition = Vector2.MoveTowards(mask1.transform.localPosition, new Vector2(mask1.transform.localPosition.x, maskEndPos),
-                    Mathf.Abs(maskStartPos - maskEndPos) / window * Time.deltaTime);
-                    timer += Time.deltaTime;
+                    Mathf.Abs(maskStartPos - maskEndPos) / window * sandDeltaTime);
+                    timer += sandDeltaTime;
                 }
                 yield return null;
             }
@@ -345,7 +380,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             {
                 if (EM.hitstopImpactActive == false)
                 {
-                    timer += Time.deltaTime;
+                    timer += sandDeltaTime;
                 }
                 yield return null;
             }
@@ -373,9 +408,9 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             while (flipTransition)
             {
                 maskMid.transform.localPosition = Vector2.MoveTowards(maskMid.transform.localPosition, new Vector2(maskMid.transform.localPosition.x, targetPos),
-                    Mathf.Abs(startpos - targetPos) / flipTransitionTime * Time.deltaTime);
+                    Mathf.Abs(startpos - targetPos) / flipTransitionTime * sandDeltaTime);
                 maskMid.localScale = new Vector2(maskMid.localScale.x, Mathf.MoveTowards(maskMid.localScale.y, midStartScale,
-                    Mathf.Abs(midStartScale - midEndScale) / flipTransitionTime * Time.deltaTime));
+                    Mathf.Abs(midStartScale - midEndScale) / flipTransitionTime * sandDeltaTime));
                 yield return null;
             }
         }
@@ -386,10 +421,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             while (timer < window)
             {
                 maskMid.transform.localPosition = Vector2.MoveTowards(maskMid.transform.localPosition, new Vector2(maskMid.transform.localPosition.x, midEndPos),
-                    Mathf.Abs(midStartPos - midEndPos) / window * Time.deltaTime);
+                    Mathf.Abs(midStartPos - midEndPos) / window * sandDeltaTime);
                 maskMid.localScale = new Vector2(maskMid.localScale.x, Mathf.MoveTowards(maskMid.localScale.y, midEndScale,
-                    Mathf.Abs(midStartScale - midEndScale) / window * Time.deltaTime));
-                timer += Time.deltaTime;
+                    Mathf.Abs(midStartScale - midEndScale) / window * sandDeltaTime));
+                timer += sandDeltaTime;
                 yield return null;
             }
         }
@@ -400,10 +435,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             while (timer < window)
             {
                 maskMid.transform.localPosition = Vector2.MoveTowards(maskMid.transform.localPosition, new Vector2(maskMid.transform.localPosition.x, -midEndPos),
-                    Mathf.Abs(midStartPos - midEndPos) / window * Time.deltaTime);
+                    Mathf.Abs(midStartPos - midEndPos) / window * sandDeltaTime);
                 maskMid.localScale = new Vector2(maskMid.localScale.x, Mathf.MoveTowards(maskMid.localScale.y, midEndScale,
-                    Mathf.Abs(midStartScale - midEndScale) / window * Time.deltaTime));
-                timer += Time.deltaTime;
+                    Mathf.Abs(midStartScale - midEndScale) / window * sandDeltaTime));
+                timer += sandDeltaTime;
                 yield return null;
             }
         }
@@ -418,7 +453,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             {
                 while (timer < window)
                 {
-                    timer += Time.deltaTime;
+                    timer += sandDeltaTime;
                     yield return null;
                 }
                 mask2.transform.localPosition = new Vector2(mask2.transform.localPosition.x, maskIdlePos);
@@ -428,8 +463,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 while (timer < window)
                 {
                     mask2.transform.localPosition = Vector2.MoveTowards(mask2.transform.localPosition, new Vector2(mask2.transform.localPosition.x, maskStartPos),
-                        Mathf.Abs(maskIdlePos - maskStartPos) / window * Time.deltaTime);
-                    timer += Time.deltaTime;
+                        Mathf.Abs(maskIdlePos - maskStartPos) / window * sandDeltaTime);
+                    timer += sandDeltaTime;
                     yield return null;
                 }
             }
@@ -445,8 +480,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             while (timer < window)
             {
                 mask2.transform.localPosition = Vector2.MoveTowards(mask2.transform.localPosition, new Vector2(mask2.transform.localPosition.x, maskEndPos),
-                    Mathf.Abs(maskStartPos - maskEndPos) / window * Time.deltaTime);
-                timer += Time.deltaTime;
+                    Mathf.Abs(maskStartPos - maskEndPos) / window * sandDeltaTime);
+                timer += sandDeltaTime;
                 yield return null;
             }
         }
@@ -464,10 +499,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 while (timer < window)
                 {
                     fallingSand.transform.localPosition = Vector2.MoveTowards(fallingSand.transform.localPosition, new Vector2(fallingSand.transform.localPosition.x, targetPos),
-                        Mathf.Abs(startPos - targetPos) / window * Time.deltaTime);
+                        Mathf.Abs(startPos - targetPos) / window * sandDeltaTime);
                     fallingSand.localScale = new Vector2(fallingSand.localScale.x, Mathf.MoveTowards(fallingSand.localScale.y, lineEndScale,
-                        Mathf.Abs(lineStartScale - lineEndScale) / window * Time.deltaTime));
-                    timer += Time.deltaTime;
+                        Mathf.Abs(lineStartScale - lineEndScale) / window * sandDeltaTime));
+                    timer += sandDeltaTime;
                     yield return null;
                 }
             }
@@ -477,10 +512,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
                 while (timer < window)
                 {
                     fallingSand.transform.localPosition = Vector2.MoveTowards(fallingSand.transform.localPosition, new Vector2(fallingSand.transform.localPosition.x, targetPos),
-                        Mathf.Abs(startPos - targetPos) / window * Time.deltaTime);
+                        Mathf.Abs(startPos - targetPos) / window * sandDeltaTime);
                     fallingSand.localScale = new Vector2(fallingSand.localScale.x, Mathf.MoveTowards(fallingSand.localScale.y, lineEndScale,
-                        Mathf.Abs(lineStartScale - lineEndScale) / window * Time.deltaTime));
-                    timer += Time.deltaTime;
+                        Mathf.Abs(lineStartScale - lineEndScale) / window * sandDeltaTime));
+                    timer += sandDeltaTime;
                     yield return null;
                 }
             }
@@ -492,10 +527,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             while (timer < window)
             {
                 fallingSand.transform.localPosition = Vector2.MoveTowards(fallingSand.transform.localPosition, new Vector2(fallingSand.transform.localPosition.x, targetPos),
-                    Mathf.Abs(startPos - targetPos) / window * Time.deltaTime);
+                    Mathf.Abs(startPos - targetPos) / window * sandDeltaTime);
                 fallingSand.localScale = new Vector2(fallingSand.localScale.x, Mathf.MoveTowards(fallingSand.localScale.y, lineStartScale,
-                    Mathf.Abs(lineStartScale - lineEndScale) / window * Time.deltaTime));
-                timer += Time.deltaTime;
+                    Mathf.Abs(lineStartScale - lineEndScale) / window * sandDeltaTime));
+                timer += sandDeltaTime;
                 yield return null;
             }
         }
@@ -506,10 +541,10 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             while (timer < window)
             {
                 fallingSand.transform.localPosition = Vector2.MoveTowards(fallingSand.transform.localPosition, new Vector2(fallingSand.transform.localPosition.x, targetPos),
-                    Mathf.Abs(startPos - targetPos) / window * Time.deltaTime);
+                    Mathf.Abs(startPos - targetPos) / window * sandDeltaTime);
                 fallingSand.localScale = new Vector2(fallingSand.localScale.x, Mathf.MoveTowards(fallingSand.localScale.y, lineStartScale,
-                    Mathf.Abs(lineStartScale - lineEndScale) / window * Time.deltaTime));
-                timer += Time.deltaTime;
+                    Mathf.Abs(lineStartScale - lineEndScale) / window * sandDeltaTime));
+                timer += sandDeltaTime;
                 yield return null;
             }
         }
@@ -529,8 +564,8 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             if (EM.hitstopImpactActive == false)
             {
                 body.eulerAngles = new Vector3(body.eulerAngles.x, body.eulerAngles.y,
-                    Mathf.MoveTowards(body.eulerAngles.z, target, 180 / flipTransitionTime * Time.deltaTime));
-                timer += Time.deltaTime;
+                    Mathf.MoveTowards(body.eulerAngles.z, target, 180 / flipTransitionTime * sandDeltaTime));
+                timer += sandDeltaTime;
             }
             yield return null;
         }
@@ -539,6 +574,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             body.eulerAngles = new Vector3(body.eulerAngles.x, body.eulerAngles.y, 0);
         }
     }
+
     IEnumerator DisableArea()
     {
         SpriteRenderer areaSprite = area.GetComponent<SpriteRenderer>();

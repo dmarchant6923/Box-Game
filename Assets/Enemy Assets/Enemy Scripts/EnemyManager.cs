@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EnemyManager : MonoBehaviour
 {
-    public bool multipleParts = false; // multiple parts all children of empty gameobject, first object contains rigidbody.
+    [HideInInspector] public bool multipleParts = false; // multiple parts all children of empty gameobject, first object contains rigidbody.
 
     [HideInInspector] public Rigidbody2D enemyRB;
     [HideInInspector] public Transform[] enemyChildren;
@@ -33,7 +33,7 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public bool enemyWasPulsed = false;
     [HideInInspector] public float pulseMultiplier = 1;
     [HideInInspector] public bool enemyIsInvulnerable = false;
-    public bool enemyWasDamaged = false;
+    [HideInInspector] public bool enemyWasDamaged = false;
     [HideInInspector] public bool enemyWasKilled = false;
 
     [HideInInspector] public bool instantKill = false;
@@ -43,7 +43,7 @@ public class EnemyManager : MonoBehaviour
     float hitstopTime = 0;
     [HideInInspector] public bool scriptsEnabled = true;
 
-    public bool normalPulse = true;
+    [HideInInspector] public bool normalPulse = true;
     [HideInInspector] public bool normalDeath = true;
     [HideInInspector] public bool normalDamage = true;
     [HideInInspector] public bool normalHitstop = true;
@@ -86,8 +86,12 @@ public class EnemyManager : MonoBehaviour
     [HideInInspector] public float invulnerabilityPeriod = 2f;
     float invulnerabilityTime = 0;
 
-    public bool startEnemyDeath = false;
+    [HideInInspector] public bool startEnemyDeath = false;
     bool enemyDeathActive = false;
+
+    [HideInInspector] public bool enemyCanBeFrozen = true;
+    [HideInInspector] public bool enemyIsFrozen = false;
+    [HideInInspector] public float freezeLength = 4f;
 
     public bool respawn;
 
@@ -111,6 +115,7 @@ public class EnemyManager : MonoBehaviour
         shockActive = false;
         enemyWasPulsed = false;
         pulseActive = false;
+        enemyIsFrozen = false;
 
         enemyObjects = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>());
         enemyColors = new List<Color>();
@@ -154,6 +159,8 @@ public class EnemyManager : MonoBehaviour
                 shockCoolDown = true;
                 shockActive = true;
                 StartCoroutine(Shock());
+
+                enemyIsFrozen = false;
             }
             activateShock = false;
         }
@@ -235,7 +242,7 @@ public class EnemyManager : MonoBehaviour
             shieldCurrentlyActive = false;
         }
 
-        if (canSeeItem && exclamationActive == false && enemyWasKilled == false)
+        if (canSeeItem && exclamationActive == false && enemyWasKilled == false && initialDelay == false)
         {
             StartCoroutine(Exclamation());
         }
@@ -245,6 +252,7 @@ public class EnemyManager : MonoBehaviour
             fireActive = true;
             newFire = Instantiate(fire, enemyRB.position, Quaternion.identity);
             newFire.GetComponent<Fire>().objectOnFire = enemyRB;
+            enemyIsFrozen = false;
         }
         if (aggroCurrentlyActive == false && fireActive)
         {
@@ -252,6 +260,16 @@ public class EnemyManager : MonoBehaviour
             if (newFire != null)
             {
                 newFire.GetComponent<Fire>().stopFire = true;
+            }
+        }
+
+        if (enemyIsFrozen)
+        {
+            shockActive = false;
+            aggroCurrentlyActive = false;
+            if (initialDelay == false)
+            {
+                StartCoroutine(StartDelay());
             }
         }
     }
@@ -290,6 +308,7 @@ public class EnemyManager : MonoBehaviour
     IEnumerator HitstopImpact(float time)
     {
         hitstopImpactActive = true;
+        enemyIsFrozen = false;
         Vector2 velocityBeforeHitstop = new Vector2(0, 0);
         float angularVelocityBeforeHitstop = 0;
         if (multipleParts == false)
@@ -419,6 +438,7 @@ public class EnemyManager : MonoBehaviour
         }
         shieldCurrentlyActive = false;
         aggroCurrentlyActive = false;
+        enemyIsFrozen = false;
         enemyRB.gravityScale = 7;
         enemyRB.drag = 0;
         enemyRB.angularDrag = 0;
@@ -517,6 +537,11 @@ public class EnemyManager : MonoBehaviour
     }
     IEnumerator StartDelay()
     {
+        initialDelay = true;
+        while (enemyIsFrozen)
+        {
+            yield return new WaitForFixedUpdate();
+        }
         yield return new WaitForSeconds(1f);
         initialDelay = false;
     }

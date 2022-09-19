@@ -115,81 +115,6 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             enemyRB.velocity = new Vector2(enemyRB.velocity.x, maxFallSpeed);
         }
 
-        directionToBoxX = (int) Mathf.Sign(boxRB.position.x - enemyRB.position.x);
-
-        enemyRC_MoveToBox = Physics2D.CircleCast(enemyRB.position, moveToBoxRadius, new Vector2(0, 0), 0f, boxLM);
-        enemyRC_AttackBox = Physics2D.CircleCast(enemyRB.position, attackBoxRadius, new Vector2(0, 0), 0f, boxLM);
-        walkFloorCheckRC = Physics2D.BoxCast(new Vector2(enemyRB.position.x + transform.lossyScale.x * 1.5f * lookingRight,
-            enemyRB.position.y - transform.lossyScale.y * 0.45f - 1.5f), new Vector2(transform.lossyScale.x / 4, 3f), 0, Vector2.down, 0f, groundLM);
-        walkObstacleCheckRC = Physics2D.BoxCast(new Vector2(enemyRB.position.x + transform.lossyScale.x * lookingRight,
-            enemyRB.position.y), new Vector2(transform.lossyScale.x/4, transform.lossyScale.y / 3), 0, Vector2.down, 0f, groundLM);
-        enemyRC_RayToBox = Physics2D.Raycast(enemyRB.position, (boxRB.position - enemyRB.position).normalized,
-            moveToBoxRadius, obstacleAndBoxLM);
-
-        //canseebox
-        if (enemyRC_RayToBox.collider != null && 1 << enemyRC_RayToBox.collider.gameObject.layer == boxLM)
-        {
-            canSeeBox = true;
-            EM.canSeeItem = true;
-        }
-        else
-        {
-            canSeeBox = false;
-            EM.canSeeItem = false;
-        }
-
-        //enemy isGrounded
-        if (touchedGround)
-        {
-            enemyIsGrounded = true;
-            enemyHitboxActive = false;
-        }
-        else
-        {
-            enemyIsGrounded = false;
-        }
-
-        //enemy walking
-        if (enemyIsWalking == true)
-        {
-            float walkSpeed;
-            if (idleCRActive == true)
-            {
-                walkSpeed = maxHorizSpeed / 2.5f;
-            }
-            else
-            {
-                walkSpeed = maxHorizSpeed;
-            }
-            if (Mathf.Abs(enemyRB.velocity.x - platformSpeed) <= walkSpeed 
-                && walkFloorCheckRC.collider != null && walkObstacleCheckRC.collider == null && attackCRActive == false)
-            {
-                enemyRB.AddForce(new Vector2(moveForce * lookingRight, 0));
-            }
-        }
-
-        //Start idle walking
-        if (canSeeBox == false && idleCRActive == false && enemyIsGrounded == true)
-        {
-            StartCoroutine(IdleWalking());
-        }
-
-        //move if inside move radius but outside attack radius, attack if inside attack radius
-        if (enemyRC_MoveToBox.collider != null && enemyIsGrounded == true && canSeeBox == true && EM.initialDelay == false)
-        {
-            lookingRight = directionToBoxX;
-            idleCRActive = false;
-            if (enemyRC_AttackBox.collider == null && attackCRActive == false && Mathf.Abs(enemyRB.velocity.x) <= maxHorizSpeed)
-            {
-                enemyIsWalking = true;
-            }
-            if (enemyRC_AttackBox.collider != null && attackCRActive == false)
-            {
-                enemyIsWalking = false;
-                StartCoroutine(Attack());
-            }
-        }
-
         bool thisEnemyFound = false;
         foreach (RaycastHit2D enemy in Box.attackRayCast)
         {
@@ -291,6 +216,90 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             enemyHitboxActive = false;
         }
 
+        if (EM.enemyIsFrozen)
+        {
+            EM.physicalHitboxActive = false;
+            enemyHitboxActive = false;
+            idleCRActive = false;
+            groundpoundActive = false;
+            return;
+        }
+
+        directionToBoxX = (int) Mathf.Sign(boxRB.position.x - enemyRB.position.x);
+
+        enemyRC_MoveToBox = Physics2D.CircleCast(enemyRB.position, moveToBoxRadius, new Vector2(0, 0), 0f, boxLM);
+        enemyRC_AttackBox = Physics2D.CircleCast(enemyRB.position, attackBoxRadius, new Vector2(0, 0), 0f, boxLM);
+        walkFloorCheckRC = Physics2D.BoxCast(new Vector2(enemyRB.position.x + transform.lossyScale.x * 1.5f * lookingRight,
+            enemyRB.position.y - transform.lossyScale.y * 0.45f - 1.5f), new Vector2(transform.lossyScale.x / 4, 3f), 0, Vector2.down, 0f, groundLM);
+        walkObstacleCheckRC = Physics2D.BoxCast(new Vector2(enemyRB.position.x + transform.lossyScale.x * lookingRight,
+            enemyRB.position.y), new Vector2(transform.lossyScale.x/4, transform.lossyScale.y / 3), 0, Vector2.down, 0f, groundLM);
+        enemyRC_RayToBox = Physics2D.Raycast(enemyRB.position, (boxRB.position - enemyRB.position).normalized,
+            moveToBoxRadius, obstacleAndBoxLM);
+
+        //canseebox
+        if (enemyRC_RayToBox.collider != null && 1 << enemyRC_RayToBox.collider.gameObject.layer == boxLM)
+        {
+            canSeeBox = true;
+            EM.canSeeItem = true;
+        }
+        else
+        {
+            canSeeBox = false;
+            EM.canSeeItem = false;
+        }
+
+        //enemy isGrounded
+        if (touchedGround)
+        {
+            enemyIsGrounded = true;
+            enemyHitboxActive = false;
+        }
+        else
+        {
+            enemyIsGrounded = false;
+        }
+
+        //enemy walking
+        if (enemyIsWalking == true)
+        {
+            float walkSpeed;
+            if (idleCRActive == true)
+            {
+                walkSpeed = maxHorizSpeed / 2.5f;
+            }
+            else
+            {
+                walkSpeed = maxHorizSpeed;
+            }
+            if (Mathf.Abs(enemyRB.velocity.x - platformSpeed) <= walkSpeed 
+                && walkFloorCheckRC.collider != null && walkObstacleCheckRC.collider == null && attackCRActive == false)
+            {
+                enemyRB.AddForce(new Vector2(moveForce * lookingRight, 0));
+            }
+        }
+
+        //Start idle walking
+        if (canSeeBox == false && idleCRActive == false && enemyIsGrounded == true)
+        {
+            StartCoroutine(IdleWalking());
+        }
+
+        //move if inside move radius but outside attack radius, attack if inside attack radius
+        if (enemyRC_MoveToBox.collider != null && enemyIsGrounded == true && canSeeBox == true && EM.initialDelay == false)
+        {
+            lookingRight = directionToBoxX;
+            idleCRActive = false;
+            if (enemyRC_AttackBox.collider == null && attackCRActive == false && Mathf.Abs(enemyRB.velocity.x) <= maxHorizSpeed)
+            {
+                enemyIsWalking = true;
+            }
+            if (enemyRC_AttackBox.collider != null && attackCRActive == false)
+            {
+                enemyIsWalking = false;
+                StartCoroutine(Attack());
+            }
+        }
+
         //if the enemy was rebounded...
         if (enemyWasRebounded == true)
         {
@@ -389,7 +398,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0,0,0,0);
         }
 
-        if (attackCRActive && onCoolDown == false)
+        if (attackCRActive && onCoolDown == false && EM.enemyIsFrozen == false)
         {
             if (EM.enemyWasPulsed)
             {
@@ -525,7 +534,7 @@ public class EnemyBehavior_Grounded : MonoBehaviour
             transform.localScale = new Vector2(transform.localScale.x, transform.localScale.y * squatFactor);
             enemyRB.position += Vector2.down * transform.localScale.y * (1 - squatFactor) / 2;
         }
-        while (attackDelayTimer <= attackDelay && EM.enemyWasKilled == false && damaged == false) // delay on ground before launching upwards
+        while (attackDelayTimer <= attackDelay && EM.enemyWasKilled == false && damaged == false && EM.enemyIsFrozen == false) // delay on ground before launching upwards
         {
             if (EM.hitstopImpactActive == false)
             {

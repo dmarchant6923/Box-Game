@@ -26,7 +26,7 @@ public class StarMan : MonoBehaviour
     float trueAngularVelocity;
     bool isStationary = false;
 
-    public float sightRadius = 12;
+    public float sightRadius = 16;
 
     bool touchingThisEnemy = false;
     Vector2 vectorToBox;
@@ -41,29 +41,32 @@ public class StarMan : MonoBehaviour
     bool shootCRActive = false;
     public GameObject starBullet;
     GameObject newStarBullet;
-    public float bulletSpeed = 10;
-    public float bulletSpreadMax = 40;
+    public float bulletSpeed = 15;
+    public float bulletSpreadMax = 17;
     public int bulletsPerAttack = 10;
     public float delayBeforeShooting = 0.7f;
     float bulletDespawnTime;
-    public float shootTimeInterval = 0.1f;
-    public float bulletRecoil = 1;
-    public float bulletDamage = 25;
-    public float restTime = 2f;
+    public float shootTimeInterval = 0.04f;
+    public float bulletRecoil = 5;
+    float initialbulletRecoil;
+    public float bulletDamage = 20;
+    public float restTime = 3f;
     bool isAttacking = false;
     bool isCurrentlyShooting = false;
     bool isWaitingToShoot = false;
     bool isOnCoolDown = false;
 
-    public float timeToReproduce = 8;
+    public float totalBirthTime = 12;
+    float timeToReproduce = 8;
+    float birthDelay = 6;
     Vector2 minSize;
     float sizeMult = 2.8f;
     float growthTimer = 0;
 
     bool birthCRActive = false;
     Color initialColor;
+    Color currentColor;
     bool givingBirth = false;
-    float birthDelay = 6;
     public GameObject starManProjectile;
     GameObject newStarManProjectile;
     bool gaveBirth = false;
@@ -79,7 +82,8 @@ public class StarMan : MonoBehaviour
     int boxLM;
     int obstacleLM;
 
-    public int iteration = 0;
+    [HideInInspector] public int iteration = 1;
+    public int maxIterations = 4;
     
     void Start()
     {
@@ -91,6 +95,7 @@ public class StarMan : MonoBehaviour
         EM.pulseMultiplier = 0.55f;
         mouth = transform.GetChild(0);
         bulletDespawnTime = sightRadius * 3 / bulletSpeed;
+        initialbulletRecoil = bulletRecoil;
 
         initialMouthScale = mouth.localScale;
 
@@ -148,13 +153,23 @@ public class StarMan : MonoBehaviour
 
         minSize = transform.localScale;
         initialColor = GetComponent<SpriteRenderer>().color;
-        postBirthColor = new Color(1, 1, 0.4f);
+        postBirthColor = new Color(1, 1, 0.6f);
 
-        if (iteration > 4)
+        timeToReproduce = totalBirthTime * 0.6f;
+        birthDelay = totalBirthTime * 0.4f;
+
+        if (iteration >= maxIterations)
         {
             gaveBirth = true;
             transform.localScale = minSize * (1 + (sizeMult - 1) * 0.3f);
             GetComponent<SpriteRenderer>().color = postBirthColor;
+            for (int i = 0; i < EM.enemyObjects.Count; i++)
+            {
+                if (EM.enemyObjects[i] == GetComponent<SpriteRenderer>())
+                {
+                    EM.enemyColors[i] = postBirthColor;
+                }
+            }
         }
 
         StartCoroutine(StarParticles());
@@ -162,6 +177,11 @@ public class StarMan : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        if (EM.enemyIsFrozen)
+        {
+            return;
+        }
+
         //floating logic Y
         forceDirectionY = (int)-Mathf.Sign(enemyRB.position.y - initialPosition.y);
         if ((forceDirectionY == -1 && enemyRB.velocity.y >= -floatVelocity) || (forceDirectionY == 1 && enemyRB.velocity.y <= floatVelocity))
@@ -217,13 +237,13 @@ public class StarMan : MonoBehaviour
         }
 
         //magical spinning
-        float baseSpin = (givingBirth) ? 0 : 100;
+        float baseSpin = (givingBirth || (shootCRActive && isOnCoolDown == false)) ? 0 : 100;
         trueAngularVelocity = Mathf.Sign(-enemyRB.velocity.x) * baseSpin + (-Mathf.Sqrt(Mathf.Abs(enemyRB.velocity.x)) * Mathf.Sign(enemyRB.velocity.x) * spinMultiplier);
         float spinAccel = 1000;
         enemyRB.angularVelocity = Mathf.MoveTowards(enemyRB.angularVelocity, trueAngularVelocity, spinAccel * Time.fixedDeltaTime);
 
         //mouth movement
-        if (canSeeBox)
+        if (canSeeBox && EM.initialDelay == false)
         {
             lastVectorToBox = vectorToBox;
             if (givingBirth == false)
@@ -300,37 +320,6 @@ public class StarMan : MonoBehaviour
     }
     void Update()
     {
-        vectorToBox = (boxRB.position - enemyRB.position).normalized;
-        RaycastHit2D[] enemyRC_RayToBox = Physics2D.RaycastAll(enemyRB.position, vectorToBox, sightRadius, obstacleAndBoxLM);
-        float distToBox = 1000;
-        float distToObstacle = 1000;
-        foreach (RaycastHit2D col in enemyRC_RayToBox)
-        {
-            if (col.collider != null && 1 << col.collider.gameObject.layer == boxLM)
-            {
-                distToBox = col.distance;
-            }
-            if (col.collider != null && 1 << col.collider.gameObject.layer == obstacleLM && col.collider.gameObject.tag != "Fence")
-            {
-                distToObstacle = Mathf.Min(col.distance, distToObstacle);
-            }
-        }
-        if (distToBox < distToObstacle)
-        {
-            canSeeBox = true;
-            EM.canSeeItem = true;
-            if (shootCRActive == false && EM.initialDelay == false && givingBirth == false)
-            {
-                StartCoroutine(ShootBullets());
-            }
-        }
-        else
-        {
-            canSeeBox = false;
-            EM.canSeeItem = false;
-        }
-
-
         //logic for player to physically hit enemy
         bool thisEnemyFound = false;
         if (Box.attackRayCast.Length > 0)
@@ -359,6 +348,27 @@ public class StarMan : MonoBehaviour
             EM.enemyWasDamaged = true;
             Box.activateHitstop = true;
         }
+
+        if (EM.enemyIsFrozen)
+        {
+            return;
+        }
+
+        vectorToBox = boxRB.position - enemyRB.position;
+        if (Tools.LineOfSight(enemyRB.position, vectorToBox))
+        {
+            canSeeBox = true;
+            EM.canSeeItem = true;
+            if (shootCRActive == false && EM.initialDelay == false && givingBirth == false)
+            {
+                StartCoroutine(ShootBullets());
+            }
+        }
+        else
+        {
+            canSeeBox = false;
+            EM.canSeeItem = false;
+        }
     }
 
     IEnumerator ShootBullets()
@@ -369,13 +379,15 @@ public class StarMan : MonoBehaviour
         truePositionXVelocity /= 4;
         forceMagnitudeX /= 4;
         enemyRB.velocity /= 4;
+        enemyRB.angularVelocity /= 10;
         floatVelocity /= 4;
         enemyRB.drag = 1;
 
+        float gValue = 0.8f;
         foreach (SpriteRenderer sprite in mouth.GetComponentsInChildren<SpriteRenderer>())
         {
             Color color = sprite.color;
-            color.g += 0.35f;
+            color.g += gValue;
             sprite.color = color;
         }
 
@@ -385,7 +397,7 @@ public class StarMan : MonoBehaviour
         isCurrentlyShooting = true;
         isWaitingToShoot = true;
         float delayBeforeShootingTimer = 0;
-        while (delayBeforeShootingTimer <= delayBeforeShooting && EM.enemyWasKilled == false)
+        while (delayBeforeShootingTimer <= delayBeforeShooting && EM.enemyWasKilled == false && EM.initialDelay == false)
         {
             if (EM.hitstopImpactActive == false)
             {
@@ -402,13 +414,13 @@ public class StarMan : MonoBehaviour
         }
         isWaitingToShoot = false;
         float shootTimeIntervalTimer = 0;
-        while (bulletsShot < bulletsPerAttack && EM.enemyWasKilled == false)
+        while (bulletsShot < bulletsPerAttack && EM.enemyWasKilled == false && EM.initialDelay == false)
         {
             mouth.localScale = new Vector2(mouth.localScale.x, initialMouthScale.y * 1.7f);
 
             if (bulletsShot == 1)
             {
-                bulletRecoil /= 100;
+                bulletRecoil = initialbulletRecoil / 100;
                 enemyRB.velocity = new Vector2(enemyRB.velocity.x / 2, enemyRB.velocity.y);
             }
 
@@ -448,7 +460,7 @@ public class StarMan : MonoBehaviour
         foreach (SpriteRenderer sprite in mouth.GetComponentsInChildren<SpriteRenderer>())
         {
             Color color = sprite.color;
-            color.g -= 0.35f;
+            color.g -= gValue;
             sprite.color = color;
         }
 
@@ -456,7 +468,7 @@ public class StarMan : MonoBehaviour
         isCurrentlyShooting = false;
         isOnCoolDown = true;
 
-        bulletRecoil *= 100;
+        bulletRecoil = initialbulletRecoil;
         forceMagnitudeY *= 4;
         truePositionXVelocity *= 4;
         forceMagnitudeX *= 4;
@@ -466,7 +478,7 @@ public class StarMan : MonoBehaviour
 
         float window = restTime * 0.8f;
         float timer = 0;
-        while (timer < window)
+        while (timer < window && EM.initialDelay == false)
         {
             timer += Time.fixedDeltaTime;
             mouth.localScale = Vector2.MoveTowards(mouth.localScale, new Vector2(initialMouthScale.x, initialMouthScale.y), Time.deltaTime * 3);
@@ -484,6 +496,10 @@ public class StarMan : MonoBehaviour
         {
             float randInterval = interval * 0.5f + interval * Random.Range(0f, 1f);
             yield return new WaitForSeconds(randInterval);
+            while (EM.initialDelay)
+            {
+                yield return new WaitForFixedUpdate();
+            }
             newStarBullet = Instantiate(starBullet, enemyRB.position + Random.insideUnitCircle * transform.localScale.x / 2, Quaternion.identity);
             newStarBullet.GetComponent<BulletScript>().bulletDespawnWindow = 5;
             newStarBullet.GetComponent<BulletScript>().bulletDamage = 0;
@@ -503,7 +519,7 @@ public class StarMan : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
         Vector2 vector = new Vector2(Mathf.Sign(enemyRB.velocity.x), -0.25f).normalized;
-        while (shootCRActive == false && givingBirth == false)
+        while (shootCRActive == false && givingBirth == false && EM.enemyIsFrozen == false)
         {
             if (Mathf.Abs(enemyRB.velocity.x) > 0.2f)
             {
@@ -525,19 +541,24 @@ public class StarMan : MonoBehaviour
         float targetG = 0.4f;
         float period = 0.5f;
         SpriteRenderer sprite = GetComponent<SpriteRenderer>();
+        Color color = initialColor;
         while (timer < birthDelay || (shootCRActive && isOnCoolDown == false))
         {
             if (timer > birthDelay * 0.6f)
             {
                 period = 0.2f;
             }
-            Color color = sprite.color;
 
             while ((timer < birthDelay || (shootCRActive && isOnCoolDown == false)) && color.g < initialG)
             {
+                float deltaTime = Time.fixedDeltaTime;
+                if (EM.enemyIsFrozen)
+                {
+                    deltaTime = 0;
+                }
+                color.g = Mathf.MoveTowards(color.g, initialG, (initialColor.g - targetG) / period * 2 * deltaTime);
                 if (EM.flashOn == false)
                 {
-                    color.g = Mathf.MoveTowards(color.g, initialG, (initialColor.g - targetG) / period * 2 * Time.fixedDeltaTime);
                     sprite.color = color;
                 }
                 timer += Time.fixedDeltaTime;
@@ -548,9 +569,14 @@ public class StarMan : MonoBehaviour
 
             while ((timer < birthDelay || (shootCRActive && isOnCoolDown == false)) && color.g > targetG)
             {
+                float deltaTime = Time.fixedDeltaTime;
+                if (EM.enemyIsFrozen)
+                {
+                    deltaTime = 0;
+                }
+                color.g = Mathf.MoveTowards(color.g, targetG, (initialColor.g - targetG) / period * 2 * deltaTime);
                 if (EM.flashOn == false)
                 {
-                    color.g = Mathf.MoveTowards(color.g, targetG, (initialColor.g - targetG) / period * 2 * Time.fixedDeltaTime);
                     sprite.color = color;
                 }
                 timer += Time.fixedDeltaTime;
@@ -559,6 +585,8 @@ public class StarMan : MonoBehaviour
             color.g = targetG;
             sprite.color = color;
         }
+        color.g = targetG;
+        sprite.color = color;
 
         yield return new WaitForFixedUpdate();
 
@@ -590,7 +618,7 @@ public class StarMan : MonoBehaviour
             }
             if (ray.collider != null && ray.distance > maxDistance)
             {
-                int rand = Random.Range(0, 5);
+                int rand = Random.Range(0, 7);
                 if (rand == 0)
                 {
                     maxDistance = ray.distance;
@@ -598,29 +626,28 @@ public class StarMan : MonoBehaviour
                 }
             }
         }
-        while (canSeeBox == false && timer < delay)
-        {
-            realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(chosenVector), mouthRotateSpeed * Time.fixedDeltaTime);
-            if (EM.hitstopImpactActive == false)
-            {
-                timer += Time.fixedDeltaTime;
-            }
-            yield return new WaitForFixedUpdate();
-        }
-        while (canSeeBox && timer < delay)
-        {
-            realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(lastVectorToBox), mouthRotateSpeed * Time.fixedDeltaTime);
-            if (EM.hitstopImpactActive == false)
-            {
-                timer += Time.fixedDeltaTime;
-            }
-            yield return new WaitForFixedUpdate();
-        }
         while (timer < delay)
         {
+            if (canSeeBox == false)
+            {
+                realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(chosenVector), mouthRotateSpeed * Time.fixedDeltaTime);
+            }
+            else
+            {
+                realAngle = Mathf.MoveTowardsAngle(realAngle, Tools.VectorToAngle(lastVectorToBox), mouthRotateSpeed * Time.fixedDeltaTime);
+                chosenVector = lastVectorToBox;
+            }
             if (EM.hitstopImpactActive == false)
             {
                 timer += Time.fixedDeltaTime;
+            }
+            if (EM.initialDelay)
+            {
+                timer = 0;
+            }
+            if (EM.flashOn == false)
+            {
+                sprite.color = color;
             }
             yield return new WaitForFixedUpdate();
         }
@@ -636,9 +663,9 @@ public class StarMan : MonoBehaviour
         newStarManProjectile.GetComponent<Rigidbody2D>().velocity = realVector.normalized * projectileVelocity;
         if (aggroActive)
         {
-            Color color = newStarManProjectile.GetComponent<SpriteRenderer>().color;
-            color.g -= 0.5f;
-            newStarManProjectile.GetComponent<SpriteRenderer>().color = color;
+            Color projectileColor = newStarManProjectile.GetComponent<SpriteRenderer>().color;
+            projectileColor.g -= 0.5f;
+            newStarManProjectile.GetComponent<SpriteRenderer>().color = projectileColor;
         }
         enemyRB.drag = 1;
         enemyRB.AddForce(20 * -realVector, ForceMode2D.Impulse);
@@ -647,19 +674,28 @@ public class StarMan : MonoBehaviour
         float currentScale = sizeMult;
         while (currentScale > 1 + (sizeMult - 1) * 0.3f)
         {
-            currentScale -= Time.fixedDeltaTime;
+            if (EM.enemyIsFrozen == false)
+            {
+                currentScale -= Time.fixedDeltaTime;
+            }
             transform.localScale = minSize * currentScale;
 
+            color = Color.Lerp(color, postBirthColor, Time.fixedDeltaTime * 1.7f);
             if (EM.flashOn == false)
             {
-                Color color = sprite.color;
-                color = Color.Lerp(color, postBirthColor, Time.fixedDeltaTime);
                 sprite.color = color;
             }
 
             yield return new WaitForFixedUpdate();
         }
         sprite.color = postBirthColor;
+        for (int i = 0; i < EM.enemyObjects.Count; i++)
+        {
+            if (EM.enemyObjects[i] == GetComponent<SpriteRenderer>())
+            {
+                EM.enemyColors[i] = postBirthColor;
+            }
+        }
         birthCRActive = false;
         givingBirth = false;
 
@@ -676,6 +712,11 @@ public class StarMan : MonoBehaviour
         float distance = 0.02f;
         while (gaveBirth == false)
         {
+            while (EM.initialDelay)
+            {
+                distance = 0.02f;
+                yield return new WaitForFixedUpdate();
+            }
             mouth.localScale = Vector2.MoveTowards(mouth.localScale, new Vector2(initialMouthScale.x * 1.5f, initialMouthScale.y * 0.7f), Time.fixedDeltaTime * 0.8f);
 
             Vector2 rand = Random.insideUnitCircle.normalized * distance;
@@ -688,6 +729,10 @@ public class StarMan : MonoBehaviour
         mouth.localScale = new Vector2(initialMouthScale.x * 1.5f, initialMouthScale.y * 1.5f);
         while (mouth.localScale.magnitude > initialMouthScale.magnitude)
         {
+            while (EM.enemyIsFrozen)
+            {
+                yield return new WaitForFixedUpdate();
+            }
             mouth.localScale = Vector2.MoveTowards(mouth.localScale, initialMouthScale, Time.fixedDeltaTime * 0.8f);
             yield return new WaitForFixedUpdate();
         }

@@ -33,7 +33,7 @@ public class Boundary : MonoBehaviour
             {
                 if (BoxPerks.heavyActive)
                 {
-                    Box.boxHealth -= 2 * BoxPerks.heavyMult;
+                    Box.boxHealth -= 2 * BoxPerks.heavyDamageMult;
                 }
                 else
                 {

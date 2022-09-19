@@ -102,7 +102,6 @@ public class EnemyBehavior_Blitz : MonoBehaviour
 
     void Update()
     {
-
         //logic for player to physically kill enemy
         bool thisEnemyFound = false;
         foreach (RaycastHit2D enemy in Box.attackRayCast)
@@ -143,6 +142,13 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                     Box.activateHitstop = true;
                 }
             }
+        }
+
+        if (EM.enemyIsFrozen)
+        {
+            attackActive = false;
+            idle = false;
+            return;
         }
 
         //detecting box
@@ -191,7 +197,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
         vectorFacing = new Vector2(Mathf.Cos(enemyRB.rotation * Mathf.Deg2Rad + Mathf.PI / 2),
                 Mathf.Sin(enemyRB.rotation * Mathf.Deg2Rad + Mathf.PI / 2)).normalized;
 
-        if (Box.pulseActive && vectorToBox.magnitude <= Box.pulseRadius + 0.5f && attackActive && attackWasPulsed == false)
+        if (Box.pulseActive && (boxRB.position - enemyRB.position).magnitude <= Box.pulseRadius + 0.5f && attackActive && attackWasPulsed == false)
         {
             attackWasPulsed = true;
             collisionDirection = (enemyRB.position - boxRB.position).normalized;
@@ -212,6 +218,11 @@ public class EnemyBehavior_Blitz : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (EM.enemyIsFrozen)
+        {
+            return;
+        }
+
         RaycastHit2D circleCast = Physics2D.CircleCast(enemyRB.position, idleOffset, Vector2.zero, 0, LayerMask.GetMask("Obstacles", "Platforms", "Enemies"));
         if ((knockbackActive == false || (knockbackActive && attacksLeft > 0)) && delayActive == false && attackActive == false && circleCast.collider != null)
         {
@@ -329,7 +340,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
     {
         blitzActive = true;
         idle = false;
-        while (attacksLeft > 0 && EM.enemyWasKilled == false)
+        while (attacksLeft > 0 && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
         {
             delayActive = true;
             attacksLeft -= 1;
@@ -343,7 +354,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             }
             float timer = 0;
             bool stopAttack = false;
-            while (timer < window && EM.enemyWasKilled == false)
+            while (timer < window && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
             {
                 if (EM.hitstopImpactActive)
                 {
@@ -372,7 +383,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
                 Vector2 initialPosition = enemyRB.position;
                 float distance = 0;
                 timer = 0;
-                while (attackActive && distance < maxDistance && timer < 2 && EM.enemyWasKilled == false)
+                while (attackActive && distance < maxDistance && timer < 2 && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
                 {
                     if (enemyHitstopActive == false)
                     {
@@ -430,7 +441,7 @@ public class EnemyBehavior_Blitz : MonoBehaviour
             EM.normalPulse = true;
             angularVelocity = normalAngularVelocity;
 
-            if (attacksLeft > 0)
+            if (attacksLeft > 0 && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
             {
                 window = attackCooldownTime / 8;
                 timer = 0;
@@ -467,14 +478,14 @@ public class EnemyBehavior_Blitz : MonoBehaviour
     IEnumerator Shake()
     {
         float timer = 0;
-        while (timer < attackDelay / 2 && EM.enemyWasKilled == false)
+        while (timer < attackDelay / 2 && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
         {
             timer += Time.deltaTime;
             yield return null;
         }
         EM.normalPulse = false;
         float shiftMult = 0.02f;
-        while (delayActive && EM.enemyWasKilled == false)
+        while (delayActive && EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
         {
             Vector2 shift = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized;
             enemyRB.position += shift * shiftMult;

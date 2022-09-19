@@ -16,13 +16,13 @@ public class StarManProjectile : MonoBehaviour
     public GameObject explosion;
     GameObject newExplosion;
     public float explosionRadius = 2.5f;
-    float explosionDamage = 30;
+    public float explosionDamage = 30;
 
-    float timer = 0;
+    public float timer = 0;
     float maxDist = 40;
     bool spawnStarted = false;
 
-    bool projectileWasReflected = false;
+    public bool projectileWasReflected = false;
 
     public int iteration = 0;
 

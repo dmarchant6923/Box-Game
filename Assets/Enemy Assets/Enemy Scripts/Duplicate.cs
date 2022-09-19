@@ -24,6 +24,7 @@ public class Duplicate : MonoBehaviour
     public float damage = 25;
     bool damagedBox = false;
     bool willDamageBox = false;
+    public bool frozen = false;
 
     int i;
     [HideInInspector] public int currentIndex = 0;
@@ -32,6 +33,7 @@ public class Duplicate : MonoBehaviour
     [HideInInspector] public int targetIndex = 0;
     int aggroIndex;
     float aggroMult = 0.6f;
+    float aggroScaleMult = 1.25f;
 
     void Start()
     {
@@ -42,7 +44,8 @@ public class Duplicate : MonoBehaviour
         int listSize = Mathf.CeilToInt(secondsBehind * 50);
         aggroIndex = Mathf.FloorToInt(listSize * (1 - aggroMult));
 
-        boxInitialYScale = 0.5f;
+        boxInitialYScale = boxTransform.localScale.x;
+        transform.localScale *= boxInitialYScale / 0.5f;
         initialYScale = transform.localScale.y;
 
         aura1InitialScale = aura.transform.localScale.y;
@@ -75,8 +78,8 @@ public class Duplicate : MonoBehaviour
         if (sourceEM.aggroCurrentlyActive && aggro == false)
         {
             aggro = true;
-            initialYScale *= 1.5f;
-            transform.localScale = new Vector2(transform.localScale.x * 1.5f, transform.localScale.y);
+            initialYScale *= aggroScaleMult;
+            transform.localScale = new Vector2(transform.localScale.x * aggroScaleMult, transform.localScale.y);
             sprite.color = new Color(0.2f, 0, 0, sprite.color.a);
             aura.GetComponent<SpriteRenderer>().color = new Color(1, 0.8f, 0.8f, aura.GetComponent<SpriteRenderer>().color.a);
             aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(1, 0.8f, 0.8f, aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color.a);
@@ -91,8 +94,8 @@ public class Duplicate : MonoBehaviour
         else if (sourceEM.aggroCurrentlyActive == false && aggro)
         {
             aggro = false;
-            initialYScale /= 1.5f;
-            transform.localScale = new Vector2(aura.localScale.x / 1.5f, aura.localScale.y);
+            initialYScale /= aggroScaleMult;
+            transform.localScale = new Vector2(transform.localScale.x / aggroScaleMult, transform.localScale.y);
             sprite.color = new Color(0, 0, 0, sprite.color.a);
             aura.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, aura.GetComponent<SpriteRenderer>().color.a);
             aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, aura.transform.GetChild(0).GetComponent<SpriteRenderer>().color.a);
@@ -102,6 +105,17 @@ public class Duplicate : MonoBehaviour
                 secondsBehind /= aggroMult;
                 targetIndex = 0;
             }
+        }
+
+        if (sourceEM.enemyIsFrozen)
+        {
+            frozen = true;
+            return;
+            //death();
+        }
+        if (sourceEM.enemyIsFrozen == false && frozen)
+        {
+            death();
         }
 
         if (aggro && willDamageBox && targetIndex < aggroIndex && i % 3 == 0)
@@ -269,7 +283,10 @@ public class Duplicate : MonoBehaviour
             float timer = 0;
             while (timer < window)
             {
-                timer += Time.deltaTime;
+                if (sourceEM.enemyIsFrozen == false)
+                {
+                    timer += Time.deltaTime;
+                }
                 yield return null;
             }
             CreateEnergy();

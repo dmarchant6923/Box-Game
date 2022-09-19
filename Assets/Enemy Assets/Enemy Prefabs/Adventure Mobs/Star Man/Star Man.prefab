@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 1179390072924959379}
   - component: {fileID: 1073464469353412264}
   - component: {fileID: 8077139222065603568}
+  - component: {fileID: 2174712208941400537}
   m_Layer: 11
   m_Name: Star Man
   m_TagString: Untagged
@@ -304,16 +305,18 @@ MonoBehaviour:
   sightRadius: 16
   starBullet: {fileID: 1031107831012274544, guid: 3df5d2ebe81d105479d088ca0b2c3478, type: 3}
   bulletSpeed: 15
-  bulletSpreadMax: 35
-  bulletsPerAttack: 12
+  bulletSpreadMax: 17
+  bulletsPerAttack: 10
   delayBeforeShooting: 0.7
   shootTimeInterval: 0.04
   bulletRecoil: 5
-  bulletDamage: 25
-  restTime: 2.5
-  timeToReproduce: 7
+  bulletDamage: 20
+  restTime: 3
+  totalBirthTime: 12
   starManProjectile: {fileID: 8953193720970993623, guid: a5f511e5420df554892053fa7b8a6eea, type: 3}
   debugEnabled: 0
+  iteration: 1
+  maxIterations: 4
 --- !u!114 &3690556458742111707
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,7 +402,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7157519171688395356}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
@@ -415,7 +418,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7157519171688395356}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
@@ -431,7 +434,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7157519171688395356}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
@@ -447,7 +450,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7157519171688395356}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
@@ -463,7 +466,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7157519171688395356}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
@@ -479,7 +482,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7157519171688395356}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
@@ -488,6 +491,41 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.3
+--- !u!60 &2174712208941400537
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7157519171688395356}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1, y: 1}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.3, y: -0.13}
+      - {x: 0.47, y: 0.12}
+      - {x: 0.18, y: 0.22}
+      - {x: 0, y: 0.48}
+      - {x: -0.18, y: 0.22}
+      - {x: -0.47, y: 0.12}
+      - {x: -0.3, y: -0.13}
+      - {x: -0.3, y: -0.45}
+      - {x: 0, y: -0.35440928}
+      - {x: 0.3, y: -0.45}
 --- !u!1 &7287613332707030146
 GameObject:
   m_ObjectHideFlags: 0

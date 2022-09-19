@@ -139,6 +139,46 @@ public class EnemyBehavior_Wizard : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (aggro)
+        {
+            foreach (GameObject aura in spawnedAuras)
+            {
+                if (aura == null || aura.transform.root.GetComponent<EnemyManager>() == null || aura.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive == false)
+                {
+                    if (aura != null && aura.GetComponent<Aura>() != null)
+                    {
+                        aura.GetComponent<Aura>().breakAura = true;
+                    }
+                    spawnedAuras.Remove(aura);
+                    break;
+                }
+            }
+        }
+
+        if (EM.enemyIsFrozen)
+        {
+            if (thisAura.GetComponent<SpriteRenderer>().enabled)
+            {
+                thisAura.GetComponent<SpriteRenderer>().enabled = false;
+                if (aggro)
+                {
+                    wizardFire.GetComponent<Fire>().stopFire = true;
+                }
+                lr.enabled = false;
+            }
+            return;
+        }
+        else if (thisAura.GetComponent<SpriteRenderer>().enabled == false)
+        {
+            thisAura.GetComponent<SpriteRenderer>().enabled = true;
+            if (aggro)
+            {
+                wizardFire = Instantiate(fire, enemyRB.position, Quaternion.identity);
+                wizardFire.GetComponent<Fire>().objectOnFire = enemyRB;
+            }
+            lr.enabled = true;
+        }
+
         //floating logic Y
         forceDirectionY = (int)-Mathf.Sign(enemyRB.position.y - initialPosition.y);
         if ((forceDirectionY == -1 && enemyRB.velocity.y >= -floatVelocity) || (forceDirectionY == 1 && enemyRB.velocity.y <= floatVelocity))
@@ -257,6 +297,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                 Box.activateHitstop = true;
             }
         }
+
         if (EM.enemyWasKilled == true && enemyFadeActive == false)
         {
             StartCoroutine(EnemyFade());
@@ -277,12 +318,18 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                     if (aggro)
                     {
                         aura.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive = false;
-                        //aura.GetComponent<Fire>().objectOnFire.transform.root.GetComponent<EnemyManager>().aggroCurrentlyActive = false;
-                        //aura.GetComponent<Fire>().stopFire = true;
-                        wizardFire.GetComponent<Fire>().stopFire = true;
+                        if (wizardFire != null)
+                        {
+                            wizardFire.GetComponent<Fire>().stopFire = true;
+                        }
                     }
                 }
             }
+        }
+
+        if (EM.enemyIsFrozen)
+        {
+            return;
         }
 
         if (auraCheck == false && (shield || aggro))
@@ -306,6 +353,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                         (item.transform.GetComponent<EnemyBehavior_Flying>() != null && item.transform.GetComponent<EnemyBehavior_Flying>().diveWasReflected == true) ||
                         (item.transform.GetComponent<EnemyBehavior_Grounded>() != null && item.transform.GetComponent<EnemyBehavior_Grounded>().willDamageEnemies == true) ||
                         (item.transform.GetComponent<SpikeSentinel>() != null && item.transform.GetComponent<SpikeSentinel>().reflectActive) ||
+                        (item.transform.GetComponent<StarManProjectile>() != null && item.transform.GetComponent<StarManProjectile>().projectileWasReflected) ||
                         (item.transform.GetComponent<Box>() != null))
                     {
                         checkSuccessful = true;
@@ -476,6 +524,16 @@ public class EnemyBehavior_Wizard : MonoBehaviour
                         item.transform.GetComponent<SpikeSentinel>().willDamageEnemies = false;
                         item.transform.GetComponent<SpikeSentinel>().damage *= 1.2f;
                     }
+
+                    //starman projectile
+                    if (item.transform.GetComponent<StarManProjectile>() != null && item.transform.GetComponent<StarManProjectile>().projectileWasReflected)
+                    {
+                        Rigidbody2D RB = item.transform.GetComponent<Rigidbody2D>();
+                        Vector2 enemyReflectVector = (RB.position - enemyRB.position).normalized;
+                        RB.velocity = enemyReflectVector * RB.velocity.magnitude * 1.2f;
+                        item.transform.GetComponent<StarManProjectile>().projectileWasReflected = false;
+                        item.transform.GetComponent<StarManProjectile>().timer = 0;
+                    }
                 }
             }
         }
@@ -547,7 +605,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         float warmUpWindow = 0.8f;
         if (pulse) { warmUpWindow = 0.3f; }
         float direction = Mathf.Sign(enemyRB.angularVelocity);
-        while (timer <= warmUpWindow)
+        while (timer <= warmUpWindow && EM.enemyIsFrozen == false)
         {
             spinIncrease = true;
             trueAngularVelocity = 4000 * direction;
@@ -557,21 +615,21 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             }
             yield return null;
         }
-        checkThisFrame = true;
-        if (EM.enemyWasKilled == false)
+        spinIncrease = false;
+        if (EM.enemyWasKilled == false && EM.enemyIsFrozen == false)
         {
             StartCoroutine(AuraColor());
-        }
-        yield return null;
-        checkThisFrame = false;
-        enemyRB.angularVelocity /= 4;
-        spinIncrease = false;
-        timer = 0;
-        float remainderWindow = auraCheckPeriod - warmUpWindow + Random.Range(0, 0.2f);
-        while (timer <= remainderWindow)
-        {
-            timer += Time.deltaTime;
+            checkThisFrame = true;
             yield return null;
+            checkThisFrame = false;
+            enemyRB.angularVelocity /= 4;
+            timer = 0;
+            float remainderWindow = auraCheckPeriod - warmUpWindow + Random.Range(0, 0.2f);
+            while (timer <= remainderWindow && EM.enemyIsFrozen == false)
+            {
+                timer += Time.deltaTime;
+                yield return null;
+            }
         }
         auraCheck = false;
     }

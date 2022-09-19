@@ -136,6 +136,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c9d3e6a9248556468ff1ae580e29432, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  offsetFromWallMult: 0.15
   shootAngularVelocity: 60
   normalAngularVelocity: 200
   shootBullets: 1
@@ -171,9 +172,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   multipleParts: 0
   enemyRB: {fileID: 0}
+  enemyChildren: []
   exclamation: {fileID: 3364276225366665692, guid: ac28d28127d78e8438dddc2e65c38c74, type: 3}
+  outsidePulseActive: 0
+  outsidePulseDirection: {x: 0, y: 0}
+  outsidePulseMagnitude: 16
   pulseActive: 0
   enemyWasPulsed: 0
+  pulseMultiplier: 1
   enemyIsInvulnerable: 0
   enemyWasDamaged: 0
   enemyWasKilled: 0
@@ -184,7 +190,9 @@ MonoBehaviour:
   normalDeath: 1
   normalDamage: 1
   normalHitstop: 1
+  blastzoneDeath: 1
   normalExplosionsWillDamage: 0
+  explosionsWillPush: 1
   reflectedBulletsWillDamage: 1
   keepAsKinematic: 0
   shieldCurrentlyActive: 0
@@ -200,8 +208,15 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
+  enemyObjects: []
+  enemyColors: []
   enemyHealth: 1
+  enemyWillFlash: 1
+  invulnerabilityPeriod: 2
   startEnemyDeath: 0
+  enemyCanBeFrozen: 1
+  enemyIsFrozen: 0
+  freezeLength: 4
   respawn: 0
 --- !u!1 &8585137073838006208
 GameObject:

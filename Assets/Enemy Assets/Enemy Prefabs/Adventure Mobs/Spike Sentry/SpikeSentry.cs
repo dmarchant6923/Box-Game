@@ -43,9 +43,11 @@ public class SpikeSentry : MonoBehaviour
     [HideInInspector] public bool stopIdleMovement = false;
     Vector2 posRight;
     Vector2 posLeft;
+    Vector2 posCurrent;
     [HideInInspector] public int direction = 1;
     float moveSpeed = 3;
     float waitTime = 1.5f;
+    float moveForce = 30;
 
     bool scaredMovement = false;
 
@@ -77,9 +79,6 @@ public class SpikeSentry : MonoBehaviour
         obstacleLM = LayerMask.GetMask("Obstacles");
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
 
-        EM.normalPulse = false;
-        EM.keepAsKinematic = true;
-
 
         float maxHalfDist = 5;
         RaycastHit2D RCLeft = Physics2D.CircleCast(enemyRB.position, transform.lossyScale.y / 2, Vector2.left, maxHalfDist + transform.lossyScale.y, obstacleLM);
@@ -96,6 +95,14 @@ public class SpikeSentry : MonoBehaviour
         }
 
         direction = (Random.Range(0, 2) * 2) - 1;
+        if (direction == -1)
+        {
+            posCurrent = posLeft;
+        }
+        else
+        {
+            posCurrent = posRight;
+        }
         StartCoroutine(IdleMovement());
 
     }
@@ -136,22 +143,17 @@ public class SpikeSentry : MonoBehaviour
             Box.activateHitstop = true;
         }
 
-        vectorToBox = (boxRB.position - enemyRB.position);
-        RaycastHit2D[] enemyRC_RayToBox = Physics2D.RaycastAll(enemyRB.position, vectorToBox.normalized, sightRadius, obstacleAndBoxLM);
-        float distToBox = 1000;
-        float distToObstacle = 1000;
-        foreach (RaycastHit2D col in enemyRC_RayToBox)
+        if (EM.enemyIsFrozen)
         {
-            if (col.collider != null && 1 << col.collider.gameObject.layer == boxLM)
-            {
-                distToBox = col.distance;
-            }
-            if (col.collider != null && 1 << col.collider.gameObject.layer == obstacleLM && col.collider.gameObject.tag != "Fence")
-            {
-                distToObstacle = Mathf.Min(col.distance, distToObstacle);
-            }
+            return;
         }
-        if (enemyRC_RayToBox.Length > 0 && distToBox < distToObstacle)
+        else if (enemyRB.rotation != 0)
+        {
+            enemyRB.rotation = 0;
+        }
+
+        vectorToBox = (boxRB.position - enemyRB.position);
+        if (Tools.LineOfSight(enemyRB.position, vectorToBox))
         {
             canSeeBox = true;
             EM.canSeeItem = true;
@@ -180,6 +182,14 @@ public class SpikeSentry : MonoBehaviour
                 Debug.DrawRay(enemyRB.position, visibleVectorToBox.normalized * sightRadius, Color.green);
             }
             Debug.DrawRay(enemyRB.position, vectorToBox.normalized * sightRadius, color);
+
+
+            Color color1 = Color.green; Color color2 = Color.white;
+            if (posCurrent == posRight) { color1 = Color.white; color2 = Color.green; }
+            Debug.DrawRay(posLeft + Vector2.up * 0.5f, Vector2.down, color1);
+            Debug.DrawRay(posLeft + Vector2.right * 0.5f, Vector2.left, color1);
+            Debug.DrawRay(posRight + Vector2.up * 0.5f, Vector2.down, color2);
+            Debug.DrawRay(posRight + Vector2.right * 0.5f, Vector2.left, color2);
         }
 
         if (canSeeBox && boomerangAttack == false && cooldownActive == false && EM.initialDelay == false && 
@@ -252,7 +262,10 @@ public class SpikeSentry : MonoBehaviour
         {
             if (EM.hitstopImpactActive == false)
             {
-                sentinelAngles[i] += Time.fixedDeltaTime * sentinelOrbitSpeed;
+                if (EM.initialDelay == false)
+                {
+                    sentinelAngles[i] += Time.fixedDeltaTime * sentinelOrbitSpeed;
+                }
 
                 sentinelPositions[i] = new Vector2(Mathf.Cos(sentinelAngles[i] * Mathf.Deg2Rad + Mathf.PI / 2),
                     Mathf.Sin(sentinelAngles[i] * Mathf.Deg2Rad + Mathf.PI / 2)).normalized * sentinelDistance;
@@ -287,32 +300,36 @@ public class SpikeSentry : MonoBehaviour
         float timer = 0;
         while (timer < window)
         {
-            sentinelDistance = Mathf.MoveTowards(sentinelDistance, startDistance * 0.6f, (startDistance * (1 - distMult) / window) * Time.fixedDeltaTime);
-
-            timer += Time.fixedDeltaTime;
+            if (EM.initialDelay == false)
+            {
+                sentinelDistance = Mathf.MoveTowards(sentinelDistance, startDistance * 0.6f, (startDistance * (1 - distMult) / window) * Time.fixedDeltaTime);
+                timer += Time.fixedDeltaTime;
+            }
             yield return new WaitForFixedUpdate();
         }
         bool allThrown = false;
         bool[] boomerangLaunched = new bool[2];
         while (allThrown == false)
         {
-            allThrown = true;
-            for (int i = 0; i < 2; i++)
+            if (EM.initialDelay == false)
             {
-                if (Vector2.Dot(sentinelPositions[i].normalized, visibleVectorToBox.normalized) > 0.99f && 
-                    boomerangLaunched[i] == false && sentinelsKilled[i] == false && sentinelsReturned[i])
+                allThrown = true;
+                for (int i = 0; i < 2; i++)
                 {
-                    boomerangLaunched[i] = true;
-                    sentinelBoomerang[i] = true;
-                    sentinelIdle[i] = false;
+                    if (Vector2.Dot(sentinelPositions[i].normalized, visibleVectorToBox.normalized) > 0.99f &&
+                        boomerangLaunched[i] == false && sentinelsKilled[i] == false && sentinelsReturned[i] && EM.initialDelay == false)
+                    {
+                        boomerangLaunched[i] = true;
+                        sentinelBoomerang[i] = true;
+                        sentinelIdle[i] = false;
+                    }
+                    if (boomerangLaunched[i] == false && sentinelsKilled[i] == false)
+                    {
+                        allThrown = false;
+                    }
                 }
-                if (boomerangLaunched[i] == false && sentinelsKilled[i] == false)
-                {
-                    allThrown = false;
-                }
-
+                sentinelOrbitSpeed += initialSentinelOrbitSpeed * 0.9f * Time.fixedDeltaTime;
             }
-            sentinelOrbitSpeed += initialSentinelOrbitSpeed * 0.9f * Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
         sightRadius = initialSightRadius;
@@ -334,7 +351,20 @@ public class SpikeSentry : MonoBehaviour
         }
         boomerangAttack = false;
         cooldownActive = true;
-        yield return new WaitForSeconds(attackCooldown);
+        //yield return new WaitForSeconds(attackCooldown);
+        timer = 0;
+        while (timer < attackCooldown)
+        {
+            if (enemyRB.velocity.magnitude < moveSpeed && Mathf.Abs(enemyRB.position.y - posCurrent.y) > 0.2)
+            {
+                float newForce = moveForce;
+                if (Mathf.Abs(enemyRB.position.y - posCurrent.y) < 0.75f) { newForce = moveForce * 0.15f; }
+                enemyRB.AddForce(Vector2.down * Mathf.Sign(enemyRB.position.y - posCurrent.y) * newForce);
+            }
+
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
         cooldownActive = false;
     }
     IEnumerator IdleMovement()
@@ -343,50 +373,37 @@ public class SpikeSentry : MonoBehaviour
         {
             while (true)
             {
-                if (direction == -1)
+                float window = waitTime + Random.Range(-waitTime * 0.2f, waitTime * 0.2f);
+                float timer = 0;
+                bool startTimer = false;
+                while (stopIdleMovement == false)
                 {
-                    while ((enemyRB.position - posLeft).magnitude > 0.05)
+                    if (stopIdleMovement == false && enemyRB.velocity.magnitude < moveSpeed && (enemyRB.position - posCurrent).magnitude > 0.2)
                     {
-                        if (stopIdleMovement == false)
-                        {
-                            enemyRB.position = Vector2.MoveTowards(enemyRB.position, posLeft, moveSpeed * Time.deltaTime);
-                        }
-                        yield return null;
+                        float newForce = moveForce;
+                        if ((enemyRB.position - posCurrent).magnitude < 0.75f) { newForce = moveForce * 0.15f; }
+                        enemyRB.AddForce((posCurrent - enemyRB.position).normalized * newForce);
                     }
-                    float window = waitTime + Random.Range(-waitTime * 0.2f, waitTime * 0.2f);
-                    float timer = 0;
-                    while (timer < window)
+                    if ((enemyRB.position - posCurrent).magnitude < 0.2)
                     {
-                        if (stopIdleMovement == false)
-                        {
-                            timer += Time.deltaTime;
-                        }
-                        yield return null;
+                        startTimer = true;
                     }
-                    direction *= -1;
+                    if (stopIdleMovement == false && startTimer)
+                    {
+                        timer += Time.fixedDeltaTime;
+                        if (timer > window)
+                        {
+                            break;
+                        }
+                    }
+                    yield return new WaitForFixedUpdate();
                 }
-                if (direction == 1)
+                if (stopIdleMovement)
                 {
-                    while ((enemyRB.position - posRight).magnitude > 0.05)
-                    {
-                        if (stopIdleMovement == false)
-                        {
-                            enemyRB.position = Vector2.MoveTowards(enemyRB.position, posRight, moveSpeed * Time.deltaTime);
-                        }
-                        yield return null;
-                    }
-                    float window = waitTime + Random.Range(-waitTime * 0.2f, waitTime * 0.2f);
-                    float timer = 0;
-                    while (timer < window)
-                    {
-                        if (stopIdleMovement == false)
-                        {
-                            timer += Time.deltaTime;
-                        }
-                        yield return null;
-                    }
-                    direction *= -1;
+                    yield return new WaitForFixedUpdate();
                 }
+                if (posCurrent == posRight) { posCurrent = posLeft; direction = -1; }
+                else { posCurrent = posRight; direction = 1; }
             }
         }
     }
@@ -395,15 +412,16 @@ public class SpikeSentry : MonoBehaviour
         scaredMovement = true;
         while (stopIdleMovement)
         {
-            if (boxRB.position.x > enemyRB.position.x && canSeeBox && GetComponentInChildren<BlginkrakEye>().damageBlink == false)
+            if (boxRB.position.x > enemyRB.position.x) { posCurrent = posLeft; }
+            if (boxRB.position.x < enemyRB.position.x) { posCurrent = posRight; }
+
+            if (canSeeBox && GetComponentInChildren<BlginkrakEye>().damageBlink == false && (vectorToBox - posCurrent).magnitude > 0.2f && enemyRB.velocity.magnitude < moveSpeed)
             {
-                enemyRB.position = Vector2.MoveTowards(enemyRB.position, posLeft, moveSpeed * Time.deltaTime);
+                float newForce = moveForce;
+                if ((enemyRB.position - posCurrent).magnitude < 0.75f) { newForce = moveForce * 0.15f; }
+                enemyRB.AddForce((posCurrent - enemyRB.position).normalized * newForce);
             }
-            else if (canSeeBox && GetComponentInChildren<BlginkrakEye>().damageBlink == false)
-            {
-                enemyRB.position = Vector2.MoveTowards(enemyRB.position, posRight, moveSpeed * Time.deltaTime);
-            }
-            yield return null;
+            yield return new WaitForFixedUpdate();
         }
         scaredMovement = false;
     }

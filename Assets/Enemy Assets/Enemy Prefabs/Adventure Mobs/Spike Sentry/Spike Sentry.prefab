@@ -349,7 +349,12 @@ MonoBehaviour:
   hitboxGlow: {fileID: 0}
   index: 0
   damage: 25
+  maxSpeed: 20
+  minSpeed: 1
   hitboxActive: 0
+  reflectActive: 0
+  reflectTimer: 0
+  willDamageEnemies: 0
 --- !u!114 &4771405740848661526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -366,8 +371,12 @@ MonoBehaviour:
   enemyRB: {fileID: 0}
   enemyChildren: []
   exclamation: {fileID: 3364276225366665692, guid: ac28d28127d78e8438dddc2e65c38c74, type: 3}
+  outsidePulseActive: 0
+  outsidePulseDirection: {x: 0, y: 0}
+  outsidePulseMagnitude: 16
   pulseActive: 0
   enemyWasPulsed: 0
+  pulseMultiplier: 1
   enemyIsInvulnerable: 0
   enemyWasDamaged: 0
   enemyWasKilled: 0
@@ -396,9 +405,15 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
+  enemyObjects: []
+  enemyColors: []
   enemyHealth: 1
+  enemyWillFlash: 1
   invulnerabilityPeriod: 2
   startEnemyDeath: 0
+  enemyCanBeFrozen: 1
+  enemyIsFrozen: 0
+  freezeLength: 4
   respawn: 0
 --- !u!60 &7505303427977536340
 PolygonCollider2D:
@@ -650,6 +665,7 @@ MonoBehaviour:
   stopIdleMovement: 0
   direction: 1
   debugEnabled: 0
+  aggroActive: 0
 --- !u!114 &1580331633000002744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -666,8 +682,12 @@ MonoBehaviour:
   enemyRB: {fileID: 0}
   enemyChildren: []
   exclamation: {fileID: 3364276225366665692, guid: ac28d28127d78e8438dddc2e65c38c74, type: 3}
+  outsidePulseActive: 0
+  outsidePulseDirection: {x: 0, y: 0}
+  outsidePulseMagnitude: 16
   pulseActive: 0
   enemyWasPulsed: 0
+  pulseMultiplier: 1
   enemyIsInvulnerable: 0
   enemyWasDamaged: 0
   enemyWasKilled: 0
@@ -696,9 +716,15 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
+  enemyObjects: []
+  enemyColors: []
   enemyHealth: 2
+  enemyWillFlash: 1
   invulnerabilityPeriod: 2
   startEnemyDeath: 0
+  enemyCanBeFrozen: 1
+  enemyIsFrozen: 0
+  freezeLength: 4
   respawn: 0
 --- !u!50 &8079255141981789389
 Rigidbody2D:
@@ -708,19 +734,19 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3370969176895724216}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
+  m_LinearDrag: 5
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!58 &4189918984870086186
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1005,7 +1031,12 @@ MonoBehaviour:
   hitboxGlow: {fileID: 0}
   index: 0
   damage: 25
+  maxSpeed: 20
+  minSpeed: 1
   hitboxActive: 0
+  reflectActive: 0
+  reflectTimer: 0
+  willDamageEnemies: 0
 --- !u!114 &902335053356132781
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1022,8 +1053,12 @@ MonoBehaviour:
   enemyRB: {fileID: 0}
   enemyChildren: []
   exclamation: {fileID: 3364276225366665692, guid: ac28d28127d78e8438dddc2e65c38c74, type: 3}
+  outsidePulseActive: 0
+  outsidePulseDirection: {x: 0, y: 0}
+  outsidePulseMagnitude: 16
   pulseActive: 0
   enemyWasPulsed: 0
+  pulseMultiplier: 1
   enemyIsInvulnerable: 0
   enemyWasDamaged: 0
   enemyWasKilled: 0
@@ -1052,9 +1087,15 @@ MonoBehaviour:
   shockActive: 0
   flashOn: 0
   lightning: {fileID: 3437158298876913312, guid: 94c0956302c2bf24fa67bd5eed0ab39d, type: 3}
+  enemyObjects: []
+  enemyColors: []
   enemyHealth: 1
+  enemyWillFlash: 1
   invulnerabilityPeriod: 2
   startEnemyDeath: 0
+  enemyCanBeFrozen: 1
+  enemyIsFrozen: 0
+  freezeLength: 4
   respawn: 0
 --- !u!60 &8910158395888259714
 PolygonCollider2D:
@@ -1235,6 +1276,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spriteMask: {fileID: 2395055251627096807}
   eyeLine: {fileID: 4916396068739967939}
+  damageBlink: 0
   isBoss: 0
   sweat: {fileID: 2869137536730620150, guid: 4664057a6c9f23f4c98c66cac7f06aef, type: 3}
 --- !u!1 &8905156685563672790

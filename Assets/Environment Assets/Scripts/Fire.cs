@@ -24,7 +24,7 @@ public class Fire : MonoBehaviour
 
     static int firesTouchingBox = 0;
 
-    public bool stopFire;
+    public bool stopFire = false;
 
     void Start()
     {

@@ -69,7 +69,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8963302871359003052, guid: a0efb665f82d2d54594adbb8ce2d9d8e, type: 3}
       propertyPath: restTime
-      value: 3.5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8963302871359003052, guid: a0efb665f82d2d54594adbb8ce2d9d8e, type: 3}
       propertyPath: shootBullets

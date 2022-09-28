@@ -78,8 +78,8 @@ public class Explosion : MonoBehaviour
                 {
                     EnemyManager EM = item.transform.root.GetComponent<EnemyManager>();
                     Rigidbody2D RB = item.transform.root.GetComponentInChildren<Rigidbody2D>();
-                    // if the explosion isn't set to damage enemies AND the enemy itself won't take damage from normal explosions, push the enemy
-                    if (EM.normalExplosionsWillDamage == false && damageEnemies == false)
+                    //push the enemy and damage the enemy if the explosion is set to do so
+                    if (EM.normalExplosionsWillDamage == false)
                     {
                         if (RB != null && RB.isKinematic == false && EM.explosionsWillPush)
                         {
@@ -90,13 +90,12 @@ public class Explosion : MonoBehaviour
                                 RB.AddForce(forceVector, ForceMode2D.Impulse);
                             }
                         }
-                        EM.enemyIsFrozen = false;
+                        if (damageEnemies)
+                        {
+                            EM.enemyWasDamaged = true;
+                        }
                     }
-                    // otherwise deal damage to the enemy
-                    else
-                    {
-                        EM.enemyWasDamaged = true;
-                    }
+                    EM.enemyIsFrozen = false;
                 }
                 if (1 << item.collider.gameObject.layer == LayerMask.GetMask("Enemy Device"))
                 {
@@ -115,12 +114,9 @@ public class Explosion : MonoBehaviour
                 }
             }
             float distToBox = new Vector2(boxRB.position.x - transform.position.x, boxRB.position.y - transform.position.y).magnitude;
-            if (distToBox <= 30 && GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+            if (FindObjectOfType<CameraFollowBox>() != null)
             {
-                CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-                camScript.startCamShake = true;
-                camScript.shakeInfo = new Vector2(explosionDamage,
-                    new Vector2(transform.position.x - boxRB.position.x, transform.position.y - boxRB.position.y).magnitude);
+                FindObjectOfType<CameraFollowBox>().StartCameraShake(explosionDamage, distToBox);
             }
         }
     }

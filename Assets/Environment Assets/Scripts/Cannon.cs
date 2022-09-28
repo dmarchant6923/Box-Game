@@ -109,11 +109,9 @@ public class Cannon : MonoBehaviour
         boxRB.velocity = new Vector2(boxRB.velocity.x, launchVector.y);
         active = false;
         cannonInputs.enabled = false;
-        if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+        if (FindObjectOfType<CameraFollowBox>() != null)
         {
-            CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-            camScript.startCamShake = true;
-            camScript.shakeInfo = new Vector2(10, 4);
+            FindObjectOfType<CameraFollowBox>().StartCameraShake(10,4);
         }
         yield return null;
         Box.forceEndInvul = true;

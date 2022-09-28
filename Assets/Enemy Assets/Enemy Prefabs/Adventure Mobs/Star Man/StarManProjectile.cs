@@ -114,6 +114,10 @@ public class StarManProjectile : MonoBehaviour
         {
             Explode();
         }
+        else if (collision.GetComponent<EnemyManager>() != null && projectileWasReflected)
+        {
+            Explode();
+        }
 
     }
     IEnumerator StarParticles()
@@ -133,6 +137,7 @@ public class StarManProjectile : MonoBehaviour
     }
     IEnumerator DelayedDestroy(Vector2 explodePosition)
     {
+        yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
         newExplosion = Instantiate(explosion, explodePosition, Quaternion.identity);

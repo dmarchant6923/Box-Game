@@ -458,11 +458,9 @@ public class EnemyBehavior_Grounded : MonoBehaviour
                             enemyRB.position = new Vector2(enemyRB.position.x, col.point.y + enemyCollider.bounds.extents.y * 0.65f);
                             enemyRB.rotation = 0;
                             enemyRB.angularVelocity = 0;
-                            if (GameObject.Find("Main Camera") != null)
+                            if (FindObjectOfType<CameraFollowBox>() != null)
                             {
-                                GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
-                                GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo =
-                                    new Vector2(groundpoundDamage * 0.75f, (boxRB.position - enemyRB.position).magnitude);
+                                FindObjectOfType<CameraFollowBox>().StartCameraShake(groundpoundDamage * 0.75f, (boxRB.position - enemyRB.position).magnitude);
                             }
 
                             GameObject newPulse = Instantiate(pulse, enemyRB.position, Quaternion.identity);

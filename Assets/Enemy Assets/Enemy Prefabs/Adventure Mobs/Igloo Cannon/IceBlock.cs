@@ -21,6 +21,7 @@ public class IceBlock : MonoBehaviour
     public Vector2 velocity;
     public float angularVelocity;
     float timer = 0;
+    bool mashInput = false;
 
     int stage = 0;
     GameObject crack1;
@@ -81,12 +82,17 @@ public class IceBlock : MonoBehaviour
             }
             rb.velocity = (rb.position - boxRB.position).normalized * Box.enemyPulseMagnitude * 0.75f;
         }
+
+        if (onBox && (iceInputs.attackButtonDown || iceInputs.teleportButtonDown || iceInputs.dashButtonDown || iceInputs.dodgeButtonDown || iceInputs.pulseButtonDown))
+        {
+            mashInput = true;
+        }
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if ((onBox && Box.frozen == false) || (onEnemy && EM.enemyIsFrozen == false) || timer > freezeTime)
+        if ((onBox && (Box.frozen == false || Box.boxHealth <= 0)) || (onEnemy && EM.enemyIsFrozen == false) || timer > freezeTime)
         {
             shatter();
         }
@@ -135,11 +141,12 @@ public class IceBlock : MonoBehaviour
         }
     }
 
-    void shatter()
+    public void shatter()
     {
         if (onBox)
         {
             Box.frozen = false;
+            Box.isInvulnerable = true;
         }
         if (onEnemy)
         {
@@ -252,8 +259,9 @@ public class IceBlock : MonoBehaviour
         bool up = false;
         bool down = false;
 
-        float mashWindow = 0.07f; //0.07
+        float mashWindow = 0.05f; //0.07
         float mashTimer = mashWindow;
+        float mashMultiplier = 2f;
 
         int activeFrames = 0;
         int inactiveFrames = 0;
@@ -284,7 +292,12 @@ public class IceBlock : MonoBehaviour
                 up = false;
                 mashTimer = 0;
             }
-            if (mashTimer == 0)
+            if (mashInput)
+            {
+                mashTimer = 0;
+                mashInput = false;
+            }
+            if (mashTimer == 0 && (down || up || left || right))
             {
                 rb.position += new Vector2(iceInputs.leftStickDisabled.x, iceInputs.leftStickDisabled.y / 3) * 0.12f;
             }
@@ -302,7 +315,7 @@ public class IceBlock : MonoBehaviour
 
             if (mashTimer < mashWindow)
             {
-                timer += Time.fixedDeltaTime * 1.5f;
+                timer += Time.fixedDeltaTime * mashMultiplier;
                 activeFrames++;
             }
             else

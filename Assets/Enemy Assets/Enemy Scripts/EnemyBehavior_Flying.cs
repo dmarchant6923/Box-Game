@@ -624,13 +624,19 @@ public class EnemyBehavior_Flying : MonoBehaviour
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (isDiving == true || diveWasReflected == true)
-        {
-            kamikazeExplode = true;
-        }
         if (collision.collider.gameObject.tag == "Hazard" && isDiving == false)
         {
             EM.enemyWasDamaged = true;
+        }
+
+
+        if (isDiving == true || diveWasReflected == true)
+        {
+            if (collision.collider.GetComponent<PlatformDrop>() != null && enemyRB.velocity.y > 0)
+            {
+                return;
+            }
+            kamikazeExplode = true;
         }
     }
 

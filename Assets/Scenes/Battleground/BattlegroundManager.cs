@@ -363,7 +363,7 @@ public class BattlegroundManager : MonoBehaviour
 
 
 
-        if (infiniteHealth == Box.boxHealth < maxHealth)
+        if (infiniteHealth && Box.boxHealth < maxHealth)
         {
             Box.boxHealth = maxHealth;
         }
@@ -380,7 +380,14 @@ public class BattlegroundManager : MonoBehaviour
         yield return new WaitForSeconds(timeBetweenWaves / 4);
         if (firstWave == false && deathActive == false)
         {
-            Box.boxHealth += 10;
+            //if (Box.boxHealth == maxHealth)
+            //{
+                //FindObjectOfType<UIManager>().DummyHealthIncrement(true);
+            //}
+            //else
+            //{
+                Box.boxHealth += 10;
+            //}
             UIManager.pulseNoKill = false;
             wave++;
         }

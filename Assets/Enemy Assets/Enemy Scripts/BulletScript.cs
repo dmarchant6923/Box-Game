@@ -87,7 +87,7 @@ public class BulletScript : MonoBehaviour
             }
             else
             {
-                DestroyBullet(false);
+                DestroyBullet();
             }
         }
         touchedWall = false;
@@ -133,7 +133,7 @@ public class BulletScript : MonoBehaviour
         bulletTimer += Time.deltaTime;
         if (bulletTimer >= bulletDespawnWindow)
         {
-            DestroyBullet(false);
+            DestroyBullet();
         }
         if (bulletTimer >= bulletDespawnWindow * flickerMult && flickerActive == false)
         {
@@ -201,21 +201,14 @@ public class BulletScript : MonoBehaviour
         {
             Box.boxWasBurned = true;
         }
-        DestroyBullet(true);
+        DestroyBullet();
     }
 
-    public void DestroyBullet(bool aestheticExplosion)
+    public void DestroyBullet()
     {
         if (explodingBullets == true)
         {
-            if (aestheticExplosion)
-            {
-                Explosion(explosionDamage, true);
-            }
-            else
-            {
-                Explosion(explosionDamage, false);
-            }
+            Explosion(explosionDamage);
         }
         if (bulletCosmetic == false)
         {
@@ -232,7 +225,7 @@ public class BulletScript : MonoBehaviour
         }
     }
 
-    private void Explosion(float explosionDamage, bool aesthetic)
+    private void Explosion(float explosionDamage)
     {
         Vector2 position = (explodeAtPosition) ? explodePosition : bulletRB.position - bulletRB.velocity * Time.deltaTime / 2;
         newExplosion = Instantiate(explosion, position, Quaternion.identity);
@@ -241,10 +234,6 @@ public class BulletScript : MonoBehaviour
         if (bulletWasReflected)
         {
             newExplosion.GetComponent<Explosion>().damageEnemies = true;
-        }
-        if (aesthetic)
-        {
-            newExplosion.GetComponent<Explosion>().aestheticExplosion = true;
         }
     }
 
@@ -280,7 +269,7 @@ public class BulletScript : MonoBehaviour
             {
                 collision.GetComponentInParent<EnemyManager>().enemyWasDamaged = true;
             }
-            DestroyBullet(false);
+            DestroyBullet();
         }
         else if (1 << collision.gameObject.layer == enemyLM && bulletWasReflected == false)
         {
@@ -312,7 +301,7 @@ public class BulletScript : MonoBehaviour
                 }
                 else
                 {
-                    DestroyBullet(false);
+                    DestroyBullet();
                 }
             }
         }
@@ -320,7 +309,7 @@ public class BulletScript : MonoBehaviour
         if (collision.transform.root.GetComponent<HitSwitch>() != null)
         {
             collision.transform.root.GetComponent<HitSwitch>().Hit();
-            DestroyBullet(false);
+            DestroyBullet();
         }
     }
 

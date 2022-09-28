@@ -346,11 +346,15 @@ public class EnemyBehavior_Turret : MonoBehaviour
             {
                 if (Vector2.Dot(barrelVector, barrelVectorLimits[0]) > Vector2.Dot(barrelVector, barrelVectorLimits[1]))
                 {
-                    barrelAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, barrelAngleLimits[0], angularVelocity * Time.deltaTime);
+                    //barrelAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, barrelAngleLimits[0], angularVelocity * Time.deltaTime);
+                    float fixedAngle = Tools.VectorToAngle((barrelVectorLimits[0] + halfwayVector * 0.01f).normalized);
+                    barrelAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, fixedAngle, angularVelocity * Time.deltaTime);
                 }
                 else
                 {
-                    barrelAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, barrelAngleLimits[1], angularVelocity * Time.deltaTime);
+                    //barrelAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, barrelAngleLimits[1], angularVelocity * Time.deltaTime);
+                    float fixedAngle = Tools.VectorToAngle((barrelVectorLimits[1] + halfwayVector * 0.01f).normalized);
+                    barrelAngle = Mathf.MoveTowardsAngle(transform.eulerAngles.z, fixedAngle, angularVelocity * Time.deltaTime);
                 }
             }
             else
@@ -448,6 +452,12 @@ public class EnemyBehavior_Turret : MonoBehaviour
             else
             {
                 Box.damageTaken += laserDOT * Time.deltaTime;
+            }
+
+            if (FindObjectOfType<CameraFollowBox>() != null)
+            {
+                FindObjectOfType<CameraFollowBox>().StartCameraShake(4, 30);
+                //FindObjectOfType<CameraFollowBox>().shakeInfo = new Vector2(10, 30);
             }
         }
 
@@ -603,6 +613,10 @@ public class EnemyBehavior_Turret : MonoBehaviour
             newGrenade = Instantiate(grenade, enemyRB.position + barrelVector * 1.5f * transform.lossyScale.x /2, bulletRotation);
             newGrenade.GetComponent<Rigidbody2D>().velocity = (barrelVector +
                 Vector2.Perpendicular(barrelVector) * Mathf.Sin(grenadeSpread * Mathf.PI / 180)).normalized * grenadeSpeed;
+            if (newGrenade.GetComponent<Snowball>() != null)
+            {
+                newGrenade.GetComponent<Snowball>().aggro = aggroActive;
+            }
 
             grenadesShot++;
 

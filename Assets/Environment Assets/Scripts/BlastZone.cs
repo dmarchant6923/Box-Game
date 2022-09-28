@@ -18,11 +18,9 @@ public class BlastZone : MonoBehaviour
         if (1 << collision.gameObject.layer == LayerMask.GetMask("Box"))
         {
             Box.boxHealth = 0;
-            if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+            if (FindObjectOfType<CameraFollowBox>() != null)
             {
-                CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-                camScript.startCamShake = true;
-                camScript.shakeInfo = new Vector2(20, 5);
+                FindObjectOfType<CameraFollowBox>().StartCameraShake(20,5);
             }
             if (normalRestart)
             {

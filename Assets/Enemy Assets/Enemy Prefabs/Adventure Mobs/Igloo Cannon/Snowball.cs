@@ -8,7 +8,7 @@ public class Snowball : MonoBehaviour
     Rigidbody2D boxRB;
 
     public float radius = 4;
-    public float freezeTime = 3;
+    public float freezeTime = 4;
     public float damage = 10;
     public float speed = 15;
 
@@ -25,7 +25,7 @@ public class Snowball : MonoBehaviour
     float timer = 0;
 
     bool snowballWasReflected = false;
-    bool aggro = false;
+    public bool aggro = false;
 
     int obstacleLM;
     int platformLM;
@@ -44,6 +44,13 @@ public class Snowball : MonoBehaviour
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
         boxLM = LayerMask.GetMask("Box");
         enemyLM = LayerMask.GetMask("Enemies");
+
+        if (aggro)
+        {
+            radius *= 1.3f;
+            freezeTime *= 1.3f;
+            damage *= 1.3f;
+        }
     }
 
     private void Update()
@@ -77,7 +84,7 @@ public class Snowball : MonoBehaviour
     void explode()
     {
         Vector2 explodePosition = rb.position - rb.velocity * Time.fixedDeltaTime;
-        RaycastHit2D[] circleCast = Physics2D.CircleCastAll(explodePosition, radius, Vector2.zero, 0, LayerMask.GetMask("Enemies", "Box"));
+        RaycastHit2D[] circleCast = Physics2D.CircleCastAll(explodePosition, radius, Vector2.zero, 0, LayerMask.GetMask("Enemies", "Box", "Enemy Ice Block", "Box Ice Block"));
         foreach (RaycastHit2D item in circleCast)
         {
             Vector2 vector = (item.collider.attachedRigidbody.position - explodePosition);
@@ -118,6 +125,11 @@ public class Snowball : MonoBehaviour
                         newIceBlock.GetComponent<IceBlock>().velocity = new Vector2(Mathf.Sign(boxRB.position.x - explodePosition.x), 1.2f).normalized * velocity;
                         newIceBlock.GetComponent<IceBlock>().angularVelocity = -Mathf.Sign(boxRB.position.x - explodePosition.x) * velocity * 40;
                         newIceBlock.GetComponent<IceBlock>().frozenRB = boxRB;
+                        newIceBlock.layer = LayerMask.NameToLayer("Box Ice Block");
+                        if (Box.boxHealth <= 0)
+                        {
+                            newIceBlock.GetComponent<IceBlock>().freezeTime = 0;
+                        }
                     }
                     else
                     {
@@ -167,9 +179,17 @@ public class Snowball : MonoBehaviour
                 else
                 {
                     Rigidbody2D enemyRB = item.transform.root.GetComponentInChildren<Rigidbody2D>();
-                    Vector2 forceVector = enemyRB.position - rb.position;
-                    enemyRB.AddForce(forceVector * 4, ForceMode2D.Impulse);
+                    Vector2 forceVector = (enemyRB.position - rb.position).normalized;
+                    enemyRB.AddForce(forceVector * 10, ForceMode2D.Impulse);
                 }
+            }
+
+            if (item.transform.GetComponent<IceBlock>() != null)
+            {
+                Debug.Log("you are here");
+                Rigidbody2D blockRB = item.transform.GetComponent<Rigidbody2D>();
+                Vector2 forceVector = ((blockRB.position - rb.position).normalized + Vector2.up * 0.2f).normalized;
+                blockRB.AddForce(forceVector * 10, ForceMode2D.Impulse);
             }
         }
 
@@ -177,11 +197,9 @@ public class Snowball : MonoBehaviour
         newExplosion.GetComponent<Explosion>().explosionRadius = radius;
         newExplosion.GetComponent<Explosion>().aestheticExplosion = true;
         newExplosion.GetComponent<SpriteRenderer>().color = new Color(0.6f, 1, 1);
-        if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+        if (FindObjectOfType<CameraFollowBox>() != null)
         {
-            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().startCamShake = true;
-            GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().shakeInfo =
-                new Vector2(7, (boxRB.position - explodePosition).magnitude);
+            FindObjectOfType<CameraFollowBox>().StartCameraShake(7, (boxRB.position - explodePosition).magnitude);
         }
 
         int snowflakes = 12;

@@ -25,6 +25,7 @@ public class Lightning : MonoBehaviour
     float chainRadius = 5;
     float chainDelay = 0.4f;
     bool chainFinished = false;
+    float thunderDamageCameraMult = 0.6f;
 
     [System.NonSerialized] public float pointsPerUnit = 1.656f;
     [System.NonSerialized] public float pointRadius = 0.3f;
@@ -141,12 +142,9 @@ public class Lightning : MonoBehaviour
                     touchedWall = true;
                     points[i] = wallCheck.point;
                     pointB = points[i];
-                    if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+                    if (FindObjectOfType<CameraFollowBox>() != null)
                     {
-                        CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-                        camScript.startCamShake = true;
-                        camScript.shakeInfo = new Vector2(thunderDamage,
-                            new Vector2(pointB.x - boxRB.position.x, pointB.y - boxRB.position.y).magnitude);
+                        FindObjectOfType<CameraFollowBox>().StartCameraShake(thunderDamage * thunderDamageCameraMult, (pointB - boxRB.position).magnitude);
                     }
                 }
             }
@@ -270,12 +268,9 @@ public class Lightning : MonoBehaviour
         }
 
         float distToBox = new Vector2(pointB.x - boxRB.position.x, pointB.y - boxRB.position.y).magnitude;
-        if (strike && GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null && distToBox < 30)
+        if (strike && FindObjectOfType<CameraFollowBox>() != null)
         {
-            CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-            camScript.startCamShake = true;
-            camScript.shakeInfo = new Vector2(thunderDamage * 0.4f,
-                new Vector2(pointB.x - boxRB.position.x, pointB.y - boxRB.position.y).magnitude);
+            FindObjectOfType<CameraFollowBox>().StartCameraShake(thunderDamage * thunderDamageCameraMult, distToBox);
         }
         if (strike == false)
         {
@@ -421,12 +416,9 @@ public class Lightning : MonoBehaviour
                     newLightning.GetComponent<Lightning>().pointB = floorCheck.point;
 
                     float distToBox = new Vector2(floorCheck.point.x - boxRB.position.x, floorCheck.point.y - boxRB.position.y).magnitude;
-                    if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null && distToBox < 30)
+                    if (FindObjectOfType<CameraFollowBox>() != null)
                     {
-                        CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-                        camScript.startCamShake = true;
-                        camScript.shakeInfo = new Vector2(thunderDamage,
-                            new Vector2(pointB.x - boxRB.position.x, pointB.y - boxRB.position.y).magnitude);
+                        FindObjectOfType<CameraFollowBox>().StartCameraShake(thunderDamage * thunderDamageCameraMult, distToBox);
                     }
                 }
                 else
@@ -434,13 +426,10 @@ public class Lightning : MonoBehaviour
                     int numBolts = 15;
                     float releaseRadius = chainRadius * 0.8f;
                     int boltsFired = 0;
-                    float distToBox = (sourceObject.transform.root.GetComponentInChildren<Rigidbody2D>().position - boxRB.position).magnitude;
                     int quadrant = 1;
-                    if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null && distToBox < 30)
+                    if (FindObjectOfType<CameraFollowBox>() != null)
                     {
-                        CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-                        camScript.startCamShake = true;
-                        camScript.shakeInfo = new Vector2(thunderDamage * 0.4f, (pointB - boxRB.position).magnitude);
+                        FindObjectOfType<CameraFollowBox>().StartCameraShake(thunderDamage * thunderDamageCameraMult, (pointB-boxRB.position).magnitude);
                     }
                     while (boltsFired < numBolts)
                     {

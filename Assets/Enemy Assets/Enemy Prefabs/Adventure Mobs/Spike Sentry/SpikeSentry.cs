@@ -373,6 +373,10 @@ public class SpikeSentry : MonoBehaviour
         {
             while (true)
             {
+                while (EM.initialDelay)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
                 float window = waitTime + Random.Range(-waitTime * 0.2f, waitTime * 0.2f);
                 float timer = 0;
                 bool startTimer = false;

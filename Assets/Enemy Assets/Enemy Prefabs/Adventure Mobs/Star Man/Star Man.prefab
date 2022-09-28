@@ -305,7 +305,7 @@ MonoBehaviour:
   sightRadius: 16
   starBullet: {fileID: 1031107831012274544, guid: 3df5d2ebe81d105479d088ca0b2c3478, type: 3}
   bulletSpeed: 15
-  bulletSpreadMax: 17
+  bulletSpreadMax: 14
   bulletsPerAttack: 10
   delayBeforeShooting: 0.7
   shootTimeInterval: 0.04
@@ -373,6 +373,8 @@ MonoBehaviour:
   enemyWillFlash: 1
   invulnerabilityPeriod: 2
   startEnemyDeath: 0
+  enemyCanBeFrozen: 1
+  enemyIsFrozen: 0
   respawn: 0
 --- !u!50 &597298454788221981
 Rigidbody2D:

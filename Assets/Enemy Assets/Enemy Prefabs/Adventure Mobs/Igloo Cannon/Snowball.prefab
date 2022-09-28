@@ -182,13 +182,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33347ff85bc3c4f49b61818057965b47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 4
-  freezeTime: 6
+  radius: 3.5
+  freezeTime: 4
   damage: 10
   speed: 15
   snowflake: {fileID: 212922547154837290, guid: 96cbcd93aa3371941ac922cf0d2052ec, type: 3}
   iceBlock: {fileID: 8978714135911670619, guid: 896f0d0cbacd56d4f8ae255162272b61, type: 3}
   explosion: {fileID: 5823236508701568830, guid: 28a7c8f00c3cbb344a6f8f0c20542e6d, type: 3}
+  aggro: 0
 --- !u!50 &8450506697580780889
 Rigidbody2D:
   serializedVersion: 4
@@ -204,7 +205,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 2
+  m_GravityScale: 1
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1

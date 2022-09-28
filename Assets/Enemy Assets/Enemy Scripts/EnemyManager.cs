@@ -91,7 +91,7 @@ public class EnemyManager : MonoBehaviour
 
     [HideInInspector] public bool enemyCanBeFrozen = true;
     [HideInInspector] public bool enemyIsFrozen = false;
-    [HideInInspector] public float freezeLength = 4f;
+    [System.NonSerialized] public float freezeLength = 6f;
 
     public bool respawn;
 

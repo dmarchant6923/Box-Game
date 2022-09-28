@@ -839,7 +839,7 @@ public class Box : MonoBehaviour
         //rebound
         if (activateRebound == true)
         {
-            if (enemyHitstopActive == false)
+            if (enemyHitstopActive == false && Box.damageActive == false)
             {
                 StartCoroutine(EnemyRebound());
             }
@@ -894,8 +894,9 @@ public class Box : MonoBehaviour
                     StartCoroutine(HitstopImpact(damageTaken));
                     if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
                     {
-                        GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().boxDamageShake = true;
-                        GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().boxDamageTaken = damageTaken;
+                        FindObjectOfType<CameraFollowBox>().StartCameraShake(damageTaken, 0);
+                        //GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().boxDamageShake = true;
+                        //GameObject.Find("Main Camera").GetComponent<CameraFollowBox>().boxDamageTaken = damageTaken;
                     }
                 }
             }
@@ -1647,11 +1648,9 @@ public class Box : MonoBehaviour
         rigidBody.velocity = new Vector2(rigidBody.velocity.x, jumpSpeed * 0.8f);
         canWallJump = false;
         dashActive = false;
-        if (GameObject.Find("Main Camera").GetComponent<CameraFollowBox>() != null)
+        if (FindObjectOfType<CameraFollowBox>() != null)
         {
-            CameraFollowBox camScript = GameObject.Find("Main Camera").GetComponent<CameraFollowBox>();
-            camScript.startCamShake = true;
-            camScript.shakeInfo = new Vector2(20, 20);
+            FindObjectOfType<CameraFollowBox>().StartCameraShake(20,20);
         }
         yield return null;
         yield return null;

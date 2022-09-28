@@ -28,13 +28,9 @@ public class CameraFollowBox : MonoBehaviour
     int camArrayLength = 12;
     List<Vector2> camPositionArray;
 
-    [HideInInspector] public bool startCamShake = false;
-    bool ignoreBoxDamageShake = false;
-    [HideInInspector] public bool boxDamageShake = false;
-    [HideInInspector] public float boxDamageTaken = 0;
-    [HideInInspector] public Vector2 shakeInfo; // x = damage, y = distance
+    float activeShakeDistance = 0;
+    Vector3 activeShakeDirection;
     Vector3 camShakeOffset;
-    bool shakeIgnoreActive = false;
 
     Vector3 camLookOffset;
     float camLookMax = 4;
@@ -66,6 +62,9 @@ public class CameraFollowBox : MonoBehaviour
         {
             camPositionArray[i] = followBox.position;
         }
+        activeShakeDistance = 0;
+
+        StartCoroutine(CameraShake2());
     }
 
     void FixedUpdate()
@@ -169,25 +168,49 @@ public class CameraFollowBox : MonoBehaviour
         }
     }
 
-    private void Update()
+    public void StartCameraShake(float damage, float distance)
     {
-        if (startCamShake == true)
+        if (distance == 0)
         {
-            if (shakeIgnoreActive == false)
-            {
-                StartCoroutine(CameraShake(shakeInfo.x, shakeInfo.y));
-            }
-            startCamShake = false;
+            distance = 10;
         }
-        if (boxDamageShake == true)
+        if (distance < 4) { distance = 4; }
+        float shakeDistance = Mathf.Sqrt(damage) / (Mathf.Sqrt(distance) * 3);
+        if (shakeDistance > 0.8f) { shakeDistance = 0.8f; }
+        if (shakeDistance < 0.1f) { shakeDistance = 0.1f; }
+        if (activeShakeDistance < shakeDistance)
         {
-            if (ignoreBoxDamageShake == false && shakeIgnoreActive == false)
-            {
-                StartCoroutine(CameraShake(boxDamageTaken, 12));
-            }
-            boxDamageShake = false;
+            activeShakeDistance = shakeDistance;
+            activeShakeDirection = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized;
         }
     }
+
+    IEnumerator CameraShake2()
+    {
+        while (true)
+        {
+            if (activeShakeDistance > 0)
+            {
+                float currentShakeDistance = activeShakeDistance;
+                float currentCamSize = cam.orthographicSize;
+                Vector3 currentShakeDirection = activeShakeDirection;
+                camShakeOffset += currentShakeDistance * currentShakeDirection * currentCamSize / maxCamSize;
+                yield return new WaitForFixedUpdate();
+                camShakeOffset -= currentShakeDistance * currentShakeDirection * currentCamSize / maxCamSize;
+                yield return new WaitForFixedUpdate();
+                float shakeReduction = (activeShakeDistance > 0.25f) ? 5 : 1.5f;
+                activeShakeDistance -= shakeReduction * Time.fixedDeltaTime;
+                activeShakeDirection *= -1;
+            }
+            else
+            {
+                camShakeOffset = Vector3.zero;
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
+    }
+
     public void RefocusBox()
     {
         for (int i = 0; i < camPositionArray.Count; i++)
@@ -222,39 +245,33 @@ public class CameraFollowBox : MonoBehaviour
         }
     }
 
-    IEnumerator CameraShake(float damage, float distance)
-    {
-        StartCoroutine(CamShakeDelay());
-        if (distance < 4) { distance = 4; }
-        float shakeDistance = Mathf.Sqrt(damage) / (Mathf.Sqrt(distance) * 3);
-        if (shakeDistance > 0.8f) { shakeDistance = 0.8f; }
-        if (shakeDistance < 0.1f) { shakeDistance = 0.1f; }
-        //Debug.Log(shakeDistance);
-        float currentDistance = shakeDistance;
-        Vector3 addToOffset;
-        ignoreBoxDamageShake = true;
-        yield return new WaitForFixedUpdate();
-        ignoreBoxDamageShake = false;
-        float shakeStepTime = 0.03f;
-        addToOffset = new Vector3(Random.Range(-1f,1f), Random.Range(-1f, 1f)).normalized;
-        //Debug.Log(addToOffset);
-        int i = 0;
-        while (currentDistance > 0.05f)
-        {
-            addToOffset = -addToOffset.normalized * currentDistance;
-            float currentCamSize = cam.orthographicSize;
-            camShakeOffset += addToOffset * currentCamSize / maxCamSize;
-            yield return new WaitForSeconds(shakeStepTime);
-            camShakeOffset -= addToOffset * currentCamSize / maxCamSize;
-            currentDistance -= (1f + shakeDistance) * shakeStepTime;
-            i++;
-        }
-    }
+    //IEnumerator CameraShake(float damage, float distance)
+    //{
+    //    StartCoroutine(CamShakeDelay());
+    //    if (distance < 4) { distance = 4; }
+    //    float shakeDistance = Mathf.Sqrt(damage) / (Mathf.Sqrt(distance) * 3);
+    //    if (shakeDistance > 0.8f) { shakeDistance = 0.8f; }
+    //    if (shakeDistance < 0.1f) { shakeDistance = 0.1f; }
+    //    //Debug.Log(shakeDistance);
+    //    float currentDistance = shakeDistance;
+    //    Vector3 addToOffset;
+    //    ignoreBoxDamageShake = true;
+    //    yield return new WaitForFixedUpdate();
+    //    ignoreBoxDamageShake = false;
+    //    float shakeStepTime = 0.03f;
+    //    addToOffset = new Vector3(Random.Range(-1f,1f), Random.Range(-1f, 1f)).normalized;
+    //    //Debug.Log(addToOffset);
+    //    int i = 0;
+    //    while (currentDistance > 0.05f)
+    //    {
+    //        addToOffset = -addToOffset.normalized * currentDistance;
+    //        float currentCamSize = cam.orthographicSize;
+    //        camShakeOffset += addToOffset * currentCamSize / maxCamSize;
+    //        yield return new WaitForSeconds(shakeStepTime);
+    //        camShakeOffset -= addToOffset * currentCamSize / maxCamSize;
+    //        currentDistance -= (1f + shakeDistance) * shakeStepTime;
+    //        i++;
+    //    }
+    //}
 
-    IEnumerator CamShakeDelay()
-    {
-        shakeIgnoreActive = true;
-        yield return new WaitForSeconds(0.2f);
-        shakeIgnoreActive = false;
-    }
 }

@@ -132,23 +132,48 @@ public class UIManager : MonoBehaviour
         }
         if (healthLastFrame != (int)Mathf.Ceil(Box.boxHealth) && spawnIncrement == true)
         {
-            lostHealth = Instantiate(healthIncrement, healthText.transform);
-            if (healthLastFrame > (int)Mathf.Ceil(Box.boxHealth))
+            if (healthLastFrame > (int)Mathf.Ceil(Box.boxHealth) && healthLastFrame <= initialHealth)
             {
-                lostHealth.text = ((int)Mathf.Ceil(Box.boxHealth) - healthLastFrame).ToString();
+                lostHealth = Instantiate(healthIncrement, healthText.transform);
+                if (healthLastFrame > (int)Mathf.Ceil(Box.boxHealth))
+                {
+                    lostHealth.text = ((int)Mathf.Ceil(Box.boxHealth) - healthLastFrame).ToString();
+                }
             }
-            else
+            else if (healthLastFrame < (int)Mathf.Ceil(Box.boxHealth))
             {
-                lostHealth.text = "+"+((int)Mathf.Ceil(Box.boxHealth) - healthLastFrame).ToString();
+                lostHealth = Instantiate(healthIncrement, healthText.transform);
+                lostHealth.text = "+" + ((int)Mathf.Ceil(Box.boxHealth) - healthLastFrame).ToString();
                 lostHealth.color = Color.magenta;
             }
+
+            //if (Box.boxHealth < initialHealth)
+            //{
+            //    lostHealth = Instantiate(healthIncrement, healthText.transform);
+            //    if (healthLastFrame > (int)Mathf.Ceil(Box.boxHealth))
+            //    {
+            //        lostHealth.text = ((int)Mathf.Ceil(Box.boxHealth) - healthLastFrame).ToString();
+            //    }
+            //    else
+            //    {
+            //        lostHealth.text = "+" + ((int)Mathf.Ceil(Box.boxHealth) - healthLastFrame).ToString();
+            //        lostHealth.color = Color.magenta;
+            //    }
+
+            //}
+            //else if (healthLastFrame > (int)Mathf.Ceil(Box.boxHealth))
+            //{
+            //    lostHealth = Instantiate(healthIncrement, healthText.transform);
+            //    lostHealth.text = "+" + (healthLastFrame - (int)Mathf.Ceil(Box.boxHealth)).ToString();
+            //    lostHealth.color = Color.magenta;
+            //}
         }
+        healthLastFrame = (int)Mathf.Ceil(Box.boxHealth);
         if (Box.boxHealth > initialHealth)
         {
             Box.boxHealth = initialHealth;
         }
 
-        healthLastFrame = (int)Mathf.Ceil(Box.boxHealth);
 
         if (UIInputs.startButtonDown && paused == false && canPause)
         {
@@ -251,6 +276,20 @@ public class UIManager : MonoBehaviour
                 pulseNoKill = false;
                 Box.pulseUnlocked = true;
             }
+        }
+    }
+
+    public void DummyHealthIncrement(bool positive)
+    {
+        lostHealth = Instantiate(healthIncrement, healthText.transform);
+        if (positive)
+        {
+            lostHealth.text = "+0";
+            lostHealth.color = Color.magenta;
+        }
+        else
+        {
+            lostHealth.text = "-0";
         }
     }
 

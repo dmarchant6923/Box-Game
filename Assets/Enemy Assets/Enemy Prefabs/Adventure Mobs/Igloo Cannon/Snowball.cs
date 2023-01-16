@@ -21,7 +21,7 @@ public class Snowball : MonoBehaviour
     public GameObject explosion;
     GameObject newExplosion;
 
-    float maxTime = 4f;
+    float maxTime = 7f;
     float timer = 0;
 
     bool snowballWasReflected = false;
@@ -71,17 +71,17 @@ public class Snowball : MonoBehaviour
         RaycastHit2D circleCast = Physics2D.CircleCast(rb.position, transform.localScale.x / 2, Vector2.zero, 0, boxLM);
         if (circleCast.collider != null && Box.dodgeInvulActive == false)
         {
-            explode();
+            Explode();
         }
 
         timer += Time.fixedDeltaTime;
         if (timer > maxTime)
         {
-            Destroy(gameObject);
+            Explode();
         }
     }
 
-    void explode()
+    void Explode()
     {
         Vector2 explodePosition = rb.position - rb.velocity * Time.fixedDeltaTime;
         RaycastHit2D[] circleCast = Physics2D.CircleCastAll(explodePosition, radius, Vector2.zero, 0, LayerMask.GetMask("Enemies", "Box", "Enemy Ice Block", "Box Ice Block"));
@@ -223,7 +223,7 @@ public class Snowball : MonoBehaviour
             {
                 return;
             }
-            explode();
+            Explode();
         }
     }
 }

@@ -70,6 +70,7 @@ public static class SaveManager
         if (File.Exists(fullPath))
         {
             jsonString = File.ReadAllText(fullPath);
+            
         }
         else
         {

@@ -28,7 +28,6 @@ public class AreaAnalyze : MonoBehaviour
         perimeter.positionCount = points.Length;
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         for (int i = 0; i < numPoints; i++)

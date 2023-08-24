@@ -11,8 +11,8 @@ public class EnemyBehavior_Wizard : MonoBehaviour
     Rigidbody2D enemyRB;
     Rigidbody2D boxRB;
     EnemyManager EM;
-    AreaAnalyze areaAnalyze;
-    LineRenderer lr;
+    MeshRenderer meshRenderer;
+    LOSMeshGenerator meshGenerator;
 
     RaycastHit2D obstacleCheckRC;
 
@@ -54,11 +54,10 @@ public class EnemyBehavior_Wizard : MonoBehaviour
     public GameObject gradientAura;
     public GameObject ringAura;
     GameObject newAura;
-    GameObject thisAura;
     Color thisAuraColor;
     Color initialAuraColor;
     bool auraCheck = false;
-    float auraCheckColorSpeed = 2;
+    float auraCheckColorSpeed = 1.4f;
     public float auraRadius = 5.5f;
     public float auraCheckPeriod = 3.5f;
     bool checkThisFrame = false;
@@ -94,8 +93,6 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         truePositionXDirection = Random.Range(0, 2);
         if (truePositionXDirection == 0) { truePositionXDirection = -1; }
 
-        thisAura = Instantiate(aura, transform);
-
         shieldColor = new Color(1, 0, 0.92f);
         pulseColor = new Color(0.5f, 0.3f, 0.92f);
         aggroColor = new Color(1, 0, 0.2f);
@@ -113,11 +110,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             wizardFire = Instantiate(fire, enemyRB.position, Quaternion.identity);
             wizardFire.GetComponent<Fire>().objectOnFire = enemyRB;
         }
-        thisAuraColor.a = 0.1f;
-        thisAura.GetComponent<SpriteRenderer>().color = thisAuraColor;
         initialAuraColor = thisAuraColor;
-
-        thisAura.transform.localScale = Vector2.one * auraRadius * 2;
 
         if (shield)
         {
@@ -128,13 +121,12 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             EM.canReceiveAggro = false;
         }
 
-        areaAnalyze = GetComponent<AreaAnalyze>();
-        lr = GetComponent<LineRenderer>();
-        areaAnalyze.radius = auraRadius;
-        Color color = thisAuraColor;
-        color.a = 0;
-        lr.startColor = color;
-        lr.endColor = color;
+        thisAuraColor.a = 0.1f;
+
+        meshRenderer = GetComponentInChildren<MeshRenderer>();
+        meshGenerator = GetComponent<LOSMeshGenerator>();
+        meshGenerator.radius = auraRadius;
+        meshRenderer.material.color = new Color(thisAuraColor.r, thisAuraColor.g, thisAuraColor.b, 0.2f);
     }
 
     private void FixedUpdate()
@@ -157,26 +149,27 @@ public class EnemyBehavior_Wizard : MonoBehaviour
 
         if (EM.enemyIsFrozen)
         {
-            if (thisAura.GetComponent<SpriteRenderer>().enabled)
-            {
-                thisAura.GetComponent<SpriteRenderer>().enabled = false;
-                if (aggro)
-                {
-                    wizardFire.GetComponent<Fire>().stopFire = true;
-                }
-                lr.enabled = false;
-            }
+            meshGenerator.generate = false;
+            //if (thisAura.GetComponent<SpriteRenderer>().enabled)
+            //{
+            //    thisAura.GetComponent<SpriteRenderer>().enabled = false;
+            //    if (aggro)
+            //    {
+            //        wizardFire.GetComponent<Fire>().stopFire = true;
+            //    }
+            //    //lr.enabled = false;
+            //}
             return;
         }
-        else if (thisAura.GetComponent<SpriteRenderer>().enabled == false)
+        else if (meshGenerator.generate == false)
         {
-            thisAura.GetComponent<SpriteRenderer>().enabled = true;
+            meshGenerator.generate = true;
             if (aggro)
             {
                 wizardFire = Instantiate(fire, enemyRB.position, Quaternion.identity);
                 wizardFire.GetComponent<Fire>().objectOnFire = enemyRB;
             }
-            lr.enabled = true;
+            //lr.enabled = true;
         }
 
         //floating logic Y
@@ -242,9 +235,8 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             aggroActive = true;
 
             auraRadius *= EM.aggroIncreaseMult;
-            areaAnalyze.radius = auraRadius;
+            meshGenerator.radius = auraRadius;
             auraCheckPeriod *= EM.aggroDecreaseMult;
-            thisAura.transform.localScale *= EM.aggroIncreaseMult;
 
             truePositionXVelocity *= EM.aggroIncreaseMult;
             forceMagnitudeX *= EM.aggroIncreaseMult;
@@ -257,9 +249,8 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             aggroActive = false;
 
             auraRadius /= EM.aggroIncreaseMult;
-            areaAnalyze.radius = auraRadius;
+            meshGenerator.radius = auraRadius;
             auraCheckPeriod /= EM.aggroDecreaseMult;
-            thisAura.transform.localScale /= EM.aggroIncreaseMult;
 
             truePositionXVelocity /= EM.aggroIncreaseMult;
             forceMagnitudeX /= EM.aggroIncreaseMult;
@@ -301,7 +292,7 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         if (EM.enemyWasKilled == true && enemyFadeActive == false)
         {
             StartCoroutine(EnemyFade());
-            thisAura.GetComponent<Aura>().breakAura = true;
+            meshRenderer.enabled = false;
             foreach (GameObject aura in spawnedAuras)
             {
                 if (aura != null)
@@ -635,28 +626,17 @@ public class EnemyBehavior_Wizard : MonoBehaviour
     }
     IEnumerator AuraColor()
     {
+        yield return null;
         thisAuraColor = initialAuraColor;
-        thisAuraColor.a = 1;
-        thisAura.GetComponent<SpriteRenderer>().color = thisAuraColor;
-
-        Color initialLineColor = lr.startColor;
-        Color lineColor = initialLineColor;
-        lineColor.a = 1;
-        lr.startColor = lineColor;
-        lr.endColor = lineColor;
+        thisAuraColor.a = 0.8f;
+        meshRenderer.material.color = thisAuraColor;
 
         float timer = 0;
         while (thisAuraColor.a >= 0.1f && EM.enemyWasKilled == false)
         {
             thisAuraColor.a -= auraCheckColorSpeed * Time.deltaTime;
-            thisAura.GetComponent<SpriteRenderer>().color = thisAuraColor;
+            meshRenderer.material.color = thisAuraColor;
 
-            if (lineColor.a > initialLineColor.a)
-            {
-                lineColor.a -= auraCheckColorSpeed * Time.deltaTime;
-                lr.startColor = lineColor;
-                lr.endColor = lineColor;
-            }
             if (EM.hitstopImpactActive == false)
             {
                 timer += Time.deltaTime;
@@ -664,7 +644,6 @@ public class EnemyBehavior_Wizard : MonoBehaviour
             yield return null;
         }
         thisAuraColor.a = 0.1f;
-        lr.startColor = initialLineColor;
-        lr.endColor = initialLineColor;
+        meshRenderer.material.color = thisAuraColor;
     }
 }

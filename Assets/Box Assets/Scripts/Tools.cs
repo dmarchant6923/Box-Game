@@ -67,4 +67,28 @@ public class Tools : MonoBehaviour
 
         return resultVector;
     }
+
+    public static void DebugDrawBox(Vector2 position, float length, float height)
+    {
+        DebugDrawBox(position, length, height, Color.white);
+    }
+
+    public static void DebugDrawBox(Vector2 position, float length, float height, Color color)
+    {
+        Debug.DrawRay(position + Vector2.up * height / 2 + Vector2.left * length / 2, Vector2.right * length, color);
+        Debug.DrawRay(position + Vector2.down * height / 2 + Vector2.left * length / 2, Vector2.right * length, color);
+
+        Debug.DrawRay(position + Vector2.left * length / 2 + Vector2.down * height / 2, Vector2.up * height, color);
+        Debug.DrawRay(position + Vector2.right * length / 2 + Vector2.down * height / 2, Vector2.up * height, color);
+    }
+
+    public static void DebugDrawMarker(Vector2 position)
+    {
+        DebugDrawMarker(position, Color.white);
+    }
+    public static void DebugDrawMarker(Vector2 position, Color color)
+    {
+        Debug.DrawRay(position + Vector2.one * 0.5f, -Vector2.one, color);
+        Debug.DrawRay(position + new Vector2(-1, 1) * 0.5f, new Vector2(1, -1), color);
+    }
 }

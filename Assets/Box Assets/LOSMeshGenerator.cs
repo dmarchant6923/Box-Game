@@ -11,30 +11,41 @@ public class LOSMeshGenerator : MonoBehaviour
     public float extraBufferDist = 0.1f;
     float startAngle;
 
+    public bool includePerimeter;
+    LineRenderer perimeter;
+
     public bool generate = true;
 
     int obstacleLM;
 
-    Rigidbody2D rb;
-
     public MeshFilter meshFilter;
     public MeshRenderer meshRenderer;
+    Material newMaterial;
     Mesh mesh;
 
-    void Start()
+    void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
         obstacleLM = LayerMask.GetMask("Obstacles");
 
         mesh = new Mesh();
         meshFilter.mesh = mesh;
 
-        meshRenderer.material.color = new Color(1, 0, 1, 0.5f);
+        newMaterial = Instantiate(meshRenderer.material);
+        meshRenderer.material = newMaterial;
+
+        if (includePerimeter)
+        {
+            perimeter = GetComponent<LineRenderer>();
+        }
     }
 
-    private void LateUpdate()
+    public void GenerateMesh()
     {
         mesh.Clear();
+        if (includePerimeter)
+        {
+            perimeter.positionCount = 0;
+        }
 
         if (generate == false)
         {
@@ -48,7 +59,7 @@ public class LOSMeshGenerator : MonoBehaviour
         {
             float angle = startAngle + (float)i * 360 / (float)numPoints;
             Vector2 vector = Tools.AngleToVector(angle);
-            RaycastHit2D raycast = Physics2D.Raycast(rb.position, vector, radius, obstacleLM);
+            RaycastHit2D raycast = Physics2D.Raycast(transform.position, vector, radius, obstacleLM);
             float distance = radius;
             if (raycast.collider != null)
             {
@@ -72,8 +83,8 @@ public class LOSMeshGenerator : MonoBehaviour
                 checkNormals = true;
                 if (i == 2)
                 {
-                    Debug.DrawRay(rb.position, vector * distance, Color.red);
-                    Debug.DrawRay(rb.position, lastRaycast.vector * lastRaycast.distance, Color.red);
+                    Debug.DrawRay(transform.position, vector * distance, Color.red);
+                    Debug.DrawRay(transform.position, lastRaycast.vector * lastRaycast.distance, Color.red);
                 }
                 checkEdge = false;
             }
@@ -91,7 +102,7 @@ public class LOSMeshGenerator : MonoBehaviour
 
                     float newAngle = (maxRay.angle + minRay.angle) / 2;
                     Vector2 newVector = Tools.AngleToVector(newAngle);
-                    RaycastHit2D newRaycast = Physics2D.Raycast(rb.position, newVector, radius, obstacleLM);
+                    RaycastHit2D newRaycast = Physics2D.Raycast(transform.position, newVector, radius, obstacleLM);
                     float newDistance = radius;
                     if (newRaycast.collider != null)
                     {
@@ -132,17 +143,30 @@ public class LOSMeshGenerator : MonoBehaviour
                 minRay.distance = Mathf.Min(minRay.distance + extraBufferDist, radius);
                 maxRay.distance = Mathf.Min(maxRay.distance + extraBufferDist, radius);
 
-                meshPoints.Add(rb.position + minRay.vector * minRay.distance);
-                meshPoints.Add(rb.position + maxRay.vector * maxRay.distance);
+                meshPoints.Add(new Vector2(transform.position.x, transform.position.y) + minRay.vector * minRay.distance);
+                meshPoints.Add(new Vector2(transform.position.x, transform.position.y) + maxRay.vector * maxRay.distance);
 
-
+                if (includePerimeter)
+                {
+                    perimeter.positionCount++;
+                    perimeter.SetPosition(meshPoints.Count - 2, new Vector2(transform.position.x, transform.position.y) + minRay.vector * minRay.distance);
+                    
+                    perimeter.positionCount++;
+                    perimeter.SetPosition(meshPoints.Count - 1, new Vector2(transform.position.x, transform.position.y) + maxRay.vector * maxRay.distance);
+                }
             }
 
             //Debug.DrawRay(rb.position, vector * distance, Color.red);
 
             distance = Mathf.Min(distance + extraBufferDist, radius);
-            meshPoints.Add(rb.position + vector * distance);
+            meshPoints.Add(new Vector2(transform.position.x, transform.position.y) + vector * distance);
             lastRaycast = thisRaycast;
+
+            if (includePerimeter)
+            {
+                perimeter.positionCount++;
+                perimeter.SetPosition(meshPoints.Count - 1, new Vector2(transform.position.x, transform.position.y) + vector * distance);
+            }
         }
 
         int vertexCount = meshPoints.Count + 1;
@@ -168,6 +192,11 @@ public class LOSMeshGenerator : MonoBehaviour
 
         mesh.vertices = vertices;
         mesh.triangles = triangles;
+
+        if (includePerimeter == false)
+        {
+            return;
+        }
     }
 
     public struct RayCastInfo

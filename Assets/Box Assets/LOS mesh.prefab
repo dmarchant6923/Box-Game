@@ -192,10 +192,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 10
-  numPoints: 360
+  numPoints: 100
   edgeResolveIterations: 4
   minDistThreshold: 1
   extraBufferDist: 0.1
+  generate: 1
   meshFilter: {fileID: 5290781363564709522}
   meshRenderer: {fileID: 3482622720432843592}
 --- !u!50 &5990084983297089102

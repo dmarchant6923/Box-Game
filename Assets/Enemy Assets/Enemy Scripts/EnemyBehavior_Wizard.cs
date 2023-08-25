@@ -567,6 +567,11 @@ public class EnemyBehavior_Wizard : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        meshGenerator.GenerateMesh();
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (1 << collision.gameObject.layer == LayerMask.GetMask("Hazards"))

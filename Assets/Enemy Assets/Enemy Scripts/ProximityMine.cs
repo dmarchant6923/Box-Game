@@ -5,7 +5,6 @@ using UnityEngine;
 public class ProximityMine : MonoBehaviour
 {
     bool lightActive = false;
-    GameObject mineLight;
     float lightRadius = 1.5f;
     float initialA;
     Color initialColor;
@@ -33,6 +32,8 @@ public class ProximityMine : MonoBehaviour
     int boxLM;
     int obstacleAndBoxLM;
 
+    LOSMeshGenerator meshGenerator;
+
     void Start()
     {
         groundLM = LayerMask.GetMask("Obstacles", "Platforms");
@@ -45,12 +46,13 @@ public class ProximityMine : MonoBehaviour
 
         checkWalls();
 
-
-        mineLight = transform.GetChild(1).gameObject;
-        initialColor = mineLight.GetComponent<Renderer>().material.color;
+        initialColor = new Color(1, 0.5f, 0, 0.05f);
         initialA = initialColor.a;
-        mineLight.transform.localScale = new Vector2(lightRadius * 2 / transform.lossyScale.x, lightRadius * 2 / transform.lossyScale.y);
+        meshGenerator = GetComponent<LOSMeshGenerator>();
+        meshGenerator.meshRenderer.material.color = initialColor;
+        meshGenerator.radius = lightRadius;
         StartCoroutine(Dormant());
+
     }
 
     void checkWalls()
@@ -138,6 +140,14 @@ public class ProximityMine : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (lightActive)
+        {
+            meshGenerator.GenerateMesh();
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (objectFound == false && (1 << collision.gameObject.layer == obstacleLM || 1 << collision.gameObject.layer == LayerMask.GetMask("Platforms")))
@@ -192,31 +202,29 @@ public class ProximityMine : MonoBehaviour
             yield return null;
         }
         yield return new WaitForSeconds(1.5f);
-        mineLight.SetActive(true);
         transform.GetComponent<Renderer>().material.color = initialColor;
         lightActive = true;
         StartCoroutine(LightFlash());
     }
     IEnumerator LightFlash()
     {
-        Color lightColor = mineLight.GetComponent<Renderer>().material.color;
+        Color lightColor = meshGenerator.meshRenderer.material.color;
         lightColor.a *= 5;
         if (detonateActive == false)
         {
-            mineLight.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
-            mineLight.GetComponent<Renderer>().material.color = lightColor;
+            meshGenerator.meshRenderer.material.color = lightColor;
         }
         float colorDimSpeed = 10;
         while (lightColor.a >= initialA && detonateActive == false)
         {
             lightColor.a -= colorDimSpeed * Time.deltaTime;
-            mineLight.GetComponent<Renderer>().material.color = lightColor;
+            meshGenerator.meshRenderer.material.color = lightColor;
             yield return null;
         }
         if (detonateActive == false)
         {
             lightColor.a = initialA;
-            mineLight.GetComponent<Renderer>().material.color = lightColor;
+            meshGenerator.meshRenderer.material.color = lightColor;
             yield return new WaitForSeconds(1);
             StartCoroutine(LightFlash());
         }
@@ -224,16 +232,14 @@ public class ProximityMine : MonoBehaviour
     IEnumerator Detonate()
     {
         detonateActive = true;
-        mineLight.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
-        mineLight.GetComponent<Renderer>().material.color = initialColor;
-        Color lightColor = mineLight.GetComponent<Renderer>().material.color;
+        Color lightColor = initialColor;
         lightColor.a = initialA * 7;
-        mineLight.GetComponent<Renderer>().material.color = lightColor;
+        meshGenerator.meshRenderer.material.color = lightColor;
         float detonateTimer = 0;
-        Color color = transform.GetComponent<Renderer>().material.color;
+        Color color = transform.GetComponent<SpriteRenderer>().color;
         float initialG = color.g;
         color.g *= 2;
-        transform.GetComponent<Renderer>().material.color = color;
+        transform.GetComponent<SpriteRenderer>().color = color;
         while (detonateTimer <= detonateDelay)
         {
             float colorTimer = 0;
@@ -247,12 +253,11 @@ public class ProximityMine : MonoBehaviour
                 yield return null;
             }
             lightColor.a /= 2;
-            mineLight.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
-            mineLight.GetComponent<Renderer>().material.color = lightColor;
+            meshGenerator.meshRenderer.material.color = lightColor;
 
             colorTimer = 0;
             color.g /= 2;
-            transform.GetComponent<Renderer>().material.color = color;
+            transform.GetComponent<SpriteRenderer>().color = color;
             while (colorTimer <= 0.07f && detonateTimer <= detonateDelay)
             {
                 colorTimer += Time.deltaTime;
@@ -263,11 +268,10 @@ public class ProximityMine : MonoBehaviour
                 yield return null;
             }
             lightColor.a *= 2;
-            mineLight.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
-            mineLight.GetComponent<Renderer>().material.color = lightColor;
+            meshGenerator.meshRenderer.material.color = lightColor;
 
             color.g *= 2;
-            transform.GetComponent<Renderer>().material.color = color;
+            transform.GetComponent<SpriteRenderer>().color = color;
         }
         Explode();
     }

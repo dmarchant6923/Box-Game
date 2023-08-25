@@ -9,7 +9,9 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     public Transform maskMid;
     public Transform mask2;
     public Transform fallingSand;
-    public Transform area;
+
+    LOSMeshGenerator meshGenerator;
+    LineRenderer lr;
 
     public GameObject duplicate;
     GameObject newDuplicate;
@@ -21,8 +23,6 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
     Rigidbody2D boxRB;
     EnemyManager EM;
     Rigidbody2D enemyRB;
-    AreaAnalyze areaAnalyze;
-    LineRenderer lr;
 
     public float flipTime = 6;
     float flipTransitionTime = 1f;
@@ -70,7 +70,6 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
         enemyRB = GetComponent<Rigidbody2D>();
         EM = GetComponent<EnemyManager>();
-        area.localScale = Vector2.one * radius * 2;
 
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Box");
         obstacleLM = LayerMask.GetMask("Obstacles");
@@ -83,11 +82,14 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
 
         EM.normalDeath = false;
 
-        areaAnalyze = GetComponent<AreaAnalyze>();
+        Color color = new Color(0, 0, 0);
+
+        meshGenerator = GetComponent<LOSMeshGenerator>();
+        meshGenerator.meshRenderer.material.color = new Color(color.r, color.g, color.b, 0.4f);
+        meshGenerator.radius = radius;
+        meshGenerator.meshRenderer.sortingLayerName = "Items";
+
         lr = GetComponent<LineRenderer>();
-        areaAnalyze.radius = radius;
-        Color color = area.GetComponent<SpriteRenderer>().color;
-        color.a = 0.6f;
         lr.startColor = color;
         lr.endColor = color;
     }
@@ -172,7 +174,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             sandDeltaTime = 0;
             if (duplicateSpawned == false)
             {
-                area.GetComponent<SpriteRenderer>().enabled = false;
+                meshGenerator.generate = false;
                 lr.enabled = false;
             }
             else if (frozen == false)
@@ -192,7 +194,7 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
             frozen = false;
             if (duplicateSpawned == false)
             {
-                area.GetComponent<SpriteRenderer>().enabled = true;
+                meshGenerator.generate = true;
                 lr.enabled = true;
                 enemyRB.rotation = 0;
             }
@@ -241,16 +243,18 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
         {
             aggro = true;
             radius *= EM.aggroIncreaseMult;
-            area.localScale *= EM.aggroIncreaseMult;
-            areaAnalyze.radius = radius;
+            meshGenerator.radius = radius;
         }
         if (EM.aggroCurrentlyActive == false && aggro)
         {
             aggro = false;
             radius /= EM.aggroIncreaseMult;
-            area.localScale /= EM.aggroIncreaseMult;
-            areaAnalyze.radius = radius;
+            meshGenerator.radius = radius;
         }
+    }
+    private void LateUpdate()
+    {
+        meshGenerator.GenerateMesh();
     }
     void initiateDuplicate()
     {
@@ -577,16 +581,15 @@ public class EnemyBehavior_Duplicate : MonoBehaviour
 
     IEnumerator DisableArea()
     {
-        SpriteRenderer areaSprite = area.GetComponent<SpriteRenderer>();
-        Color areaColor = areaSprite.color;
-        while (areaSprite.color.a > 0.01f)
+        Color areaColor = meshGenerator.meshRenderer.material.color;
+        while (meshGenerator.meshRenderer.material.color.a > 0.01f)
         {
             areaColor.a -= Time.deltaTime / 3;
-            areaSprite.color = areaColor;
+            meshGenerator.meshRenderer.material.color = areaColor;
             lr.startColor = areaColor;
             lr.endColor = areaColor;
             yield return null;
         }
-        area.gameObject.SetActive(false);
+        meshGenerator.generate = false;
     }
 }

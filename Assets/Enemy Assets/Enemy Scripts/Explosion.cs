@@ -25,9 +25,11 @@ public class Explosion : MonoBehaviour
     int obstacleAndBoxLM;
     int obstacleLM;
 
-    void Start()
+    LOSMeshGenerator meshGenerator;
+
+    IEnumerator Start()
     {
-        explosionColor = this.GetComponent<Renderer>().material.color;
+        explosionColor = GetComponent<SpriteRenderer>().color;
         transform.localScale = new Vector2(explosionRadius * 2, explosionRadius * 2);
 
         boxRB = GameObject.Find("Box").GetComponent<Rigidbody2D>();
@@ -36,6 +38,10 @@ public class Explosion : MonoBehaviour
         obstacleAndBoxLM = LayerMask.GetMask("Obstacles", "Hazards", "Box");
         obstacleLM = LayerMask.GetMask("Obstacles");
         vectorToBox = new Vector2(boxRB.position.x - transform.position.x, boxRB.position.y - transform.position.y).normalized;
+
+        meshGenerator = GetComponent<LOSMeshGenerator>();
+        meshGenerator.radius = explosionRadius;
+        meshGenerator.meshRenderer.material.SetColor("_Color", explosionColor);
 
         if (aestheticExplosion == false)
         {
@@ -119,13 +125,17 @@ public class Explosion : MonoBehaviour
                 FindObjectOfType<CameraFollowBox>().StartCameraShake(explosionDamage, distToBox);
             }
         }
+
+        yield return null;
+
+        meshGenerator.GenerateMesh();
     }
 
     // Update is called once per frame
     void Update()
     {
         explosionColor.a -= Time.deltaTime * 1.5f;
-        this.GetComponent<Renderer>().material.color = explosionColor;
+        meshGenerator.meshRenderer.material.SetColor("_Color", explosionColor);
         if (explosionColor.a <= 0)
         {
             Destroy(gameObject);
